@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LobbyCodeRouteImport } from './routes/lobby/$code'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoConvexRouteImport } from './routes/demo/convex'
 import { Route as DemoClerkRouteImport } from './routes/demo/clerk'
@@ -20,12 +21,15 @@ import { Route as DemoApiTqTodosRouteImport } from './routes/demo/api.tq-todos'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
 import { Route as DemoStartSsrIndexRouteImport } from './routes/demo/start.ssr.index'
 import { Route as DemoStartSsrSpaModeRouteImport } from './routes/demo/start.ssr.spa-mode'
-import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr.full-ssr'
-import { Route as DemoStartSsrDataOnlyRouteImport } from './routes/demo/start.ssr.data-only'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LobbyCodeRoute = LobbyCodeRouteImport.update({
+  id: '/lobby/$code',
+  path: '/lobby/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
@@ -78,29 +82,18 @@ const DemoStartSsrSpaModeRoute = DemoStartSsrSpaModeRouteImport.update({
   path: '/demo/start/ssr/spa-mode',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoStartSsrFullSsrRoute = DemoStartSsrFullSsrRouteImport.update({
-  id: '/demo/start/ssr/full-ssr',
-  path: '/demo/start/ssr/full-ssr',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoStartSsrDataOnlyRoute = DemoStartSsrDataOnlyRouteImport.update({
-  id: '/demo/start/ssr/data-only',
-  path: '/demo/start/ssr/data-only',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/lobby/$code': typeof LobbyCodeRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
-  '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
-  '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
   '/demo/start/ssr': typeof DemoStartSsrIndexRoute
 }
@@ -109,13 +102,12 @@ export interface FileRoutesByTo {
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/lobby/$code': typeof LobbyCodeRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
-  '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
-  '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
   '/demo/start/ssr': typeof DemoStartSsrIndexRoute
 }
@@ -125,13 +117,12 @@ export interface FileRoutesById {
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/lobby/$code': typeof LobbyCodeRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
-  '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
-  '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
   '/demo/start/ssr/': typeof DemoStartSsrIndexRoute
 }
@@ -142,13 +133,12 @@ export interface FileRouteTypes {
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/tanstack-query'
+    | '/lobby/$code'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
     | '/demo/sentry/testing'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
-    | '/demo/start/ssr/data-only'
-    | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
     | '/demo/start/ssr'
   fileRoutesByTo: FileRoutesByTo
@@ -157,13 +147,12 @@ export interface FileRouteTypes {
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/tanstack-query'
+    | '/lobby/$code'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
     | '/demo/sentry/testing'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
-    | '/demo/start/ssr/data-only'
-    | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
     | '/demo/start/ssr'
   id:
@@ -172,13 +161,12 @@ export interface FileRouteTypes {
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/tanstack-query'
+    | '/lobby/$code'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
     | '/demo/sentry/testing'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
-    | '/demo/start/ssr/data-only'
-    | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
     | '/demo/start/ssr/'
   fileRoutesById: FileRoutesById
@@ -188,13 +176,12 @@ export interface RootRouteChildren {
   DemoClerkRoute: typeof DemoClerkRoute
   DemoConvexRoute: typeof DemoConvexRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  LobbyCodeRoute: typeof LobbyCodeRoute
   DemoApiNamesRoute: typeof DemoApiNamesRoute
   DemoApiTqTodosRoute: typeof DemoApiTqTodosRoute
   DemoSentryTestingRoute: typeof DemoSentryTestingRoute
   DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
   DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
-  DemoStartSsrDataOnlyRoute: typeof DemoStartSsrDataOnlyRoute
-  DemoStartSsrFullSsrRoute: typeof DemoStartSsrFullSsrRoute
   DemoStartSsrSpaModeRoute: typeof DemoStartSsrSpaModeRoute
   DemoStartSsrIndexRoute: typeof DemoStartSsrIndexRoute
 }
@@ -206,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lobby/$code': {
+      id: '/lobby/$code'
+      path: '/lobby/$code'
+      fullPath: '/lobby/$code'
+      preLoaderRoute: typeof LobbyCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/tanstack-query': {
@@ -278,20 +272,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoStartSsrSpaModeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/start/ssr/full-ssr': {
-      id: '/demo/start/ssr/full-ssr'
-      path: '/demo/start/ssr/full-ssr'
-      fullPath: '/demo/start/ssr/full-ssr'
-      preLoaderRoute: typeof DemoStartSsrFullSsrRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/start/ssr/data-only': {
-      id: '/demo/start/ssr/data-only'
-      path: '/demo/start/ssr/data-only'
-      fullPath: '/demo/start/ssr/data-only'
-      preLoaderRoute: typeof DemoStartSsrDataOnlyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -300,13 +280,12 @@ const rootRouteChildren: RootRouteChildren = {
   DemoClerkRoute: DemoClerkRoute,
   DemoConvexRoute: DemoConvexRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  LobbyCodeRoute: LobbyCodeRoute,
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoApiTqTodosRoute: DemoApiTqTodosRoute,
   DemoSentryTestingRoute: DemoSentryTestingRoute,
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,
   DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,
-  DemoStartSsrDataOnlyRoute: DemoStartSsrDataOnlyRoute,
-  DemoStartSsrFullSsrRoute: DemoStartSsrFullSsrRoute,
   DemoStartSsrSpaModeRoute: DemoStartSsrSpaModeRoute,
   DemoStartSsrIndexRoute: DemoStartSsrIndexRoute,
 }
