@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LobbyCodeRouteImport } from './routes/lobby/$code'
+import { Route as GameCodeRouteImport } from './routes/game/$code'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoConvexRouteImport } from './routes/demo/convex'
 import { Route as DemoClerkRouteImport } from './routes/demo/clerk'
@@ -30,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 const LobbyCodeRoute = LobbyCodeRouteImport.update({
   id: '/lobby/$code',
   path: '/lobby/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GameCodeRoute = GameCodeRouteImport.update({
+  id: '/game/$code',
+  path: '/game/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/convex': typeof DemoConvexRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/tanstack-query'
+    | '/game/$code'
     | '/lobby/$code'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/tanstack-query'
+    | '/game/$code'
     | '/lobby/$code'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/demo/clerk'
     | '/demo/convex'
     | '/demo/tanstack-query'
+    | '/game/$code'
     | '/lobby/$code'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
@@ -176,6 +188,7 @@ export interface RootRouteChildren {
   DemoClerkRoute: typeof DemoClerkRoute
   DemoConvexRoute: typeof DemoConvexRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  GameCodeRoute: typeof GameCodeRoute
   LobbyCodeRoute: typeof LobbyCodeRoute
   DemoApiNamesRoute: typeof DemoApiNamesRoute
   DemoApiTqTodosRoute: typeof DemoApiTqTodosRoute
@@ -200,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/lobby/$code'
       fullPath: '/lobby/$code'
       preLoaderRoute: typeof LobbyCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/game/$code': {
+      id: '/game/$code'
+      path: '/game/$code'
+      fullPath: '/game/$code'
+      preLoaderRoute: typeof GameCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/tanstack-query': {
@@ -280,6 +300,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoClerkRoute: DemoClerkRoute,
   DemoConvexRoute: DemoConvexRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  GameCodeRoute: GameCodeRoute,
   LobbyCodeRoute: LobbyCodeRoute,
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoApiTqTodosRoute: DemoApiTqTodosRoute,
