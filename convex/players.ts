@@ -55,7 +55,6 @@ export const join = mutation({
 
     const isHost = game.hostId === sessionId;
 
-    // Insert player
     const playerId = await ctx.db.insert("players", {
       gameId: game._id,
       sessionId,
@@ -66,5 +65,24 @@ export const join = mutation({
     });
 
     return playerId;
+  },
+});
+
+export const leave = mutation({
+  args: {
+    gameId: v.id("games"),
+    sessionId: v.string(),
+  },
+  handler: async (ctx, { gameId, sessionId }) => {
+    const player = await ctx.db
+      .query("players")
+      .withIndex("by_session", (q) =>
+        q.eq("gameId", gameId).eq("sessionId", sessionId),
+      )
+      .first();
+
+    if (player) {
+      await ctx.db.delete(player._id);
+    }
   },
 });

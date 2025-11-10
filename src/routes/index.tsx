@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { getSessionId } from "@/lib/session";
 
 export const Route = createFileRoute("/")({ component: App });
 
@@ -17,7 +18,10 @@ function App() {
     try {
       setIsCreating(true);
       setError("");
-      const game = await createGame({});
+      const game = await createGame({
+        hostId: getSessionId(),
+        settings: { roundCount: 3, secondsPerRound: 10 },
+      });
       navigate({ to: `/lobby/${game.code}` });
     } catch {
       setError("Failed to create game. Try again!");
@@ -46,7 +50,9 @@ function App() {
 
       <div className="relative z-10 text-center">
         {/* Title */}
-        <h1 className="pixel-title text-white mb-16 max-w-[280px] mx-auto">MUSIC ROUND</h1>
+        <h1 className="pixel-title text-white mb-16 max-w-[280px] mx-auto">
+          MUSIC ROUND
+        </h1>
 
         {/* Musical notes decoration */}
         <div className="flex justify-center gap-8 mb-12 text-4xl">
@@ -70,25 +76,7 @@ function App() {
           </span>
         </div>
 
-        {/* Button Container */}
         <div className="space-y-6 max-w-sm mx-auto">
-          {/* Create Game Button */}
-          <button
-            onClick={handleCreateGame}
-            disabled={isCreating}
-            className="pixel-button w-full bg-white text-xl py-5 px-8"
-          >
-            {isCreating ? "CREATING..." : "CREATE GAME"}
-          </button>
-
-          {/* Divider */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-1 bg-white"></div>
-            <span className="text-white pixel-text text-xl">OR</span>
-            <div className="flex-1 h-1 bg-white"></div>
-          </div>
-
-          {/* Join Game Input */}
           <div className="space-y-3">
             <input
               type="text"
@@ -107,8 +95,26 @@ function App() {
             </button>
           </div>
 
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-1 bg-white"></div>
+            <span className="text-white pixel-text text-xl">OR</span>
+            <div className="flex-1 h-1 bg-white"></div>
+          </div>
+
+          <button
+            onClick={handleCreateGame}
+            disabled={isCreating}
+            className="pixel-button w-full bg-white text-xl py-5 px-8"
+          >
+            {isCreating ? "CREATING..." : "CREATE GAME"}
+          </button>
+
           {/* Error Message */}
-          {error && <div className="pixel-error bg-red-200 text-xl p-3 leading-relaxed">⚠️ {error}</div>}
+          {error && (
+            <div className="pixel-error bg-red-200 text-xl p-3 leading-relaxed">
+              {error}
+            </div>
+          )}
         </div>
       </div>
     </div>
