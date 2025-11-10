@@ -98,3 +98,59 @@ export const create = mutation({
     return { gameId, code };
   },
 });
+
+export const start = mutation({
+  args: { gameId: v.id("games") },
+  handler: async (ctx, { gameId }) => {
+    await ctx.db.patch(gameId, { status: "playing" });
+
+    const firstRound = await ctx.db
+      .query("rounds")
+      .withIndex("by_game_and_number", (q) =>
+        q.eq("gameId", gameId).eq("roundNumber", 1),
+      )
+      .first();
+
+    if (firstRound) {
+      await ctx.db.patch(firstRound._id, { startedAt: Date.now() });
+    }
+  },
+});
+
+export const nextRound = mutation({
+  args: { gameId: v.id("games") },
+  handler: async (ctx, { gameId }) => {
+    const game = await ctx.db.get(gameId);
+    if (!game) throw new Error("Game not found");
+
+    const currentRoundNum = game.currentRound + 1;
+    const nextRoundNum = currentRoundNum + 1;
+
+    const currentRound = await ctx.db
+      .query("rounds")
+      .withIndex("by_game_and_number", (q) =>
+        q.eq("gameId", gameId).eq("roundNumber", currentRoundNum),
+      )
+      .first();
+
+    if (currentRound) {
+      await ctx.db.patch(currentRound._id, { endedAt: Date.now() });
+    }
+
+    const nextRound = await ctx.db
+      .query("rounds")
+      .withIndex("by_game_and_number", (q) =>
+        q.eq("gameId", gameId).eq("roundNumber", nextRoundNum),
+      )
+      .first();
+
+    if (nextRound) {
+      await ctx.db.patch(nextRound._id, { startedAt: Date.now() });
+      await ctx.db.patch(gameId, {
+        currentRound: game.currentRound + 1,
+      });
+    } else {
+      await ctx.db.patch(gameId, { status: "finished" });
+    }
+  },
+});

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 
 export const list = query({
   args: { gameId: v.id("games") },
@@ -23,5 +23,57 @@ export const getCurrent = query({
         q.eq("gameId", gameId).eq("roundNumber", roundNumber),
       )
       .first();
+  },
+});
+
+export const createTestRounds = mutation({
+  args: { gameId: v.id("games"), count: v.number() },
+  handler: async (ctx, { gameId, count }) => {
+    const fakeSongs = [
+      {
+        spotifyId: "fake1",
+        previewURL: "https://example.com/preview1.mp3",
+        correctArtist: "The Beatles",
+        correctTitle: "Hey Jude",
+        albumArt: "https://via.placeholder.com/300",
+      },
+      {
+        spotifyId: "fake2",
+        previewURL: "https://example.com/preview2.mp3",
+        correctArtist: "Queen",
+        correctTitle: "Bohemian Rhapsody",
+        albumArt: "https://via.placeholder.com/300",
+      },
+      {
+        spotifyId: "fake3",
+        previewURL: "https://example.com/preview3.mp3",
+        correctArtist: "Nirvana",
+        correctTitle: "Smells Like Teen Spirit",
+        albumArt: "https://via.placeholder.com/300",
+      },
+      {
+        spotifyId: "fake4",
+        previewURL: "https://example.com/preview4.mp3",
+        correctArtist: "Led Zeppelin",
+        correctTitle: "Stairway to Heaven",
+        albumArt: "https://via.placeholder.com/300",
+      },
+      {
+        spotifyId: "fake5",
+        previewURL: "https://example.com/preview5.mp3",
+        correctArtist: "Pink Floyd",
+        correctTitle: "Comfortably Numb",
+        albumArt: "https://via.placeholder.com/300",
+      },
+    ];
+
+    for (let i = 0; i < count; i++) {
+      const song = fakeSongs[i % fakeSongs.length];
+      await ctx.db.insert("rounds", {
+        gameId,
+        roundNumber: i + 1,
+        songData: song,
+      });
+    }
   },
 });
