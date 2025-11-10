@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 function generateCode(): string {
   const words = [
@@ -102,8 +103,30 @@ export const create = mutation({
 export const start = mutation({
   args: { gameId: v.id("games") },
   handler: async (ctx, { gameId }) => {
-    await ctx.db.patch(gameId, { status: "playing" });
+    const game = await ctx.db.get(gameId);
+    if (!game) throw new Error("Game not found");
 
+    // Check if rounds already exist
+    const existingRounds = await ctx.db
+      .query("rounds")
+      .withIndex("by_game", (q) => q.eq("gameId", gameId))
+      .first();
+
+    // Create test rounds if none exist
+    if (!existingRounds) {
+      await ctx.runMutation(internal.rounds.createTestRounds, {
+        gameId,
+        count: game.settings.roundCount,
+      });
+    }
+
+    // Set game status to playing and set currentRound to 1
+    await ctx.db.patch(gameId, {
+      status: "playing",
+      currentRound: 1,
+    });
+
+    // Start the first round
     const firstRound = await ctx.db
       .query("rounds")
       .withIndex("by_game_and_number", (q) =>
