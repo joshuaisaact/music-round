@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 function generateCode(): string {
@@ -106,13 +106,11 @@ export const start = mutation({
     const game = await ctx.db.get(gameId);
     if (!game) throw new Error("Game not found");
 
-    // Check if rounds already exist
     const existingRounds = await ctx.db
       .query("rounds")
       .withIndex("by_game", (q) => q.eq("gameId", gameId))
       .first();
 
-    // Create test rounds if none exist
     if (!existingRounds) {
       await ctx.runMutation(internal.rounds.createTestRounds, {
         gameId,
@@ -120,17 +118,15 @@ export const start = mutation({
       });
     }
 
-    // Set game status to playing and set currentRound to 1
     await ctx.db.patch(gameId, {
       status: "playing",
-      currentRound: 1,
+      currentRound: 0,
     });
 
-    // Start the first round
     const firstRound = await ctx.db
       .query("rounds")
       .withIndex("by_game_and_number", (q) =>
-        q.eq("gameId", gameId).eq("roundNumber", 1),
+        q.eq("gameId", gameId).eq("roundNumber", 0),
       )
       .first();
 
