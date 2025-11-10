@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/lobby/$code")({
   component: Lobby,
@@ -56,10 +56,18 @@ function Lobby() {
     if (!game) return;
     try {
       await startGame({ gameId: game._id });
+      navigate({ to: "/game/$code", params: { code } });
     } catch {
       setError("Failed to start game!");
     }
   };
+
+  // Navigate all players when game status changes to "playing"
+  useEffect(() => {
+    if (game?.status === "playing") {
+      navigate({ to: "/game/$code", params: { code } });
+    }
+  }, [game?.status, code, navigate]);
 
   const handleCopyCode = async () => {
     try {

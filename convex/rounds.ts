@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 
 export const list = query({
   args: { gameId: v.id("games") },
@@ -26,7 +26,7 @@ export const getCurrent = query({
   },
 });
 
-export const createTestRounds = mutation({
+export const createTestRounds = internalMutation({
   args: { gameId: v.id("games"), count: v.number() },
   handler: async (ctx, { gameId, count }) => {
     const fakeSongs = [
