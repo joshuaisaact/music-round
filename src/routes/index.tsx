@@ -51,7 +51,7 @@ function App() {
 
       <div className="relative z-10 text-center">
         {/* Title */}
-        <h1 className="pixel-title text-white mb-16 max-w-[280px] mx-auto">
+        <h1 className="text-white mb-16 max-w-[600px] mx-auto text-[3rem] sm:text-[7rem] leading-[1.3]" style={{ fontFamily: '"VCR OSD Mono", monospace' }}>
           MUSIC ROUND
         </h1>
 

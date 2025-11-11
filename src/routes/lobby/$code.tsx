@@ -144,7 +144,7 @@ function Lobby() {
     return (
       <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
         <div className="relative z-10 text-center max-w-md w-full">
-          <h1 className="pixel-title text-white mb-8">JOIN GAME</h1>
+          <h1 className="text-white mb-8 text-[3rem] sm:text-[7rem] leading-[1.3]" style={{ fontFamily: '"VCR OSD Mono", monospace' }}>JOIN GAME</h1>
 
           <div className="bg-white border-4 border-sky-900 p-8 mb-6">
             <p className="pixel-text text-sky-600 text-sm mb-2">GAME CODE</p>

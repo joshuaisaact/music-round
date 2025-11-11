@@ -11,7 +11,10 @@ function calculateScore(
     s
       .toLowerCase()
       .trim()
-      .replace(/^the\s+/i, "");
+      .replace(/^the\s+/i, "") // Remove leading "the"
+      .replace(/[^\w\s]/g, "") // Remove punctuation and special characters
+      .replace(/\s+/g, " ") // Normalize whitespace
+      .trim();
 
   const artistMatch = normalize(submittedArtist) === normalize(correctArtist);
   const titleMatch = normalize(submittedTitle) === normalize(correctTitle);

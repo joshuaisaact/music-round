@@ -54,13 +54,11 @@ export const searchTrack = action({
     title: v.string(),
   },
   handler: async (ctx, { artist, title }) => {
-    console.log(`[Spotify] Searching for: ${artist} - ${title}`);
     const accessToken = await getSpotifyAccessToken();
 
     // Search for the specific track
     const query = encodeURIComponent(`track:${title} artist:${artist}`);
     const searchUrl = `https://api.spotify.com/v1/search?q=${query}&type=track&limit=1&market=US`;
-    console.log(`[Spotify] Query URL: ${searchUrl}`);
 
     const response = await fetch(searchUrl, {
       headers: {
@@ -81,16 +79,6 @@ export const searchTrack = action({
       throw new Error(`Track not found: ${artist} - ${title}`);
     }
 
-    console.log(`[Spotify] Found track:`, {
-      id: track.id,
-      name: track.name,
-      artist: track.artists[0]?.name,
-      hasPreview: !!track.preview_url,
-      previewUrl: track.preview_url,
-      hasAlbumArt: track.album.images.length > 0,
-      albumArtUrl: track.album.images[0]?.url,
-    });
-
     // Extract the year from release date (YYYY-MM-DD)
     const releaseYear = track.album.release_date
       ? parseInt(track.album.release_date.split("-")[0], 10)
@@ -99,19 +87,17 @@ export const searchTrack = action({
     // Try to get Deezer preview URL as fallback (or primary source)
     let deezerPreviewURL = "";
     try {
-      console.log(`[Spotify] Fetching Deezer preview for: ${artist} - ${title}`);
       const deezerData = await ctx.runAction(api.deezer.searchTrack, {
         artist: track.artists[0]?.name || artist,
         title: track.name,
       });
       deezerPreviewURL = deezerData.previewURL;
-      console.log(`[Spotify] Deezer preview URL found: ${deezerPreviewURL}`);
     } catch (error) {
       console.error(`[Spotify] Failed to fetch Deezer preview:`, error);
       // Continue without Deezer preview
     }
 
-    const result = {
+    return {
       spotifyId: track.id,
       previewURL: deezerPreviewURL || track.preview_url || "",
       correctArtist: track.artists[0]?.name || artist,
@@ -119,8 +105,5 @@ export const searchTrack = action({
       albumArt: track.album.images[0]?.url || "",
       releaseYear,
     };
-
-    console.log(`[Spotify] Returning:`, result);
-    return result;
   },
 });

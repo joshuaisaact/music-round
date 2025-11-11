@@ -30,13 +30,23 @@ export const getCurrent = query({
 export const createTestRounds = internalAction({
   args: { gameId: v.id("games"), count: v.number() },
   handler: async (ctx, { gameId, count }) => {
-    // Newer indie/alternative songs more likely to have preview URLs
+    // Classic disco and house tracks from the 70s/80s
     const testSongs = [
-      { artist: "Tame Impala", title: "The Less I Know The Better" },
-      { artist: "Glass Animals", title: "Heat Waves" },
-      { artist: "Arctic Monkeys", title: "Do I Wanna Know?" },
-      { artist: "The 1975", title: "Somebody Else" },
-      { artist: "alt-J", title: "Breezeblocks" },
+      { artist: "Mr. Fingers", title: "Can You Feel It" },
+      { artist: "Mr. Fingers", title: "Mystery of Love" },
+      { artist: "Donna Summer", title: "I Feel Love" },
+      { artist: "Chic", title: "Good Times" },
+      { artist: "Inner City", title: "Good Life" },
+      { artist: "Marshall Jefferson", title: "Move Your Body" },
+      { artist: "Frankie Knuckles", title: "Your Love" },
+      { artist: "Earth, Wind & Fire", title: "September" },
+      { artist: "Sister Sledge", title: "We Are Family" },
+      { artist: "Sylvester", title: "You Make Me Feel (Mighty Real)" },
+      { artist: "Chic", title: "Le Freak" },
+      { artist: "Cerrone", title: "Supernature" },
+      { artist: "The Trammps", title: "Disco Inferno" },
+      { artist: "Gloria Gaynor", title: "I Will Survive" },
+      { artist: "KC and the Sunshine Band", title: "Get Down Tonight" },
     ];
 
     const songs = [];

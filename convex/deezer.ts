@@ -25,12 +25,9 @@ export const searchTrack = action({
     title: v.string(),
   },
   handler: async (ctx, { artist, title }) => {
-    console.log(`[Deezer] Searching for: ${artist} - ${title}`);
-
     // Search Deezer for the track
     const query = encodeURIComponent(`artist:"${artist}" track:"${title}"`);
     const searchUrl = `https://api.deezer.com/search?q=${query}`;
-    console.log(`[Deezer] Query URL: ${searchUrl}`);
 
     const response = await fetch(searchUrl);
 
@@ -47,22 +44,12 @@ export const searchTrack = action({
       throw new Error(`Track not found: ${artist} - ${title}`);
     }
 
-    console.log(`[Deezer] Found track:`, {
-      id: track.id,
-      title: track.title,
-      artist: track.artist.name,
-      hasPreview: !!track.preview,
-      previewUrl: track.preview,
-      hasAlbumArt: !!track.album.cover_medium,
-      albumArtUrl: track.album.cover_medium,
-    });
-
     // Extract the year from release date (YYYY-MM-DD)
     const releaseYear = track.album.release_date
       ? parseInt(track.album.release_date.split("-")[0], 10)
       : undefined;
 
-    const result = {
+    return {
       deezerId: track.id.toString(),
       previewURL: track.preview || "",
       correctArtist: track.artist.name,
@@ -70,8 +57,5 @@ export const searchTrack = action({
       albumArt: track.album.cover_medium || "",
       releaseYear,
     };
-
-    console.log(`[Deezer] Returning:`, result);
-    return result;
   },
 });
