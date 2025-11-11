@@ -48,13 +48,6 @@ function Game() {
   const leaveGame = useMutation(api.players.leave);
 
   useEffect(() => {
-    setArtistGuess("");
-    setTitleGuess("");
-    setHasSubmitted(false);
-    setError("");
-  }, [currentRound?._id]);
-
-  useEffect(() => {
     if (currentPlayer && roundAnswers) {
       const myAnswer = roundAnswers.find(
         (a) => a.playerId === currentPlayer._id,
@@ -264,7 +257,10 @@ function Game() {
             </div>
 
             {/* Answer Form */}
-            <div className="bg-white border-4 border-sky-900 p-6">
+            <div
+              key={currentRound._id}
+              className="bg-white border-4 border-sky-900 p-6"
+            >
               {hasSubmitted ? (
                 <div className="space-y-4">
                   <div className="bg-green-100 border-2 border-green-600 p-4">
