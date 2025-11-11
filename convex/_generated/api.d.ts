@@ -9,10 +9,12 @@
  */
 
 import type * as answers from "../answers.js";
+import type * as deezer from "../deezer.js";
 import type * as games from "../games.js";
 import type * as players from "../players.js";
 import type * as roundScheduler from "../roundScheduler.js";
 import type * as rounds from "../rounds.js";
+import type * as spotify from "../spotify.js";
 
 import type {
   ApiFromModules,
@@ -30,10 +32,12 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   answers: typeof answers;
+  deezer: typeof deezer;
   games: typeof games;
   players: typeof players;
   roundScheduler: typeof roundScheduler;
   rounds: typeof rounds;
+  spotify: typeof spotify;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

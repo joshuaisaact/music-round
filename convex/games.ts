@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { query, mutation, action, internalMutation } from "./_generated/server";
+import { internal, api } from "./_generated/api";
 
 function generateCode(): string {
   const words = [
@@ -100,29 +100,39 @@ export const create = mutation({
   },
 });
 
-export const start = mutation({
+export const start = action({
   args: { gameId: v.id("games") },
   handler: async (ctx, { gameId }) => {
-    const game = await ctx.db.get(gameId);
+    // Get game to check settings
+    const game = await ctx.runQuery(api.games.get, { gameId });
     if (!game) throw new Error("Game not found");
 
-    const existingRounds = await ctx.db
-      .query("rounds")
-      .withIndex("by_game", (q) => q.eq("gameId", gameId))
-      .first();
+    // Check if rounds already exist
+    const existingRounds = await ctx.runQuery(api.rounds.list, { gameId });
 
-    if (!existingRounds) {
-      await ctx.runMutation(internal.rounds.createTestRounds, {
+    // Create rounds if they don't exist (fetches from Spotify)
+    if (existingRounds.length === 0) {
+      await ctx.runAction(internal.rounds.createTestRounds, {
         gameId,
         count: game.settings.roundCount,
       });
     }
 
+    // Update game status to playing
+    await ctx.runMutation(internal.games.startGame, { gameId });
+  },
+});
+
+export const startGame = internalMutation({
+  args: { gameId: v.id("games") },
+  handler: async (ctx, { gameId }) => {
+    // Set game to playing
     await ctx.db.patch(gameId, {
       status: "playing",
       currentRound: 0,
     });
 
+    // Find and start the first round
     const firstRound = await ctx.db
       .query("rounds")
       .withIndex("by_game_and_number", (q) =>
