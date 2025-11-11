@@ -64,12 +64,16 @@ function Lobby() {
     }
   };
 
-  // Navigate all players when game status changes to "playing"
+  // Navigate existing players when game status changes
   useEffect(() => {
-    if (game?.status === "playing") {
+    if (!game || !currentPlayer) return;
+
+    if (game.status === "playing") {
       navigate({ to: "/game/$code", params: { code } });
+    } else if (game.status === "finished") {
+      navigate({ to: "/summary/$code", params: { code } });
     }
-  }, [game?.status, code, navigate]);
+  }, [game?.status, currentPlayer, code, navigate]);
 
   const handleCopyCode = async () => {
     try {
@@ -105,6 +109,27 @@ function Lobby() {
       <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
         <div className="text-center">
           <p className="pixel-text text-white text-xl mb-8">GAME NOT FOUND</p>
+          <PixelButton
+            onClick={() => navigate({ to: "/" })}
+          >
+            BACK TO HOME
+          </PixelButton>
+        </div>
+      </div>
+    );
+  }
+
+  // Block new players from joining in-progress or finished games
+  if ((game.status === "playing" || game.status === "finished") && !currentPlayer) {
+    return (
+      <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
+        <div className="text-center">
+          <p className="pixel-text text-white text-xl mb-8">
+            GAME {game.status === "playing" ? "IN PROGRESS" : "FINISHED"}
+          </p>
+          <p className="pixel-text text-white text-sm mb-8 opacity-75">
+            This game has already started
+          </p>
           <PixelButton
             onClick={() => navigate({ to: "/" })}
           >
