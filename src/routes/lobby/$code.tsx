@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { useState, useEffect } from "react";
@@ -31,7 +31,7 @@ function Lobby() {
   );
 
   const joinGame = useMutation(api.players.join);
-  const startGame = useMutation(api.games.start);
+  const startGame = useAction(api.games.start);
   const leaveGame = useMutation(api.players.leave);
 
   const handleJoin = async () => {

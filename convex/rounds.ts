@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { query, internalMutation } from "./_generated/server";
+import { query, internalMutation, internalAction } from "./_generated/server";
+import { internal, api } from "./_generated/api";
 
 export const list = query({
   args: { gameId: v.id("games") },
@@ -26,53 +27,74 @@ export const getCurrent = query({
   },
 });
 
-export const createTestRounds = internalMutation({
+export const createTestRounds = internalAction({
   args: { gameId: v.id("games"), count: v.number() },
   handler: async (ctx, { gameId, count }) => {
-    const fakeSongs = [
-      {
-        spotifyId: "fake1",
-        previewURL: "https://example.com/preview1.mp3",
-        correctArtist: "The Beatles",
-        correctTitle: "Hey Jude",
-        albumArt: "https://via.placeholder.com/300",
-      },
-      {
-        spotifyId: "fake2",
-        previewURL: "https://example.com/preview2.mp3",
-        correctArtist: "Queen",
-        correctTitle: "Bohemian Rhapsody",
-        albumArt: "https://via.placeholder.com/300",
-      },
-      {
-        spotifyId: "fake3",
-        previewURL: "https://example.com/preview3.mp3",
-        correctArtist: "Nirvana",
-        correctTitle: "Smells Like Teen Spirit",
-        albumArt: "https://via.placeholder.com/300",
-      },
-      {
-        spotifyId: "fake4",
-        previewURL: "https://example.com/preview4.mp3",
-        correctArtist: "Led Zeppelin",
-        correctTitle: "Stairway to Heaven",
-        albumArt: "https://via.placeholder.com/300",
-      },
-      {
-        spotifyId: "fake5",
-        previewURL: "https://example.com/preview5.mp3",
-        correctArtist: "Pink Floyd",
-        correctTitle: "Comfortably Numb",
-        albumArt: "https://via.placeholder.com/300",
-      },
+    // Newer indie/alternative songs more likely to have preview URLs
+    const testSongs = [
+      { artist: "Tame Impala", title: "The Less I Know The Better" },
+      { artist: "Glass Animals", title: "Heat Waves" },
+      { artist: "Arctic Monkeys", title: "Do I Wanna Know?" },
+      { artist: "The 1975", title: "Somebody Else" },
+      { artist: "alt-J", title: "Breezeblocks" },
     ];
 
+    const songs = [];
+
+    // Fetch real Spotify data for each test song
     for (let i = 0; i < count; i++) {
-      const song = fakeSongs[i % fakeSongs.length];
+      const { artist, title } = testSongs[i % testSongs.length];
+
+      try {
+        const songData = await ctx.runAction(api.spotify.searchTrack, {
+          artist,
+          title,
+        });
+        songs.push(songData);
+      } catch (error) {
+        console.error(
+          `Failed to fetch ${artist} - ${title}:`,
+          error instanceof Error ? error.message : String(error),
+        );
+        // Fallback to fake data if Spotify fails
+        songs.push({
+          spotifyId: `fake${i}`,
+          previewURL: "",
+          correctArtist: artist,
+          correctTitle: title,
+          albumArt: "https://via.placeholder.com/300",
+        });
+      }
+    }
+
+    // Insert rounds with the fetched song data
+    await ctx.runMutation(internal.rounds.insertRounds, {
+      gameId,
+      songs,
+    });
+  },
+});
+
+export const insertRounds = internalMutation({
+  args: {
+    gameId: v.id("games"),
+    songs: v.array(
+      v.object({
+        spotifyId: v.string(),
+        previewURL: v.string(),
+        correctArtist: v.string(),
+        correctTitle: v.string(),
+        albumArt: v.string(),
+        releaseYear: v.optional(v.number()),
+      }),
+    ),
+  },
+  handler: async (ctx, { gameId, songs }) => {
+    for (let i = 0; i < songs.length; i++) {
       await ctx.db.insert("rounds", {
         gameId,
         roundNumber: i,
-        songData: song,
+        songData: songs[i],
       });
     }
   },

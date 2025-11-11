@@ -75,6 +75,14 @@ function Game() {
     return () => clearInterval(interval);
   }, []);
 
+  // Reset form when round changes
+  useEffect(() => {
+    setArtistGuess("");
+    setTitleGuess("");
+    setHasSubmitted(false);
+    setError("");
+  }, [currentRound?._id]);
+
   const handleSubmit = async () => {
     if (!currentRound || !currentPlayer) return;
 
@@ -244,15 +252,18 @@ function Game() {
               )}
 
               {phase === "active" && currentRound.songData.previewURL ? (
-                <audio
-                  key={`${currentRound._id}-${phase}`}
-                  controls
-                  autoPlay
-                  className="w-full"
-                  src={currentRound.songData.previewURL}
-                >
-                  Your browser does not support audio.
-                </audio>
+                <div className="space-y-2">
+                  <audio
+                    key={`${currentRound._id}-${phase}`}
+                    controls
+                    autoPlay
+                    src={currentRound.songData.previewURL}
+                    className="w-full"
+                  />
+                  <p className="pixel-text text-sky-600 text-xs text-center">
+                    🎵 30-SECOND PREVIEW
+                  </p>
+                </div>
               ) : phase !== "active" ? (
                 <p className="pixel-text text-sky-600 text-sm text-center">
                   AUDIO WILL START SOON...
