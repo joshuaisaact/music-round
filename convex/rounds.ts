@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, internalMutation } from "./_generated/server";
 
 export const list = query({
   args: { gameId: v.id("games") },
