@@ -21,7 +21,7 @@ function App() {
       setError("");
       const game = await createGame({
         hostId: getSessionId(),
-        settings: { roundCount: 3, secondsPerRound: 10 },
+        settings: { roundCount: 3, secondsPerRound: 30 },
       });
       navigate({ to: `/lobby/${game.code}` });
     } catch {

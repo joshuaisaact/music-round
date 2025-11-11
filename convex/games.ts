@@ -106,17 +106,21 @@ export const start = mutation({
     const game = await ctx.db.get(gameId);
     if (!game) throw new Error("Game not found");
 
+    // Delete any existing rounds (in case game was restarted)
     const existingRounds = await ctx.db
       .query("rounds")
       .withIndex("by_game", (q) => q.eq("gameId", gameId))
-      .first();
+      .collect();
 
-    if (!existingRounds) {
-      await ctx.runMutation(internal.rounds.createTestRounds, {
-        gameId,
-        count: game.settings.roundCount,
-      });
+    for (const round of existingRounds) {
+      await ctx.db.delete(round._id);
     }
+
+    // Create fresh rounds
+    await ctx.runMutation(internal.rounds.createTestRounds, {
+      gameId,
+      count: game.settings.roundCount,
+    });
 
     await ctx.db.patch(gameId, {
       status: "playing",
@@ -142,8 +146,8 @@ export const nextRound = mutation({
     const game = await ctx.db.get(gameId);
     if (!game) throw new Error("Game not found");
 
-    const currentRoundNum = game.currentRound + 1;
-    const nextRoundNum = currentRoundNum + 1;
+    const currentRoundNum = game.currentRound;
+    const nextRoundNum = game.currentRound + 1;
 
     const currentRound = await ctx.db
       .query("rounds")
@@ -166,7 +170,7 @@ export const nextRound = mutation({
     if (nextRound) {
       await ctx.db.patch(nextRound._id, { startedAt: Date.now() });
       await ctx.db.patch(gameId, {
-        currentRound: game.currentRound + 1,
+        currentRound: nextRoundNum,
       });
     } else {
       await ctx.db.patch(gameId, { status: "finished" });

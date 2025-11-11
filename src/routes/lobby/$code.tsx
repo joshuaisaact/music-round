@@ -57,7 +57,8 @@ function Lobby() {
     if (!game) return;
     try {
       await startGame({ gameId: game._id });
-      navigate({ to: "/game/$code", params: { code } });
+      // Don't navigate here - let the useEffect below handle it
+      // This ensures rounds are fully created before navigating
     } catch {
       setError("Failed to start game!");
     }
@@ -197,7 +198,7 @@ function Lobby() {
                       {player.isHost ? "👑" : "🎮"}
                     </span>
                     <span className="pixel-text text-sky-900 text-lg">
-                      {player.name}
+                      {player.name.toUpperCase()}
                     </span>
                   </div>
 

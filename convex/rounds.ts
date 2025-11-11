@@ -71,7 +71,7 @@ export const createTestRounds = internalMutation({
       const song = fakeSongs[i % fakeSongs.length];
       await ctx.db.insert("rounds", {
         gameId,
-        roundNumber: i + 1,
+        roundNumber: i,
         songData: song,
       });
     }
