@@ -140,14 +140,12 @@ function Game() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <p className="pixel-text text-white text-xs opacity-75">
-            {code}
-          </p>
+          <p className="pixel-text text-white text-xs opacity-75">{code}</p>
           <h1 className="pixel-text text-white text-2xl md:text-4xl">
             ROUND {currentRoundNumber} / {totalRounds}
           </h1>
           <p className="pixel-text text-white text-xs opacity-75">
-            YOUR SCORE: {currentPlayer.score}
+            SCORE: {currentPlayer.score}
           </p>
         </div>
 
@@ -202,6 +200,64 @@ function Game() {
                       Title: {titleGuess || "(blank)"}
                     </p>
                   </div>
+
+                  {/* Show correct answer */}
+                  {currentRound && roundAnswers && currentPlayer && (
+                    (() => {
+                      const myAnswer = roundAnswers.find(
+                        (a) => a.playerId === currentPlayer._id,
+                      );
+                      if (!myAnswer) return null;
+
+                      const { artistCorrect, titleCorrect, points } = myAnswer;
+                      const { correctArtist, correctTitle } =
+                        currentRound.songData;
+
+                      return (
+                        <div className="bg-sky-100 border-2 border-sky-600 p-4">
+                          <p className="pixel-text text-sky-900 text-sm mb-3 font-bold">
+                            CORRECT ANSWER:
+                          </p>
+
+                          <div className="space-y-2">
+                            <div className="flex items-start gap-2">
+                              <span className="pixel-text text-xs">
+                                {artistCorrect ? "✅" : "❌"}
+                              </span>
+                              <div className="flex-1">
+                                <p className="pixel-text text-sky-600 text-xs">
+                                  Artist:
+                                </p>
+                                <p className="pixel-text text-sky-900 text-sm">
+                                  {correctArtist}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-start gap-2">
+                              <span className="pixel-text text-xs">
+                                {titleCorrect ? "✅" : "❌"}
+                              </span>
+                              <div className="flex-1">
+                                <p className="pixel-text text-sky-600 text-xs">
+                                  Title:
+                                </p>
+                                <p className="pixel-text text-sky-900 text-sm">
+                                  {correctTitle}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="pt-2 border-t-2 border-sky-300">
+                              <p className="pixel-text text-sky-900 text-sm">
+                                Points Earned: {points}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  )}
 
                   <p className="pixel-text text-sky-600 text-xs text-center">
                     {allPlayersSubmitted
