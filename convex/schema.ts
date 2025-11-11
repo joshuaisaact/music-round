@@ -41,7 +41,13 @@ export default defineSchema({
       albumArt: v.string(),
       releaseYear: v.optional(v.number()),
     }),
+    phase: v.optional(v.union(
+      v.literal("preparing"),
+      v.literal("active"),
+      v.literal("ended"),
+    )),
     startedAt: v.optional(v.number()),
+    activeAt: v.optional(v.number()),
     endedAt: v.optional(v.number()),
   })
     .index("by_game", ["gameId"])

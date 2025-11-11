@@ -131,7 +131,10 @@ export const start = mutation({
       .first();
 
     if (firstRound) {
-      await ctx.db.patch(firstRound._id, { startedAt: Date.now() });
+      // Start the first round with scheduled phase transitions
+      await ctx.runMutation(internal.roundScheduler.startRound, {
+        roundId: firstRound._id,
+      });
     }
   },
 });
@@ -143,7 +146,6 @@ export const nextRound = mutation({
     if (!game) throw new Error("Game not found");
 
     const currentRoundNum = game.currentRound;
-    const nextRoundNum = game.currentRound + 1;
 
     const currentRound = await ctx.db
       .query("rounds")
@@ -153,23 +155,10 @@ export const nextRound = mutation({
       .first();
 
     if (currentRound) {
-      await ctx.db.patch(currentRound._id, { endedAt: Date.now() });
-    }
-
-    const nextRound = await ctx.db
-      .query("rounds")
-      .withIndex("by_game_and_number", (q) =>
-        q.eq("gameId", gameId).eq("roundNumber", nextRoundNum),
-      )
-      .first();
-
-    if (nextRound) {
-      await ctx.db.patch(nextRound._id, { startedAt: Date.now() });
-      await ctx.db.patch(gameId, {
-        currentRound: nextRoundNum,
+      // Manually trigger the transition to ended (which will auto-start next round)
+      await ctx.runMutation(internal.roundScheduler.transitionToEnded, {
+        roundId: currentRound._id,
       });
-    } else {
-      await ctx.db.patch(gameId, { status: "finished" });
     }
   },
 });
