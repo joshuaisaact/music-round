@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SummaryCodeRouteImport } from './routes/summary/$code'
 import { Route as LobbyCodeRouteImport } from './routes/lobby/$code'
 import { Route as GameCodeRouteImport } from './routes/game/$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SummaryCodeRoute = SummaryCodeRouteImport.update({
+  id: '/summary/$code',
+  path: '/summary/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LobbyCodeRoute = LobbyCodeRouteImport.update({
@@ -33,30 +39,34 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
+  '/summary/$code': typeof SummaryCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
+  '/summary/$code': typeof SummaryCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
+  '/summary/$code': typeof SummaryCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/game/$code' | '/lobby/$code'
+  fullPaths: '/' | '/game/$code' | '/lobby/$code' | '/summary/$code'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/game/$code' | '/lobby/$code'
-  id: '__root__' | '/' | '/game/$code' | '/lobby/$code'
+  to: '/' | '/game/$code' | '/lobby/$code' | '/summary/$code'
+  id: '__root__' | '/' | '/game/$code' | '/lobby/$code' | '/summary/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   GameCodeRoute: typeof GameCodeRoute
   LobbyCodeRoute: typeof LobbyCodeRoute
+  SummaryCodeRoute: typeof SummaryCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/summary/$code': {
+      id: '/summary/$code'
+      path: '/summary/$code'
+      fullPath: '/summary/$code'
+      preLoaderRoute: typeof SummaryCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lobby/$code': {
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   GameCodeRoute: GameCodeRoute,
   LobbyCodeRoute: LobbyCodeRoute,
+  SummaryCodeRoute: SummaryCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

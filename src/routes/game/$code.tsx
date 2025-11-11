@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useEffect, useState } from "react";
 import { getSessionId } from "../../lib/session";
-import { PixelButton, PixelInput } from "@/components";
+import { PixelButton, PixelInput, PlayerStandings } from "@/components";
 
 export const Route = createFileRoute("/game/$code")({
   component: Game,
@@ -18,6 +18,8 @@ function Game() {
   const [titleGuess, setTitleGuess] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   const game = useQuery(api.games.getByCode, { code });
   const currentPlayer = useQuery(
@@ -34,7 +36,7 @@ function Game() {
   );
   const currentRound = useQuery(
     api.rounds.getCurrent,
-    game ? { gameId: game._id, roundNumber: game.currentRound + 1 } : "skip",
+    game ? { gameId: game._id, roundNumber: game.currentRound } : "skip",
   );
   const roundAnswers = useQuery(
     api.answers.listForRound,
@@ -43,6 +45,7 @@ function Game() {
 
   const submitAnswer = useMutation(api.answers.submit);
   const nextRound = useMutation(api.games.nextRound);
+  const leaveGame = useMutation(api.players.leave);
 
   useEffect(() => {
     setArtistGuess("");
@@ -63,6 +66,48 @@ function Game() {
       }
     }
   }, [roundAnswers, currentPlayer]);
+
+  useEffect(() => {
+    if (game && game.status === "finished") {
+      navigate({ to: "/summary/$code", params: { code } });
+    }
+  }, [game?.status, navigate, code]);
+
+  // Timer countdown logic
+  useEffect(() => {
+    if (!currentRound?.startedAt || !game?.settings.secondsPerRound) {
+      setTimeRemaining(null);
+      return;
+    }
+
+    let hasAutoAdvanced = false;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const elapsed = Math.floor((now - currentRound.startedAt!) / 1000);
+      const remaining = Math.max(0, game.settings.secondsPerRound - elapsed);
+      setTimeRemaining(remaining);
+
+      // Auto-advance when time expires (host only, once per round)
+      if (remaining === 0 && currentPlayer?.isHost && !hasAutoAdvanced && game) {
+        hasAutoAdvanced = true;
+        nextRound({ gameId: game._id }).catch(() => {
+          // Ignore errors, will be retried next round
+        });
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [
+    currentRound?.startedAt,
+    game?.settings.secondsPerRound,
+    currentPlayer?.isHost,
+    game?._id,
+    nextRound,
+  ]);
 
   const handleSubmit = async () => {
     if (!currentRound || !currentPlayer) return;
@@ -93,6 +138,17 @@ function Game() {
     } catch {
       setError("Failed to advance round!");
     }
+  };
+
+  const handleLeave = async () => {
+    if (game) {
+      try {
+        await leaveGame({ gameId: game._id, sessionId });
+      } catch {
+        // Silently fail - still navigate away even if deletion fails
+      }
+    }
+    navigate({ to: "/" });
   };
 
   // Loading
@@ -128,8 +184,7 @@ function Game() {
 
   const isHost = currentPlayer.isHost === true;
   const totalRounds = rounds?.length || 0;
-  const currentRoundNumber = currentRound.roundNumber;
-  const sortedPlayers = [...(players || [])].sort((a, b) => b.score - a.score);
+  const currentRoundNumber = currentRound.roundNumber + 1; // Display as 1-indexed
   const allPlayersSubmitted =
     (roundAnswers?.length || 0) === (players?.length || 0);
 
@@ -137,14 +192,39 @@ function Game() {
     <div className="min-h-screen bg-sky-400 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <p className="pixel-text text-white text-xs opacity-75">{code}</p>
-          <h1 className="pixel-text text-white text-2xl md:text-4xl">
-            ROUND {currentRoundNumber} / {totalRounds}
-          </h1>
-          <p className="pixel-text text-white text-xs opacity-75">
-            SCORE: {currentPlayer.score}
-          </p>
+        <div className="mb-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="pixel-text text-white text-xs opacity-75">{code}</p>
+            <h1 className="pixel-text text-white text-2xl md:text-4xl">
+              ROUND {currentRoundNumber} / {totalRounds}
+            </h1>
+            <p className="pixel-text text-white text-xs opacity-75">
+              SCORE: {currentPlayer.score}
+            </p>
+          </div>
+
+          {/* Timer */}
+          {timeRemaining !== null && (
+            <div className="flex justify-center">
+              <div
+                className={`
+                  px-6 py-3 border-4
+                  ${
+                    timeRemaining <= 10
+                      ? "bg-red-500 border-red-800 animate-pulse"
+                      : timeRemaining <= 30
+                        ? "bg-yellow-300 border-yellow-600"
+                        : "bg-green-300 border-green-600"
+                  }
+                `}
+              >
+                <p className="pixel-text text-2xl md:text-3xl">
+                  ⏱️ {Math.floor(timeRemaining / 60)}:
+                  {(timeRemaining % 60).toString().padStart(2, "0")}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -323,39 +403,55 @@ function Game() {
                 🏆 LEADERBOARD
               </h2>
 
-              <div className="space-y-2">
-                {sortedPlayers.map((player, index) => (
-                  <div
-                    key={player._id}
-                    className={`
-                       border-2 p-3 flex items-center justify-between
-                       ${index === 0 ? "bg-yellow-100 border-yellow-600" : "bg-sky-100 border-sky-600"}
-                       ${player._id === currentPlayer._id ? "ring-2 ring-sky-900" : ""}
-                     `}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="pixel-text text-lg">
-                        {index === 0
-                          ? "🥇"
-                          : index === 1
-                            ? "🥈"
-                            : index === 2
-                              ? "🥉"
-                              : `${index + 1}.`}
-                      </span>
-                      <span className="pixel-text text-base truncate max-w-[150px]">
-                        {player.name}
-                        {player._id === currentPlayer._id && " (YOU)"}
-                      </span>
-                    </div>
-                    <span className="pixel-text text-lg">{player.score}</span>
-                  </div>
-                ))}
-              </div>
+              <PlayerStandings
+                players={players || []}
+                currentPlayerId={currentPlayer._id}
+                variant="compact"
+              />
             </div>
           </div>
         </div>
+
+        {/* Leave button */}
+        <div className="text-center mt-8">
+          <PixelButton
+            onClick={() => setShowLeaveModal(true)}
+            variant="danger"
+            size="small"
+          >
+            LEAVE GAME
+          </PixelButton>
+        </div>
       </div>
+
+      {/* Leave confirmation modal */}
+      {showLeaveModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white border-4 border-sky-900 p-8 max-w-md w-full">
+            <h3 className="pixel-text text-sky-900 text-xl mb-4 text-center">
+              LEAVE GAME?
+            </h3>
+            <p className="pixel-text text-sky-700 text-sm mb-6 text-center">
+              ARE YOU SURE YOU WANT TO LEAVE? YOUR PROGRESS WILL BE LOST.
+            </p>
+            <div className="flex gap-4">
+              <PixelButton
+                onClick={() => setShowLeaveModal(false)}
+                className="flex-1 bg-sky-100 text-sky-900"
+              >
+                CANCEL
+              </PixelButton>
+              <PixelButton
+                onClick={handleLeave}
+                variant="danger"
+                className="flex-1"
+              >
+                LEAVE
+              </PixelButton>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -142,8 +142,8 @@ export const nextRound = mutation({
     const game = await ctx.db.get(gameId);
     if (!game) throw new Error("Game not found");
 
-    const currentRoundNum = game.currentRound + 1;
-    const nextRoundNum = currentRoundNum + 1;
+    const currentRoundNum = game.currentRound;
+    const nextRoundNum = game.currentRound + 1;
 
     const currentRound = await ctx.db
       .query("rounds")
@@ -166,7 +166,7 @@ export const nextRound = mutation({
     if (nextRound) {
       await ctx.db.patch(nextRound._id, { startedAt: Date.now() });
       await ctx.db.patch(gameId, {
-        currentRound: game.currentRound + 1,
+        currentRound: nextRoundNum,
       });
     } else {
       await ctx.db.patch(gameId, { status: "finished" });
