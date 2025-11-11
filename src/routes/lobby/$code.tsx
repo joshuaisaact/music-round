@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { useState, useEffect } from "react";
+import { PixelButton, PixelInput } from "@/components";
 
 export const Route = createFileRoute("/lobby/$code")({
   component: Lobby,
@@ -103,12 +104,11 @@ function Lobby() {
       <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
         <div className="text-center">
           <p className="pixel-text text-white text-xl mb-8">GAME NOT FOUND</p>
-          <button
+          <PixelButton
             onClick={() => navigate({ to: "/" })}
-            className="pixel-button bg-white text-xl py-5 px-8"
           >
             BACK TO HOME
-          </button>
+          </PixelButton>
         </div>
       </div>
     );
@@ -126,23 +126,23 @@ function Lobby() {
           </div>
 
           <div className="space-y-4">
-            <input
+            <PixelInput
               type="text"
               placeholder="YOUR NAME"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleJoin()}
+              onEnterPress={handleJoin}
               maxLength={20}
-              className="pixel-input w-full bg-white text-xl p-4 text-center outline-none"
+              className="w-full bg-white text-center outline-none"
               autoFocus
             />
 
-            <button
+            <PixelButton
               onClick={handleJoin}
-              className="pixel-button w-full bg-white text-xl py-5 px-8"
+              className="w-full"
             >
               JOIN GAME
-            </button>
+            </PixelButton>
 
             {error && <div className="pixel-error">{error}</div>}
           </div>
@@ -222,13 +222,13 @@ function Lobby() {
         {/* Action Buttons */}
         <div className="text-center space-y-4">
           {isHost ? (
-            <button
+            <PixelButton
               onClick={handleStartGame}
               disabled={playersList.length < 1}
-              className="pixel-button w-full max-w-md bg-white text-xl py-5 px-8"
+              className="w-full max-w-md"
             >
               START GAME
-            </button>
+            </PixelButton>
           ) : (
             <p className="pixel-text text-white text-sm">
               WAITING FOR HOST TO START...
@@ -266,12 +266,13 @@ function Lobby() {
 
         {/* Leave button */}
         <div className="text-center mt-8">
-          <button
+          <PixelButton
             onClick={() => setShowLeaveModal(true)}
-            className="pixel-button bg-red-500 hover:bg-red-600 !text-white text-sm py-3 px-6"
+            variant="danger"
+            size="small"
           >
             LEAVE GAME
-          </button>
+          </PixelButton>
         </div>
       </div>
 
@@ -286,18 +287,21 @@ function Lobby() {
               ARE YOU SURE YOU WANT TO LEAVE THE LOBBY?
             </p>
             <div className="flex gap-4">
-              <button
+              <PixelButton
                 onClick={() => setShowLeaveModal(false)}
-                className="pixel-button flex-1 bg-sky-100 text-sky-900 text-base py-3 px-4 hover:bg-sky-200"
+                size="medium"
+                className="flex-1 bg-sky-100 text-sky-900 hover:bg-sky-200"
               >
                 CANCEL
-              </button>
-              <button
+              </PixelButton>
+              <PixelButton
                 onClick={handleLeave}
-                className="pixel-button flex-1 bg-red-500 !text-white text-base py-3 px-4 hover:bg-red-600"
+                variant="danger"
+                size="medium"
+                className="flex-1"
               >
                 LEAVE
-              </button>
+              </PixelButton>
             </div>
           </div>
         </div>
