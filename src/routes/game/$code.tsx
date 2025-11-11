@@ -18,8 +18,8 @@ function Game() {
   const [titleGuess, setTitleGuess] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [error, setError] = useState("");
-  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [now, setNow] = useState(Date.now());
 
   const game = useQuery(api.games.getByCode, { code });
   const currentPlayer = useQuery(
@@ -66,41 +66,14 @@ function Game() {
     }
   }, [game?.status, navigate, code]);
 
-  // Timer countdown logic
+  // Update clock every second for timer display
   useEffect(() => {
-    if (!currentRound?.startedAt || !game?.settings.secondsPerRound) {
-      setTimeRemaining(null);
-      return;
-    }
-
-    let hasAutoAdvanced = false;
-
-    const updateTimer = () => {
-      const now = Date.now();
-      const elapsed = Math.floor((now - currentRound.startedAt!) / 1000);
-      const remaining = Math.max(0, game.settings.secondsPerRound - elapsed);
-      setTimeRemaining(remaining);
-
-      // Auto-advance when time expires (host only, once per round)
-      if (remaining === 0 && currentPlayer?.isHost && !hasAutoAdvanced && game) {
-        hasAutoAdvanced = true;
-        nextRound({ gameId: game._id }).catch(() => {
-          // Ignore errors, will be retried next round
-        });
-      }
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, [
-    currentRound?.startedAt,
-    game?.settings.secondsPerRound,
-    currentPlayer?.isHost,
-    game?._id,
-    nextRound,
-  ]);
+  }, []);
 
   const handleSubmit = async () => {
     if (!currentRound || !currentPlayer) return;
@@ -181,6 +154,18 @@ function Game() {
   const allPlayersSubmitted =
     (roundAnswers?.length || 0) === (players?.length || 0);
 
+  // Calculate time remaining based on server timestamps
+  const phase = currentRound.phase || "preparing";
+  let timeRemaining: number | null = null;
+
+  if (phase === "preparing" && currentRound.startedAt) {
+    const elapsed = Math.floor((now - currentRound.startedAt) / 1000);
+    timeRemaining = Math.max(0, 3 - elapsed);
+  } else if (phase === "active" && currentRound.activeAt && game) {
+    const elapsed = Math.floor((now - currentRound.activeAt) / 1000);
+    timeRemaining = Math.max(0, game.settings.secondsPerRound - elapsed);
+  }
+
   return (
     <div className="min-h-screen bg-sky-400 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
@@ -197,7 +182,7 @@ function Game() {
           </div>
 
           {/* Timer */}
-          {timeRemaining !== null && (
+          {timeRemaining !== null && phase === "active" && (
             <div className="flex justify-center">
               <div
                 className={`
@@ -220,6 +205,25 @@ function Game() {
           )}
         </div>
 
+        {/* Preparing Phase Overlay */}
+        {phase === "preparing" && (
+          <div className="fixed inset-0 bg-sky-400 flex items-center justify-center z-40">
+            <div className="text-center">
+              <h2 className="pixel-text text-white text-4xl md:text-6xl mb-8 animate-pulse">
+                GET READY!
+              </h2>
+              <p className="pixel-text text-white text-2xl md:text-3xl">
+                ROUND {currentRoundNumber}
+              </p>
+              {timeRemaining !== null && (
+                <p className="pixel-text text-white text-6xl md:text-8xl mt-12">
+                  {timeRemaining}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Game Area - Left/Top */}
           <div className="lg:col-span-2 space-y-6">
@@ -239,9 +243,9 @@ function Game() {
                 </div>
               )}
 
-              {currentRound.songData.previewURL ? (
+              {phase === "active" && currentRound.songData.previewURL ? (
                 <audio
-                  key={currentRound._id}
+                  key={`${currentRound._id}-${phase}`}
                   controls
                   autoPlay
                   className="w-full"
@@ -249,6 +253,10 @@ function Game() {
                 >
                   Your browser does not support audio.
                 </audio>
+              ) : phase !== "active" ? (
+                <p className="pixel-text text-sky-600 text-sm text-center">
+                  AUDIO WILL START SOON...
+                </p>
               ) : (
                 <p className="pixel-text text-sky-600 text-sm">
                   NO PREVIEW AVAILABLE
@@ -360,7 +368,11 @@ function Game() {
                     className="w-full"
                   />
 
-                  <PixelButton onClick={handleSubmit} className="w-full">
+                  <PixelButton
+                    onClick={handleSubmit}
+                    className="w-full"
+                    disabled={phase !== "active"}
+                  >
                     SUBMIT ANSWER
                   </PixelButton>
 

@@ -11,6 +11,7 @@
 import type * as answers from "../answers.js";
 import type * as games from "../games.js";
 import type * as players from "../players.js";
+import type * as roundScheduler from "../roundScheduler.js";
 import type * as rounds from "../rounds.js";
 
 import type {
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   answers: typeof answers;
   games: typeof games;
   players: typeof players;
+  roundScheduler: typeof roundScheduler;
   rounds: typeof rounds;
 }>;
 declare const fullApiWithMounts: typeof fullApi;

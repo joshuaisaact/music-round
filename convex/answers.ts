@@ -45,6 +45,11 @@ export const submit = mutation({
     const round = await ctx.db.get(roundId);
     if (!round) throw new Error("Round not found");
 
+    // Only allow submissions during active phase
+    if (round.phase !== "active") {
+      throw new Error("Can only submit answers during the active phase");
+    }
+
     const existing = await ctx.db
       .query("answers")
       .withIndex("by_round", (q) => q.eq("roundId", roundId))
