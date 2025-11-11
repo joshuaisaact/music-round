@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useEffect, useState } from "react";
 import { getSessionId } from "../../lib/session";
+import { PixelButton, PixelInput } from "@/components";
 
 export const Route = createFileRoute("/game/$code")({
   component: Game,
@@ -109,12 +110,9 @@ function Game() {
       <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
         <div className="text-center">
           <p className="pixel-text text-white text-xl mb-8">GAME NOT ACTIVE</p>
-          <button
-            onClick={() => navigate({ to: "/" })}
-            className="pixel-button bg-white text-xl py-5 px-8"
-          >
+          <PixelButton onClick={() => navigate({ to: "/" })}>
             BACK TO HOME
-          </button>
+          </PixelButton>
         </div>
       </div>
     );
@@ -140,14 +138,12 @@ function Game() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <p className="pixel-text text-white text-xs opacity-75">
-            {code}
-          </p>
+          <p className="pixel-text text-white text-xs opacity-75">{code}</p>
           <h1 className="pixel-text text-white text-2xl md:text-4xl">
             ROUND {currentRoundNumber} / {totalRounds}
           </h1>
           <p className="pixel-text text-white text-xs opacity-75">
-            YOUR SCORE: {currentPlayer.score}
+            SCORE: {currentPlayer.score}
           </p>
         </div>
 
@@ -211,39 +207,28 @@ function Game() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div>
-                    <label className="pixel-text text-sky-600 text-xs block mb-2">
-                      ARTIST NAME
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="WHO IS THE ARTIST?"
-                      value={artistGuess}
-                      onChange={(e) => setArtistGuess(e.target.value)}
-                      className="pixel-text pixel-input w-full p-4"
-                    />
-                  </div>
+                  <PixelInput
+                    type="text"
+                    label="ARTIST NAME"
+                    placeholder="WHO IS THE ARTIST?"
+                    value={artistGuess}
+                    onChange={(e) => setArtistGuess(e.target.value)}
+                    className="w-full"
+                  />
 
-                  <div>
-                    <label className="pixel-text text-sky-600 text-xs block mb-2">
-                      SONG TITLE
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="WHAT IS THE SONG?"
-                      value={titleGuess}
-                      onChange={(e) => setTitleGuess(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                      className="pixel-text pixel-input w-full p-4"
-                    />
-                  </div>
+                  <PixelInput
+                    type="text"
+                    label="SONG TITLE"
+                    placeholder="WHAT IS THE SONG?"
+                    value={titleGuess}
+                    onChange={(e) => setTitleGuess(e.target.value)}
+                    onEnterPress={handleSubmit}
+                    className="w-full"
+                  />
 
-                  <button
-                    onClick={handleSubmit}
-                    className="pixel-button w-full bg-white text-xl py-5 px-8"
-                  >
+                  <PixelButton onClick={handleSubmit} className="w-full">
                     SUBMIT ANSWER
-                  </button>
+                  </PixelButton>
 
                   {error && (
                     <div className="pixel-text pixel-error">⚠️ {error}</div>
@@ -255,14 +240,15 @@ function Game() {
             {/* Host Controls */}
             {isHost && (
               <div className="bg-yellow-100 border-4 border-yellow-600 p-6">
-                <button
+                <PixelButton
                   onClick={handleNextRound}
-                  className="pixel-button w-full bg-yellow-300 text-yellow-900 border-yellow-900 text-xl py-5 px-8"
+                  variant="warning"
+                  className="w-full"
                 >
                   {currentRoundNumber === totalRounds
                     ? "FINISH GAME"
                     : "NEXT ROUND"}
-                </button>
+                </PixelButton>
                 {!allPlayersSubmitted && (
                   <p className="pixel-text text-yellow-800 text-xs mt-3 text-center">
                     {roundAnswers?.length}/{players?.length} PLAYERS SUBMITTED

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { getSessionId } from "@/lib/session";
+import { PixelButton, PixelInput } from "@/components";
 
 export const Route = createFileRoute("/")({ component: App });
 
@@ -78,21 +79,21 @@ function App() {
 
         <div className="space-y-6 max-w-sm mx-auto">
           <div className="space-y-3">
-            <input
+            <PixelInput
               type="text"
               placeholder="ENTER CODE"
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-              onKeyDown={(e) => e.key === "Enter" && handleJoinGame()}
+              onEnterPress={handleJoinGame}
               maxLength={8}
-              className="pixel-input w-full bg-white text-xl p-4 text-center outline-none"
+              className="w-full bg-white text-center outline-none"
             />
-            <button
+            <PixelButton
               onClick={handleJoinGame}
-              className="pixel-button w-full bg-white text-xl py-5 px-8"
+              className="w-full"
             >
               JOIN GAME
-            </button>
+            </PixelButton>
           </div>
 
           <div className="flex items-center gap-4">
@@ -101,13 +102,13 @@ function App() {
             <div className="flex-1 h-1 bg-white"></div>
           </div>
 
-          <button
+          <PixelButton
             onClick={handleCreateGame}
             disabled={isCreating}
-            className="pixel-button w-full bg-white text-xl py-5 px-8"
+            className="w-full"
           >
             {isCreating ? "CREATING..." : "CREATE GAME"}
-          </button>
+          </PixelButton>
 
           {/* Error Message */}
           {error && (
