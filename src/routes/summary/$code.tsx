@@ -86,7 +86,6 @@ function Summary() {
   const winner = [...players].sort((a, b) => b.score - a.score)[0];
   const isCurrentPlayerWinner = winner._id === currentPlayer._id;
   const isHost = currentPlayer.isHost === true;
-  const totalRounds = rounds?.length || 0;
 
   return (
     <div className="min-h-screen bg-sky-400 p-4 md:p-8">
@@ -146,11 +145,11 @@ function Summary() {
                     key={round._id}
                     className="border-2 border-sky-300 p-4 bg-sky-50"
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <p className="pixel-text text-sky-900 text-sm font-bold">
+                    <div className="flex justify-between items-start mb-4">
+                      <p className="pixel-text text-sky-900 text-lg font-bold">
                         ROUND {round.roundNumber + 1}
                       </p>
-                      <p className="pixel-text text-sky-700 text-sm">
+                      <p className="pixel-text text-sky-700 text-lg">
                         {answer ? `+${answer.points} PTS` : "NO ANSWER"}
                       </p>
                     </div>
@@ -159,16 +158,16 @@ function Summary() {
                       <div className="flex-1">
                         {answer && (
                           <div>
-                            <p className="pixel-text text-sky-600 text-xs mb-2">
+                            <p className="pixel-text text-sky-600 text-sm mb-2">
                               YOUR ANSWER:
                             </p>
                             <p
-                              className={`pixel-text text-sm mb-1 ${answer.artistCorrect ? "text-green-700" : "text-red-700"}`}
+                              className={`pixel-text text-base mb-1 ${answer.artistCorrect ? "text-green-700" : "text-red-700"}`}
                             >
                               ARTIST: {(answer.artist || "(BLANK)").toUpperCase()}
                             </p>
                             <p
-                              className={`pixel-text text-sm ${answer.titleCorrect ? "text-green-700" : "text-red-700"}`}
+                              className={`pixel-text text-base ${answer.titleCorrect ? "text-green-700" : "text-red-700"}`}
                             >
                               TITLE: {(answer.title || "(BLANK)").toUpperCase()}
                             </p>
@@ -185,10 +184,10 @@ function Summary() {
                           />
                         )}
                         <div className="text-center">
-                          <p className="pixel-text text-sky-900 text-xs">
+                          <p className="pixel-text text-sky-900 text-sm">
                             {correctArtist.toUpperCase()}
                           </p>
-                          <p className="pixel-text text-sky-900 text-xs">
+                          <p className="pixel-text text-sky-900 text-sm">
                             {correctTitle.toUpperCase()}
                           </p>
                         </div>
@@ -200,27 +199,6 @@ function Summary() {
             </div>
           </div>
         )}
-
-        {/* Game Stats */}
-        <div className="bg-white border-4 border-sky-900 p-6 mb-6">
-          <h2 className="pixel-text text-sky-900 text-xl mb-4 text-center">
-            GAME STATISTICS
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-sky-50 border-2 border-sky-300">
-              <p className="pixel-text text-sky-600 text-xs mb-1">
-                TOTAL ROUNDS
-              </p>
-              <p className="pixel-text text-sky-900 text-3xl">{totalRounds}</p>
-            </div>
-            <div className="text-center p-4 bg-sky-50 border-2 border-sky-300">
-              <p className="pixel-text text-sky-600 text-xs mb-1">PLAYERS</p>
-              <p className="pixel-text text-sky-900 text-3xl">
-                {players.length}
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Action Buttons */}
         <div className="space-y-4">
