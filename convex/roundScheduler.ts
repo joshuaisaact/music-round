@@ -10,6 +10,10 @@ export const transitionToActive = internalMutation({
     const round = await ctx.db.get(roundId);
     if (!round) return;
 
+    if (round.phase !== "preparing") {
+      return;
+    }
+
     // Update round to active phase
     await ctx.db.patch(roundId, {
       phase: "active",
@@ -33,6 +37,10 @@ export const transitionToEnded = internalMutation({
   handler: async (ctx, { roundId }) => {
     const round = await ctx.db.get(roundId);
     if (!round) return;
+
+    if (round.phase === "ended") {
+      return;
+    }
 
     // Update round to ended phase
     await ctx.db.patch(roundId, {
@@ -83,6 +91,10 @@ export const startRound = internalMutation({
   handler: async (ctx, { roundId }) => {
     const round = await ctx.db.get(roundId);
     if (!round) return;
+
+    if (round.phase) {
+      return;
+    }
 
     // Start round in preparing phase
     await ctx.db.patch(roundId, {

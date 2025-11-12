@@ -3,14 +3,16 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { getSessionId } from "@/lib/session";
-import { PixelButton, PixelSlider } from "@/components";
+import { PixelButton, PixelSlider, PixelInput } from "@/components";
 
 export const Route = createFileRoute("/create")({ component: CreateGame });
 
 function CreateGame() {
   const navigate = useNavigate();
   const createGame = useMutation(api.games.create);
+  const joinGame = useMutation(api.players.join);
   const songCount = useQuery(api.songs.count);
+  const [playerName, setPlayerName] = useState("");
   const [roundCount, setRoundCount] = useState(5);
   const [secondsPerRound, setSecondsPerRound] = useState(30);
   const [isCreating, setIsCreating] = useState(false);
@@ -20,6 +22,12 @@ function CreateGame() {
     try {
       setIsCreating(true);
       setError("");
+
+      if (!playerName.trim()) {
+        setError("Please enter your name!");
+        setIsCreating(false);
+        return;
+      }
 
       if (songCount === 0) {
         setError(
@@ -33,6 +41,13 @@ function CreateGame() {
         hostId: getSessionId(),
         settings: { roundCount, secondsPerRound },
       });
+
+      await joinGame({
+        code: game.code,
+        sessionId: getSessionId(),
+        name: playerName.trim(),
+      });
+
       navigate({ to: `/lobby/${game.code}` });
     } catch {
       setError("Failed to create game. Try again!");
@@ -78,6 +93,22 @@ function CreateGame() {
             onChange={setSecondsPerRound}
           />
 
+          <div>
+            <label className="pixel-text text-white text-xl block mb-2">
+              YOUR NAME
+            </label>
+            <PixelInput
+              type="text"
+              placeholder="ENTER YOUR NAME"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              onEnterPress={handleCreateGame}
+              maxLength={20}
+              className="w-full bg-white text-center outline-none"
+              autoFocus
+            />
+          </div>
+
           <div className="space-y-3 pt-4">
             <PixelButton
               onClick={handleCreateGame}
@@ -90,7 +121,7 @@ function CreateGame() {
             <PixelButton
               onClick={handleCancel}
               disabled={isCreating}
-              variant="warning"
+              variant="danger"
               size="medium"
               className="w-full"
             >

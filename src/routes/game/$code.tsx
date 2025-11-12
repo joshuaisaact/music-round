@@ -20,6 +20,7 @@ function Game() {
   const [error, setError] = useState("");
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const [isAdvancing, setIsAdvancing] = useState(false);
 
   const game = useQuery(api.games.getByCode, { code });
   const currentPlayer = useQuery(
@@ -106,11 +107,14 @@ function Game() {
   };
 
   const handleNextRound = async () => {
-    if (!game) return;
+    if (!game || isAdvancing) return;
     try {
+      setIsAdvancing(true);
+      setError("");
       await nextRound({ gameId: game._id });
     } catch {
       setError("Failed to advance round!");
+      setIsAdvancing(false);
     }
   };
 
@@ -161,6 +165,12 @@ function Game() {
   const currentRoundNumber = currentRound.roundNumber + 1; // Display as 1-indexed
   const allPlayersSubmitted =
     (roundAnswers?.length || 0) === (players?.length || 0);
+
+  const getNextRoundButtonText = () => {
+    if (isAdvancing) return "ADVANCING...";
+    if (currentRoundNumber === totalRounds) return "FINISH GAME";
+    return "NEXT ROUND";
+  };
 
   // Calculate time remaining based on server timestamps
   const phase = currentRound.phase || "preparing";
@@ -401,10 +411,9 @@ function Game() {
                   onClick={handleNextRound}
                   variant="warning"
                   className="w-full"
+                  disabled={isAdvancing}
                 >
-                  {currentRoundNumber === totalRounds
-                    ? "FINISH GAME"
-                    : "NEXT ROUND"}
+                  {getNextRoundButtonText()}
                 </PixelButton>
                 {!allPlayersSubmitted && (
                   <p className="pixel-text text-yellow-800 text-xs mt-3 text-center">
