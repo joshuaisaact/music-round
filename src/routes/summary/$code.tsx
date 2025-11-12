@@ -151,37 +151,35 @@ function Summary() {
                     key={round._id}
                     className="border-2 border-sky-300 p-4 bg-sky-50"
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <p className="pixel-text text-sky-900 text-lg font-bold">
-                        ROUND {round.roundNumber + 1}
-                      </p>
-                      <p className="pixel-text text-sky-700 text-lg">
-                        {answer ? `+${answer.points} PTS` : "NO ANSWER"}
-                      </p>
-                    </div>
-
                     <div className="flex gap-4">
-                      <div className="flex-1">
-                        {answer && (
-                          <div>
-                            <p className="pixel-text text-sky-600 text-sm mb-2">
-                              YOUR ANSWER:
-                            </p>
-                            <p
-                              className={`pixel-text text-base mb-1 ${answer.artistCorrect ? "text-green-700" : "text-red-700"}`}
-                            >
-                              ARTIST: {(answer.artist || "(BLANK)").toUpperCase()}
-                            </p>
-                            <p
-                              className={`pixel-text text-base ${answer.titleCorrect ? "text-green-700" : "text-red-700"}`}
-                            >
-                              TITLE: {(answer.title || "(BLANK)").toUpperCase()}
-                            </p>
-                          </div>
-                        )}
+                      <div className="flex-1 flex flex-col justify-between">
+                        <div>
+                          <p className="pixel-text text-sky-900 text-sm font-bold mb-2">
+                            ROUND {round.roundNumber + 1}
+                          </p>
+                          {answer && (
+                            <div>
+                              <p
+                                className={`pixel-text text-base md:text-lg mb-1 md:mb-2 ${answer.artistCorrect ? "text-green-700" : "text-red-700"}`}
+                              >
+                                <span className="hidden md:inline">ARTIST: </span>
+                                {(answer.artist || "(BLANK)").toUpperCase()}
+                              </p>
+                              <p
+                                className={`pixel-text text-base md:text-lg ${answer.titleCorrect ? "text-green-700" : "text-red-700"}`}
+                              >
+                                <span className="hidden md:inline">TITLE: </span>
+                                {(answer.title || "(BLANK)").toUpperCase()}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        <p className="pixel-text text-sky-700 text-sm md:text-lg mt-2">
+                          {answer ? `+${answer.points} PTS` : "NO ANSWER"}
+                        </p>
                       </div>
 
-                      <div className="flex flex-col items-center gap-2">
+                      <div className="flex flex-col items-end gap-2">
                         {albumArt && (
                           <img
                             src={albumArt}
@@ -189,7 +187,7 @@ function Summary() {
                             className="w-24 h-24 border-4 border-sky-900"
                           />
                         )}
-                        <div className="text-center">
+                        <div className="text-right">
                           <p className="pixel-text text-sky-900 text-sm">
                             {correctArtist.toUpperCase()}
                           </p>

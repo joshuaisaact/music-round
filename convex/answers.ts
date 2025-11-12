@@ -11,7 +11,10 @@ function calculateScore(
     s
       .toLowerCase()
       .trim()
+      .replace(/\s*&\s*/g, " and ") // Convert & to "and" (with spaces normalized)
+      .replace(/\s*-\s*(remastered|remix|re-?master|deluxe|edition|version|live|acoustic).*$/i, "") // Remove remaster/remix/edition suffixes
       .replace(/^the\s+/i, "") // Remove leading "the"
+      .replace(/[-\/]/g, " ") // Convert hyphens and slashes to spaces
       .replace(/[^\w\s]/g, "") // Remove punctuation and special characters
       .replace(/\s+/g, " ") // Normalize whitespace
       .trim();

@@ -39,6 +39,12 @@ function Game() {
     api.rounds.getCurrent,
     game ? { gameId: game._id, roundNumber: game.currentRound } : "skip",
   );
+  const previousRound = useQuery(
+    api.rounds.getCurrent,
+    game && game.currentRound > 0
+      ? { gameId: game._id, roundNumber: game.currentRound - 1 }
+      : "skip",
+  );
   const roundAnswers = useQuery(
     api.answers.listForRound,
     currentRound ? { roundId: currentRound._id } : "skip",
@@ -226,19 +232,63 @@ function Game() {
 
         {/* Preparing Phase Overlay */}
         {phase === "preparing" && (
-          <div className="fixed inset-0 bg-sky-400 flex items-center justify-center z-40">
-            <div className="text-center">
-              <h2 className="pixel-text text-white text-4xl md:text-6xl mb-8 animate-pulse">
-                GET READY!
-              </h2>
-              <p className="pixel-text text-white text-2xl md:text-3xl">
-                ROUND {currentRoundNumber}
-              </p>
-              {timeRemaining !== null && (
-                <p className="pixel-text text-white text-6xl md:text-8xl mt-12">
-                  {timeRemaining}
+          <div className="fixed inset-0 bg-sky-400 z-40">
+            {/* Previous round info at top */}
+            {previousRound && (
+              <div className="flex justify-center pt-8 px-4">
+                <div className="bg-white border-4 border-sky-900 p-6 max-w-2xl w-full">
+                  <h3 className="pixel-text text-sky-900 text-lg md:text-xl mb-4 text-center">
+                    🎵 PREVIOUS ROUND
+                  </h3>
+
+                  {previousRound.songData.albumArt && (
+                    <div className="mb-4">
+                      <img
+                        src={previousRound.songData.albumArt}
+                        alt="Album art"
+                        className="w-24 h-24 md:w-32 md:h-32 mx-auto border-4 border-sky-900"
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-2 text-center">
+                    <div>
+                      <p className="pixel-text text-sky-600 text-xs mb-1">
+                        ARTIST
+                      </p>
+                      <p className="pixel-text text-sky-900 text-base md:text-lg">
+                        {previousRound.songData.correctArtist}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="pixel-text text-sky-600 text-xs mb-1">
+                        TITLE
+                      </p>
+                      <p className="pixel-text text-sky-900 text-base md:text-lg">
+                        {previousRound.songData.correctTitle}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Countdown centered */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <h2 className="pixel-text text-white text-4xl md:text-6xl mb-8 animate-pulse">
+                  GET READY!
+                </h2>
+                <p className="pixel-text text-white text-2xl md:text-3xl">
+                  ROUND {currentRoundNumber}
                 </p>
-              )}
+                {timeRemaining !== null && (
+                  <p className="pixel-text text-white text-6xl md:text-8xl mt-12">
+                    {timeRemaining}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         )}
