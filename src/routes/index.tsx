@@ -1,33 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { getSessionId } from "@/lib/session";
 import { PixelButton, PixelInput } from "@/components";
 
 export const Route = createFileRoute("/")({ component: App });
 
 function App() {
   const navigate = useNavigate();
-  const createGame = useMutation(api.games.create);
   const [joinCode, setJoinCode] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
 
-  const handleCreateGame = async () => {
-    try {
-      setIsCreating(true);
-      setError("");
-      const game = await createGame({
-        hostId: getSessionId(),
-        settings: { roundCount: 3, secondsPerRound: 30 },
-      });
-      navigate({ to: `/lobby/${game.code}` });
-    } catch {
-      setError("Failed to create game. Try again!");
-      setIsCreating(false);
-    }
+  const handleCreateGame = () => {
+    navigate({ to: "/create" });
   };
 
   const handleJoinGame = () => {
@@ -104,10 +88,9 @@ function App() {
 
           <PixelButton
             onClick={handleCreateGame}
-            disabled={isCreating}
             className="w-full"
           >
-            {isCreating ? "CREATING..." : "CREATE GAME"}
+            CREATE GAME
           </PixelButton>
 
           {/* Error Message */}

@@ -2,6 +2,14 @@ import { v } from "convex/values";
 import { internalAction, internalMutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 
+export const count = query({
+  args: {},
+  handler: async (ctx) => {
+    const songs = await ctx.db.query("songs").collect();
+    return songs.length;
+  },
+});
+
 export const getRandomSongs = query({
   args: { count: v.number() },
   handler: async (ctx, { count }) => {

@@ -77,6 +77,43 @@ code {
   border: 3px solid #991b1b;
 }
 
+.pixel-slider {
+  appearance: none;
+  background: #0c4a6e;
+  border: 4px solid #0c4a6e;
+  outline: none;
+  box-shadow:
+    0 4px 0 #0c4a6e,
+    0 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+.pixel-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border: 4px solid #0c4a6e;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+.pixel-slider::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  background: white;
+  border: 4px solid #0c4a6e;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+.pixel-slider::-webkit-slider-thumb:hover {
+  background: #fbbf24;
+}
+
+.pixel-slider::-moz-range-thumb:hover {
+  background: #fbbf24;
+}
+
 /* Animated clouds */
 .pixel-cloud {
   position: absolute;

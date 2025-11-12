@@ -19,6 +19,7 @@ function Lobby() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
 
   const game = useQuery(api.games.getByCode, { code });
   const players = useQuery(
@@ -54,13 +55,14 @@ function Lobby() {
   };
 
   const handleStartGame = async () => {
-    if (!game) return;
+    if (!game || isStarting) return;
     try {
+      setIsStarting(true);
+      setError("");
       await startGame({ gameId: game._id });
-      // Don't navigate here - let the useEffect below handle it
-      // This ensures rounds are fully created before navigating
     } catch {
       setError("Failed to start game!");
+      setIsStarting(false);
     }
   };
 
@@ -250,10 +252,10 @@ function Lobby() {
           {isHost ? (
             <PixelButton
               onClick={handleStartGame}
-              disabled={playersList.length < 1}
+              disabled={playersList.length < 1 || isStarting}
               className="w-full max-w-md"
             >
-              START GAME
+              {isStarting ? "STARTING..." : "START GAME"}
             </PixelButton>
           ) : (
             <p className="pixel-text text-white text-sm">
