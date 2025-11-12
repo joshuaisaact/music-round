@@ -86,7 +86,6 @@ function Summary() {
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
   const topScore = sortedPlayers[0].score;
   const winners = sortedPlayers.filter((p) => p.score === topScore);
-  const isCurrentPlayerWinner = winners.some((w) => w._id === currentPlayer._id);
   const isHost = currentPlayer.isHost === true;
 
   return (
@@ -117,16 +116,8 @@ function Summary() {
                 ))}
               </div>
             ) : (
-              <p className="pixel-text text-yellow-900 text-3xl md:text-5xl mb-2">
+              <p className="pixel-text text-yellow-900 text-3xl md:text-5xl">
                 {winners[0].name.toUpperCase()}
-              </p>
-            )}
-            <p className="pixel-text text-yellow-800 text-xl md:text-2xl mt-2">
-              {topScore} POINTS
-            </p>
-            {isCurrentPlayerWinner && (
-              <p className="pixel-text text-yellow-700 text-sm mt-4">
-                🎉 CONGRATULATIONS! 🎉
               </p>
             )}
           </div>
