@@ -16,7 +16,11 @@ function Game() {
 
   const [artistGuess, setArtistGuess] = useState("");
   const [titleGuess, setTitleGuess] = useState("");
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [artistLocked, setArtistLocked] = useState(false);
+  const [titleLocked, setTitleLocked] = useState(false);
+  const [shakeArtist, setShakeArtist] = useState(false);
+  const [shakeTitle, setShakeTitle] = useState(false);
+  const [isFullyLocked, setIsFullyLocked] = useState(false);
   const [error, setError] = useState("");
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -60,9 +64,11 @@ function Game() {
         (a) => a.playerId === currentPlayer._id,
       );
       if (myAnswer) {
-        setHasSubmitted(true);
         setArtistGuess(myAnswer.artist);
         setTitleGuess(myAnswer.title);
+        setArtistLocked(myAnswer.artistCorrect);
+        setTitleLocked(myAnswer.titleCorrect);
+        setIsFullyLocked(myAnswer.lockedAt !== undefined);
       }
     }
   }, [roundAnswers, currentPlayer]);
@@ -86,7 +92,11 @@ function Game() {
   useEffect(() => {
     setArtistGuess("");
     setTitleGuess("");
-    setHasSubmitted(false);
+    setArtistLocked(false);
+    setTitleLocked(false);
+    setIsFullyLocked(false);
+    setShakeArtist(false);
+    setShakeTitle(false);
     setError("");
     setIsAdvancing(false);
   }, [currentRound?._id]);
@@ -94,22 +104,57 @@ function Game() {
   const handleSubmit = async () => {
     if (!currentRound || !currentPlayer) return;
 
-    if (!artistGuess.trim() && !titleGuess.trim()) {
+    // Don't allow submission if fully locked
+    if (isFullyLocked) return;
+
+    // Check which parts we're submitting (not already locked)
+    const submittingArtist = !artistLocked && artistGuess.trim();
+    const submittingTitle = !titleLocked && titleGuess.trim();
+
+    if (!submittingArtist && !submittingTitle) {
       setError("Enter at least one guess!");
       return;
     }
 
     try {
       setError("");
-      await submitAnswer({
+      const result = await submitAnswer({
         roundId: currentRound._id,
         playerId: currentPlayer._id,
         artist: artistGuess.trim(),
         title: titleGuess.trim(),
       });
-      setHasSubmitted(true);
-    } catch {
+
+      // Update locked states
+      setArtistLocked(result.artistCorrect);
+      setTitleLocked(result.titleCorrect);
+      setIsFullyLocked(result.isLocked);
+
+      // Trigger shake animation for wrong answers
+      if (submittingArtist && !result.artistCorrect) {
+        setShakeArtist(true);
+        setTimeout(() => setShakeArtist(false), 500);
+      }
+      if (submittingTitle && !result.titleCorrect) {
+        setShakeTitle(true);
+        setTimeout(() => setShakeTitle(false), 500);
+      }
+
+      // Show encouraging message if not fully correct yet
+      if (!result.isLocked) {
+        if (result.artistCorrect && !result.titleCorrect) {
+          setError("Artist correct! Keep trying for the title...");
+        } else if (!result.artistCorrect && result.titleCorrect) {
+          setError("Title correct! Keep trying for the artist...");
+        } else {
+          setError("Not quite! Try again...");
+        }
+      } else {
+        setError("");
+      }
+    } catch (err) {
       setError("Failed to submit answer!");
+      console.error(err);
     }
   };
 
@@ -213,9 +258,9 @@ function Game() {
                 className={`
                   px-6 py-3 border-4
                   ${
-                    timeRemaining <= 10
+                    timeRemaining <= game.settings.secondsPerRound * 0.17
                       ? "bg-red-500 border-red-800 animate-pulse"
-                      : timeRemaining <= 30
+                      : timeRemaining <= game.settings.secondsPerRound * 0.5
                         ? "bg-yellow-300 border-yellow-600"
                         : "bg-green-300 border-green-600"
                   }
@@ -341,118 +386,110 @@ function Game() {
               key={currentRound._id}
               className="bg-white border-4 border-sky-900 p-6"
             >
-              {hasSubmitted ? (
-                <div className="space-y-4">
-                  <div className="bg-green-100 border-2 border-green-600 p-4">
-                    <p className="pixel-text text-green-800 text-sm mb-2">
-                      ✅ ANSWER SUBMITTED!
-                    </p>
-                    <p className="pixel-text text-green-700 text-xs">
-                      Artist: {artistGuess || "(blank)"}
-                    </p>
-                    <p className="pixel-text text-green-700 text-xs">
-                      Title: {titleGuess || "(blank)"}
-                    </p>
-                  </div>
+              <style>
+                {`
+                  @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-10px); }
+                    75% { transform: translateX(10px); }
+                  }
+                  .shake {
+                    animation: shake 0.3s ease-in-out;
+                  }
+                `}
+              </style>
 
-                  {/* Show correct answer */}
-                  {currentRound && roundAnswers && currentPlayer && (
-                    (() => {
-                      const myAnswer = roundAnswers.find(
-                        (a) => a.playerId === currentPlayer._id,
-                      );
-                      if (!myAnswer) return null;
-
-                      const { artistCorrect, titleCorrect, points } = myAnswer;
-                      const { correctArtist, correctTitle } =
-                        currentRound.songData;
-
-                      return (
-                        <div className="bg-sky-100 border-2 border-sky-600 p-4">
-                          <p className="pixel-text text-sky-900 text-sm mb-3 font-bold">
-                            CORRECT ANSWER:
-                          </p>
-
-                          <div className="space-y-2">
-                            <div className="flex items-start gap-2">
-                              <span className="pixel-text text-xs">
-                                {artistCorrect ? "✅" : "❌"}
-                              </span>
-                              <div className="flex-1">
-                                <p className="pixel-text text-sky-600 text-xs">
-                                  Artist:
-                                </p>
-                                <p className="pixel-text text-sky-900 text-sm">
-                                  {correctArtist}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex items-start gap-2">
-                              <span className="pixel-text text-xs">
-                                {titleCorrect ? "✅" : "❌"}
-                              </span>
-                              <div className="flex-1">
-                                <p className="pixel-text text-sky-600 text-xs">
-                                  Title:
-                                </p>
-                                <p className="pixel-text text-sky-900 text-sm">
-                                  {correctTitle}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="pt-2 border-t-2 border-sky-300">
-                              <p className="pixel-text text-sky-900 text-sm">
-                                Points Earned: {points}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()
-                  )}
-
-                  <p className="pixel-text text-sky-600 text-xs text-center">
-                    {allPlayersSubmitted
-                      ? "ALL PLAYERS SUBMITTED!"
-                      : `WAITING FOR OTHER PLAYERS... (${roundAnswers?.length}/${players?.length})`}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-6">
+              <div className="space-y-6">
+                <div className={shakeArtist ? "shake" : ""}>
                   <PixelInput
                     type="text"
                     label="ARTIST NAME"
                     placeholder="WHO IS THE ARTIST?"
                     value={artistGuess}
-                    onChange={(e) => setArtistGuess(e.target.value)}
-                    className="w-full"
+                    onChange={(e) => !artistLocked && setArtistGuess(e.target.value)}
+                    className={`w-full ${
+                      artistLocked
+                        ? "!border-green-600 !border-4"
+                        : shakeArtist
+                          ? "!border-red-600 !border-4"
+                          : ""
+                    }`}
+                    disabled={artistLocked}
                   />
+                  {artistLocked && (
+                    <p className="pixel-text text-green-700 text-xs mt-1 font-bold">
+                      CORRECT!
+                    </p>
+                  )}
+                </div>
 
+                <div className={shakeTitle ? "shake" : ""}>
                   <PixelInput
                     type="text"
                     label="SONG TITLE"
                     placeholder="WHAT IS THE SONG?"
                     value={titleGuess}
-                    onChange={(e) => setTitleGuess(e.target.value)}
-                    onEnterPress={handleSubmit}
-                    className="w-full"
+                    onChange={(e) => !titleLocked && setTitleGuess(e.target.value)}
+                    onEnterPress={!isFullyLocked ? handleSubmit : undefined}
+                    className={`w-full ${
+                      titleLocked
+                        ? "!border-green-600 !border-4"
+                        : shakeTitle
+                          ? "!border-red-600 !border-4"
+                          : ""
+                    }`}
+                    disabled={titleLocked}
                   />
+                  {titleLocked && (
+                    <p className="pixel-text text-green-700 text-xs mt-1 font-bold">
+                      CORRECT!
+                    </p>
+                  )}
+                </div>
 
+                {!isFullyLocked && (
                   <PixelButton
                     onClick={handleSubmit}
                     className="w-full"
                     disabled={phase !== "active"}
                   >
-                    SUBMIT ANSWER
+                    {artistLocked || titleLocked ? "TRY AGAIN" : "SUBMIT ANSWER"}
                   </PixelButton>
+                )}
 
-                  {error && (
-                    <div className="pixel-text pixel-error">⚠️ {error}</div>
-                  )}
-                </div>
-              )}
+                {error && (
+                  <div className={`pixel-text text-sm p-3 border-2 ${
+                    error.includes("correct")
+                      ? "bg-blue-50 border-blue-600 text-blue-900"
+                      : "bg-red-50 border-red-600 text-red-900"
+                  }`}>
+                    {error}
+                  </div>
+                )}
+
+                {/* Show correct answer when fully locked */}
+                {isFullyLocked && currentRound && (
+                  <div className="bg-green-100 border-4 border-green-600 p-4">
+                    <p className="pixel-text text-green-800 text-lg mb-3 font-bold">
+                      BOTH CORRECT!
+                    </p>
+                    <div className="space-y-1">
+                      <p className="pixel-text text-green-700 text-sm">
+                        Artist: {currentRound.songData.correctArtist}
+                      </p>
+                      <p className="pixel-text text-green-700 text-sm">
+                        Title: {currentRound.songData.correctTitle}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <p className="pixel-text text-sky-600 text-xs text-center">
+                  {allPlayersSubmitted
+                    ? "ALL PLAYERS SUBMITTED!"
+                    : `${roundAnswers?.length}/${players?.length} PLAYERS SUBMITTED`}
+                </p>
+              </div>
             </div>
 
             {/* Host Controls */}
