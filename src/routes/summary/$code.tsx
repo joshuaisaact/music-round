@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { PixelButton, PlayerStandings } from "@/components";
+import { useState } from "react";
 
 export const Route = createFileRoute("/summary/$code")({
   component: Summary,
@@ -12,6 +13,7 @@ function Summary() {
   const { code } = Route.useParams();
   const navigate = useNavigate();
   const sessionId = getSessionId();
+  const [isCreatingNewGame, setIsCreatingNewGame] = useState(false);
 
   const game = useQuery(api.games.getByCode, { code });
   const currentPlayer = useQuery(
@@ -26,6 +28,37 @@ function Summary() {
     api.rounds.list,
     game ? { gameId: game._id } : "skip",
   );
+  const playerAnswers = useQuery(
+    api.answers.listForPlayer,
+    currentPlayer ? { playerId: currentPlayer._id } : "skip",
+  );
+
+  const createGame = useMutation(api.games.create);
+  const joinGame = useMutation(api.players.join);
+
+  const handlePlayAgain = async () => {
+    if (!game || !currentPlayer || isCreatingNewGame) return;
+
+    try {
+      setIsCreatingNewGame(true);
+
+      const newGame = await createGame({
+        hostId: sessionId,
+        settings: game.settings,
+      });
+
+      await joinGame({
+        code: newGame.code,
+        sessionId,
+        name: currentPlayer.name,
+      });
+
+      navigate({ to: `/lobby/${newGame.code}` });
+    } catch (error) {
+      console.error("Failed to create new game:", error);
+      setIsCreatingNewGame(false);
+    }
+  };
 
   // Loading
   if (game === undefined || !currentPlayer || !players) {
@@ -50,9 +83,10 @@ function Summary() {
     );
   }
 
-  const winner = [...players].sort((a, b) => b.score - a.score)[0];
-  const isCurrentPlayerWinner = winner._id === currentPlayer._id;
-  const totalRounds = rounds?.length || 0;
+  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const topScore = sortedPlayers[0].score;
+  const winners = sortedPlayers.filter((p) => p.score === topScore);
+  const isHost = currentPlayer.isHost === true;
 
   return (
     <div className="min-h-screen bg-sky-400 p-4 md:p-8">
@@ -68,17 +102,22 @@ function Summary() {
         <div className="bg-yellow-100 border-4 border-yellow-600 p-8 mb-6">
           <div className="text-center">
             <p className="pixel-text text-yellow-900 text-2xl md:text-4xl mb-4">
-              🏆 WINNER 🏆
+              🏆 {winners.length > 1 ? "TIE!" : "WINNER"} 🏆
             </p>
-            <p className="pixel-text text-yellow-900 text-3xl md:text-5xl mb-2">
-              {winner.name.toUpperCase()}
-            </p>
-            <p className="pixel-text text-yellow-800 text-xl md:text-2xl">
-              {winner.score} POINTS
-            </p>
-            {isCurrentPlayerWinner && (
-              <p className="pixel-text text-yellow-700 text-sm mt-4">
-                🎉 CONGRATULATIONS! 🎉
+            {winners.length > 1 ? (
+              <div className="space-y-2">
+                {winners.map((w) => (
+                  <p
+                    key={w._id}
+                    className="pixel-text text-yellow-900 text-2xl md:text-4xl"
+                  >
+                    {w.name.toUpperCase()}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p className="pixel-text text-yellow-900 text-3xl md:text-5xl">
+                {winners[0].name.toUpperCase()}
               </p>
             )}
           </div>
@@ -97,32 +136,92 @@ function Summary() {
           />
         </div>
 
-        {/* Game Stats */}
-        <div className="bg-white border-4 border-sky-900 p-6 mb-6">
-          <h2 className="pixel-text text-sky-900 text-xl mb-4 text-center">
-            GAME STATISTICS
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-sky-50 border-2 border-sky-300">
-              <p className="pixel-text text-sky-600 text-xs mb-1">
-                TOTAL ROUNDS
-              </p>
-              <p className="pixel-text text-sky-900 text-3xl">{totalRounds}</p>
-            </div>
-            <div className="text-center p-4 bg-sky-50 border-2 border-sky-300">
-              <p className="pixel-text text-sky-600 text-xs mb-1">PLAYERS</p>
-              <p className="pixel-text text-sky-900 text-3xl">
-                {players.length}
-              </p>
+        {/* Round Breakdown */}
+        {playerAnswers && rounds && (
+          <div className="bg-white border-4 border-sky-900 p-6 mb-6">
+            <div className="space-y-4">
+              {rounds.map((round) => {
+                const answer = playerAnswers.find(
+                  (a) => a.roundId === round._id,
+                );
+                const { correctArtist, correctTitle, albumArt } = round.songData;
+
+                return (
+                  <div
+                    key={round._id}
+                    className="border-2 border-sky-300 p-4 bg-sky-50"
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <p className="pixel-text text-sky-900 text-lg font-bold">
+                        ROUND {round.roundNumber + 1}
+                      </p>
+                      <p className="pixel-text text-sky-700 text-lg">
+                        {answer ? `+${answer.points} PTS` : "NO ANSWER"}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        {answer && (
+                          <div>
+                            <p className="pixel-text text-sky-600 text-sm mb-2">
+                              YOUR ANSWER:
+                            </p>
+                            <p
+                              className={`pixel-text text-base mb-1 ${answer.artistCorrect ? "text-green-700" : "text-red-700"}`}
+                            >
+                              ARTIST: {(answer.artist || "(BLANK)").toUpperCase()}
+                            </p>
+                            <p
+                              className={`pixel-text text-base ${answer.titleCorrect ? "text-green-700" : "text-red-700"}`}
+                            >
+                              TITLE: {(answer.title || "(BLANK)").toUpperCase()}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col items-center gap-2">
+                        {albumArt && (
+                          <img
+                            src={albumArt}
+                            alt="Album art"
+                            className="w-24 h-24 border-4 border-sky-900"
+                          />
+                        )}
+                        <div className="text-center">
+                          <p className="pixel-text text-sky-900 text-sm">
+                            {correctArtist.toUpperCase()}
+                          </p>
+                          <p className="pixel-text text-sky-900 text-sm">
+                            {correctTitle.toUpperCase()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Action Buttons */}
         <div className="space-y-4">
+          {isHost && (
+            <PixelButton
+              onClick={handlePlayAgain}
+              disabled={isCreatingNewGame}
+              className="w-full"
+            >
+              {isCreatingNewGame ? "CREATING..." : "PLAY AGAIN"}
+            </PixelButton>
+          )}
           <PixelButton
             onClick={() => navigate({ to: "/" })}
             className="w-full"
+            size="medium"
+            variant="danger"
           >
             BACK TO HOME
           </PixelButton>
