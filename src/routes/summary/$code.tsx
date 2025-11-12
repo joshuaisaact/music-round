@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { PixelButton, PlayerStandings } from "@/components";
+import { useState } from "react";
 
 export const Route = createFileRoute("/summary/$code")({
   component: Summary,
@@ -12,6 +13,7 @@ function Summary() {
   const { code } = Route.useParams();
   const navigate = useNavigate();
   const sessionId = getSessionId();
+  const [isCreatingNewGame, setIsCreatingNewGame] = useState(false);
 
   const game = useQuery(api.games.getByCode, { code });
   const currentPlayer = useQuery(
@@ -26,6 +28,33 @@ function Summary() {
     api.rounds.list,
     game ? { gameId: game._id } : "skip",
   );
+
+  const createGame = useMutation(api.games.create);
+  const joinGame = useMutation(api.players.join);
+
+  const handlePlayAgain = async () => {
+    if (!game || !currentPlayer || isCreatingNewGame) return;
+
+    try {
+      setIsCreatingNewGame(true);
+
+      const newGame = await createGame({
+        hostId: sessionId,
+        settings: game.settings,
+      });
+
+      await joinGame({
+        code: newGame.code,
+        sessionId,
+        name: currentPlayer.name,
+      });
+
+      navigate({ to: `/lobby/${newGame.code}` });
+    } catch (error) {
+      console.error("Failed to create new game:", error);
+      setIsCreatingNewGame(false);
+    }
+  };
 
   // Loading
   if (game === undefined || !currentPlayer || !players) {
@@ -52,6 +81,7 @@ function Summary() {
 
   const winner = [...players].sort((a, b) => b.score - a.score)[0];
   const isCurrentPlayerWinner = winner._id === currentPlayer._id;
+  const isHost = currentPlayer.isHost === true;
   const totalRounds = rounds?.length || 0;
 
   return (
@@ -120,9 +150,20 @@ function Summary() {
 
         {/* Action Buttons */}
         <div className="space-y-4">
+          {isHost && (
+            <PixelButton
+              onClick={handlePlayAgain}
+              disabled={isCreatingNewGame}
+              className="w-full"
+            >
+              {isCreatingNewGame ? "CREATING..." : "PLAY AGAIN"}
+            </PixelButton>
+          )}
           <PixelButton
             onClick={() => navigate({ to: "/" })}
             className="w-full"
+            size="medium"
+            variant="danger"
           >
             BACK TO HOME
           </PixelButton>
