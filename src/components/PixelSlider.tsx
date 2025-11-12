@@ -15,7 +15,7 @@ export const PixelSlider = forwardRef<HTMLInputElement, PixelSliderProps>(
     return (
       <div className={`space-y-2 ${className}`}>
         <div className="flex justify-between items-center">
-          <label className="pixel-text text-white text-xl">
+          <label className="pixel-text text-white text-2xl">
             {label}
           </label>
           <span className="pixel-text text-white text-2xl font-bold bg-sky-700 px-4 py-2 border-4 border-sky-900">
