@@ -82,6 +82,7 @@ function Game() {
     setTitleGuess("");
     setHasSubmitted(false);
     setError("");
+    setIsAdvancing(false);
   }, [currentRound?._id]);
 
   const handleSubmit = async () => {
