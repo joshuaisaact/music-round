@@ -111,7 +111,7 @@ export const searchTrack = action({
 export const getPlaylistTracks = action({
   args: {},
   handler: async () => {
-    const playlistId = "6G9mBCSozMx0sOSXhSzZRY";
+    const playlistId = "6G9mBCSozMx0sOSXhSzZRY"; // Rolling Stone's 500 Greatest Songs
     const accessToken = await getSpotifyAccessToken();
 
     const allTracks: { artist: string; title: string; spotifyId: string }[] = [];
