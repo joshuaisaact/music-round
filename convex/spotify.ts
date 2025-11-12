@@ -19,6 +19,10 @@ interface SpotifyTrack {
   preview_url: string | null;
 }
 
+interface SpotifyPlaylistTrack {
+  track: SpotifyTrack;
+}
+
 async function getSpotifyAccessToken(): Promise<string> {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -56,7 +60,6 @@ export const searchTrack = action({
   handler: async (ctx, { artist, title }) => {
     const accessToken = await getSpotifyAccessToken();
 
-    // Search for the specific track
     const query = encodeURIComponent(`track:${title} artist:${artist}`);
     const searchUrl = `https://api.spotify.com/v1/search?q=${query}&type=track&limit=1&market=US`;
 
@@ -79,12 +82,10 @@ export const searchTrack = action({
       throw new Error(`Track not found: ${artist} - ${title}`);
     }
 
-    // Extract the year from release date (YYYY-MM-DD)
     const releaseYear = track.album.release_date
       ? parseInt(track.album.release_date.split("-")[0], 10)
       : undefined;
 
-    // Try to get Deezer preview URL as fallback (or primary source)
     let deezerPreviewURL = "";
     try {
       const deezerData = await ctx.runAction(api.deezer.searchTrack, {
@@ -94,7 +95,6 @@ export const searchTrack = action({
       deezerPreviewURL = deezerData.previewURL;
     } catch (error) {
       console.error(`[Spotify] Failed to fetch Deezer preview:`, error);
-      // Continue without Deezer preview
     }
 
     return {
@@ -105,5 +105,44 @@ export const searchTrack = action({
       albumArt: track.album.images[0]?.url || "",
       releaseYear,
     };
+  },
+});
+
+export const getPlaylistTracks = action({
+  args: {},
+  handler: async () => {
+    const playlistId = "6G9mBCSozMx0sOSXhSzZRY"; // Rolling Stone's 500 Greatest Songs
+    const accessToken = await getSpotifyAccessToken();
+
+    const allTracks: { artist: string; title: string; spotifyId: string }[] = [];
+    let nextUrl: string | null = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50`;
+
+    while (nextUrl) {
+      const response: Response = await fetch(nextUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Spotify playlist fetch failed: ${response.statusText}`);
+      }
+
+      const data: { items: SpotifyPlaylistTrack[]; next: string | null } = await response.json();
+      const items = data.items;
+
+      const tracks = items
+        .filter((item) => item.track && item.track.artists.length > 0)
+        .map((item) => ({
+          artist: item.track.artists[0].name,
+          title: item.track.name,
+          spotifyId: item.track.id,
+        }));
+
+      allTracks.push(...tracks);
+      nextUrl = data.next;
+    }
+
+    return allTracks;
   },
 });

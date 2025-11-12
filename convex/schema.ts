@@ -66,4 +66,9 @@ export default defineSchema({
     .index("by_round", ["roundId"])
     .index("by_player", ["playerId"])
     .index("by_game", ["gameId"]),
+  songs: defineTable({
+    artist: v.string(),
+    title: v.string(),
+    spotifyId: v.optional(v.string()),
+  }),
 });
