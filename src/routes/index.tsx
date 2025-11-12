@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { getSessionId } from "@/lib/session";
 import { PixelButton, PixelInput } from "@/components";
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/")({ component: App });
 function App() {
   const navigate = useNavigate();
   const createGame = useMutation(api.games.create);
+  const songCount = useQuery(api.songs.count);
   const [joinCode, setJoinCode] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
@@ -19,6 +20,15 @@ function App() {
     try {
       setIsCreating(true);
       setError("");
+
+      if (songCount === 0) {
+        setError(
+          "No songs in database! Run: npx convex run internal.songs.seedFromPlaylist"
+        );
+        setIsCreating(false);
+        return;
+      }
+
       const game = await createGame({
         hostId: getSessionId(),
         settings: { roundCount: 3, secondsPerRound: 30 },
