@@ -23,9 +23,8 @@ function calculateScore(
   const titleMatch = normalize(submittedTitle) === normalize(correctTitle);
 
   let points = 0;
-  if (artistMatch && titleMatch) points = 100;
-  else if (artistMatch) points = 50;
-  else if (titleMatch) points = 40;
+  if (artistMatch) points += 50;
+  if (titleMatch) points += 50;
 
   return { points, artistCorrect: artistMatch, titleCorrect: titleMatch };
 }
@@ -66,14 +65,11 @@ export const submit = mutation({
       throw new Error("Can only submit answers during the active phase");
     }
 
-    const existing = await ctx.db
+    const existingAnswer = await ctx.db
       .query("answers")
       .withIndex("by_round", (q) => q.eq("roundId", roundId))
-      .collect();
-
-    if (existing.find((a) => a.playerId === playerId)) {
-      throw new Error("Already answered this round");
-    }
+      .filter((q) => q.eq(q.field("playerId"), playerId))
+      .first();
 
     const { points, artistCorrect, titleCorrect } = calculateScore(
       artist,
@@ -82,6 +78,67 @@ export const submit = mutation({
       round.songData.correctTitle,
     );
 
+    // Check if answer is now fully correct (both parts right)
+    const isFullyCorrect = artistCorrect && titleCorrect;
+
+    if (existingAnswer) {
+      // If already locked (was fully correct), don't allow changes
+      if (existingAnswer.lockedAt) {
+        throw new Error("Answer is locked");
+      }
+
+      // Update the answer, incrementing attempts (default to 1 for old data)
+      const newAttempts = (existingAnswer.attempts || 1) + 1;
+
+      // Keep the correct parts from previous attempts
+      const finalArtist = existingAnswer.artistCorrect ? existingAnswer.artist : artist;
+      const finalTitle = existingAnswer.titleCorrect ? existingAnswer.title : title;
+      const finalArtistCorrect = existingAnswer.artistCorrect || artistCorrect;
+      const finalTitleCorrect = existingAnswer.titleCorrect || titleCorrect;
+
+      // Recalculate points with final correct values
+      const finalScore = calculateScore(
+        finalArtist,
+        round.songData.correctArtist,
+        finalTitle,
+        round.songData.correctTitle,
+      );
+
+      await ctx.db.patch(existingAnswer._id, {
+        artist: finalArtist,
+        title: finalTitle,
+        artistCorrect: finalArtistCorrect,
+        titleCorrect: finalTitleCorrect,
+        points: finalScore.points,
+        attempts: newAttempts,
+        lockedAt: finalArtistCorrect && finalTitleCorrect ? Date.now() : undefined,
+      });
+
+      // Award points incrementally for newly correct parts
+      let pointsToAward = 0;
+      if (artistCorrect && !existingAnswer.artistCorrect) pointsToAward += 50;
+      if (titleCorrect && !existingAnswer.titleCorrect) pointsToAward += 50;
+
+      if (pointsToAward > 0) {
+        const player = await ctx.db.get(playerId);
+        if (player) {
+          await ctx.db.patch(playerId, {
+            score: player.score + pointsToAward,
+          });
+        }
+      }
+
+      return {
+        answerId: existingAnswer._id,
+        points: finalScore.points,
+        artistCorrect: finalArtistCorrect,
+        titleCorrect: finalTitleCorrect,
+        attempts: newAttempts,
+        isLocked: finalArtistCorrect && finalTitleCorrect,
+      };
+    }
+
+    // First submission - create new answer
     const answerId = await ctx.db.insert("answers", {
       roundId,
       playerId,
@@ -92,15 +149,27 @@ export const submit = mutation({
       points,
       artistCorrect,
       titleCorrect,
+      attempts: 1,
+      lockedAt: isFullyCorrect ? Date.now() : undefined,
     });
 
-    const player = await ctx.db.get(playerId);
-    if (player) {
-      await ctx.db.patch(playerId, {
-        score: player.score + points,
-      });
+    // Award points for any correct parts on first submission
+    if (points > 0) {
+      const player = await ctx.db.get(playerId);
+      if (player) {
+        await ctx.db.patch(playerId, {
+          score: player.score + points,
+        });
+      }
     }
 
-    return { answerId, points, artistCorrect, titleCorrect };
+    return {
+      answerId,
+      points,
+      artistCorrect,
+      titleCorrect,
+      attempts: 1,
+      isLocked: isFullyCorrect,
+    };
   },
 });

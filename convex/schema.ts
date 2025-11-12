@@ -62,6 +62,8 @@ export default defineSchema({
     points: v.number(),
     artistCorrect: v.boolean(),
     titleCorrect: v.boolean(),
+    attempts: v.optional(v.number()),
+    lockedAt: v.optional(v.number()),
   })
     .index("by_round", ["roundId"])
     .index("by_player", ["playerId"])

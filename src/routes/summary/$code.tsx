@@ -98,30 +98,32 @@ function Summary() {
           </p>
         </div>
 
-        {/* Winner Announcement */}
-        <div className="bg-yellow-100 border-4 border-yellow-600 p-8 mb-6">
-          <div className="text-center">
-            <p className="pixel-text text-yellow-900 text-2xl md:text-4xl mb-4">
-              🏆 {winners.length > 1 ? "TIE!" : "WINNER"} 🏆
-            </p>
-            {winners.length > 1 ? (
-              <div className="space-y-2">
-                {winners.map((w) => (
-                  <p
-                    key={w._id}
-                    className="pixel-text text-yellow-900 text-2xl md:text-4xl"
-                  >
-                    {w.name.toUpperCase()}
-                  </p>
-                ))}
-              </div>
-            ) : (
-              <p className="pixel-text text-yellow-900 text-3xl md:text-5xl">
-                {winners[0].name.toUpperCase()}
+        {/* Winner Announcement - only show if multiplayer */}
+        {players.length > 1 && (
+          <div className="bg-yellow-100 border-4 border-yellow-600 p-8 mb-6">
+            <div className="text-center">
+              <p className="pixel-text text-yellow-900 text-2xl md:text-4xl mb-4">
+                🏆 {winners.length > 1 ? "TIE!" : "WINNER"} 🏆
               </p>
-            )}
+              {winners.length > 1 ? (
+                <div className="space-y-2">
+                  {winners.map((w) => (
+                    <p
+                      key={w._id}
+                      className="pixel-text text-yellow-900 text-2xl md:text-4xl"
+                    >
+                      {w.name.toUpperCase()}
+                    </p>
+                  ))}
+                </div>
+              ) : (
+                <p className="pixel-text text-yellow-900 text-3xl md:text-5xl">
+                  {winners[0].name.toUpperCase()}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Final Leaderboard */}
         <div className="bg-white border-4 border-sky-900 p-6 mb-6">
