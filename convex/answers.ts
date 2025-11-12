@@ -37,6 +37,16 @@ export const listForRound = query({
   },
 });
 
+export const listForPlayer = query({
+  args: { playerId: v.id("players") },
+  handler: async (ctx, { playerId }) => {
+    return await ctx.db
+      .query("answers")
+      .withIndex("by_player", (q) => q.eq("playerId", playerId))
+      .collect();
+  },
+});
+
 export const submit = mutation({
   args: {
     roundId: v.id("rounds"),
