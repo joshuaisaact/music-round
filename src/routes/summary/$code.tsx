@@ -83,8 +83,10 @@ function Summary() {
     );
   }
 
-  const winner = [...players].sort((a, b) => b.score - a.score)[0];
-  const isCurrentPlayerWinner = winner._id === currentPlayer._id;
+  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const topScore = sortedPlayers[0].score;
+  const winners = sortedPlayers.filter((p) => p.score === topScore);
+  const isCurrentPlayerWinner = winners.some((w) => w._id === currentPlayer._id);
   const isHost = currentPlayer.isHost === true;
 
   return (
@@ -101,13 +103,26 @@ function Summary() {
         <div className="bg-yellow-100 border-4 border-yellow-600 p-8 mb-6">
           <div className="text-center">
             <p className="pixel-text text-yellow-900 text-2xl md:text-4xl mb-4">
-              🏆 WINNER 🏆
+              🏆 {winners.length > 1 ? "TIE!" : "WINNER"} 🏆
             </p>
-            <p className="pixel-text text-yellow-900 text-3xl md:text-5xl mb-2">
-              {winner.name.toUpperCase()}
-            </p>
-            <p className="pixel-text text-yellow-800 text-xl md:text-2xl">
-              {winner.score} POINTS
+            {winners.length > 1 ? (
+              <div className="space-y-2">
+                {winners.map((w) => (
+                  <p
+                    key={w._id}
+                    className="pixel-text text-yellow-900 text-2xl md:text-4xl"
+                  >
+                    {w.name.toUpperCase()}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p className="pixel-text text-yellow-900 text-3xl md:text-5xl mb-2">
+                {winners[0].name.toUpperCase()}
+              </p>
+            )}
+            <p className="pixel-text text-yellow-800 text-xl md:text-2xl mt-2">
+              {topScore} POINTS
             </p>
             {isCurrentPlayerWinner && (
               <p className="pixel-text text-yellow-700 text-sm mt-4">
