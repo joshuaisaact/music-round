@@ -13,7 +13,7 @@ function CreateGame() {
   const joinGame = useMutation(api.players.join);
   const songCount = useQuery(api.songs.count);
   const [playerName, setPlayerName] = useState("");
-  const [roundCount, setRoundCount] = useState(5);
+  const [roundCount, setRoundCount] = useState(6);
   const [secondsPerRound, setSecondsPerRound] = useState(30);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
@@ -80,7 +80,7 @@ function CreateGame() {
             label="ROUNDS"
             value={roundCount}
             min={1}
-            max={10}
+            max={11}
             onChange={setRoundCount}
           />
 
@@ -88,7 +88,7 @@ function CreateGame() {
             label="SECONDS"
             value={secondsPerRound}
             min={10}
-            max={60}
+            max={50}
             step={5}
             onChange={setSecondsPerRound}
           />
