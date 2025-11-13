@@ -90,44 +90,45 @@ function Summary() {
 
   return (
     <div className="min-h-screen bg-sky-400 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
+      <main className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <p className="pixel-text text-white text-xs opacity-75">
+        <header className="text-center mb-8">
+          <p className="pixel-text text-white text-xs opacity-75" aria-label={`Game code ${code}`}>
             GAME CODE: {code}
           </p>
-        </div>
+        </header>
 
         {/* Winner Announcement - only show if multiplayer */}
         {players.length > 1 && (
-          <div className="bg-yellow-100 border-4 border-yellow-600 p-8 mb-6">
+          <section className="bg-yellow-100 border-4 border-yellow-600 p-8 mb-6" aria-labelledby="winner-heading">
             <div className="text-center">
-              <p className="pixel-text text-yellow-900 text-2xl md:text-4xl mb-4">
-                🏆 {winners.length > 1 ? "TIE!" : "WINNER"} 🏆
-              </p>
+              <h1 id="winner-heading" className="pixel-text text-yellow-900 text-2xl md:text-4xl mb-4">
+                <span aria-hidden="true">🏆</span> {winners.length > 1 ? "TIE!" : "WINNER"} <span aria-hidden="true">🏆</span>
+              </h1>
               {winners.length > 1 ? (
-                <div className="space-y-2">
+                <div className="space-y-2" role="list" aria-label="Tied winners">
                   {winners.map((w) => (
                     <p
                       key={w._id}
                       className="pixel-text text-yellow-900 text-2xl md:text-4xl"
+                      role="listitem"
                     >
                       {w.name.toUpperCase()}
                     </p>
                   ))}
                 </div>
               ) : (
-                <p className="pixel-text text-yellow-900 text-3xl md:text-5xl">
+                <p className="pixel-text text-yellow-900 text-3xl md:text-5xl" aria-label={`Winner is ${winners[0].name}`}>
                   {winners[0].name.toUpperCase()}
                 </p>
               )}
             </div>
-          </div>
+          </section>
         )}
 
         {/* Final Leaderboard */}
-        <div className="bg-white border-4 border-sky-900 p-6 mb-6">
-          <h2 className="pixel-text text-sky-900 text-2xl mb-6 text-center">
+        <section className="bg-white border-4 border-sky-900 p-6 mb-6" aria-labelledby="standings-heading">
+          <h2 id="standings-heading" className="pixel-text text-sky-900 text-2xl mb-6 text-center">
             FINAL STANDINGS
           </h2>
 
@@ -136,12 +137,13 @@ function Summary() {
             currentPlayerId={currentPlayer._id}
             variant="detailed"
           />
-        </div>
+        </section>
 
         {/* Round Breakdown */}
         {playerAnswers && rounds && (
-          <div className="bg-white border-4 border-sky-900 p-6 mb-6">
-            <div className="space-y-4">
+          <section className="bg-white border-4 border-sky-900 p-6 mb-6" aria-labelledby="breakdown-heading">
+            <h2 id="breakdown-heading" className="sr-only">Round by Round Breakdown</h2>
+            <ul className="space-y-4" role="list">
               {rounds.map((round) => {
                 const answer = playerAnswers.find(
                   (a) => a.roundId === round._id,
@@ -149,26 +151,28 @@ function Summary() {
                 const { correctArtist, correctTitle, albumArt } = round.songData;
 
                 return (
-                  <div
+                  <li
                     key={round._id}
                     className="border-2 border-sky-300 p-4 bg-sky-50"
                   >
-                    <div className="flex gap-4">
+                    <article className="flex gap-4">
                       <div className="flex-1 flex flex-col justify-between">
                         <div>
-                          <p className="pixel-text text-sky-900 text-sm font-bold mb-2">
+                          <h3 className="pixel-text text-sky-900 text-sm font-bold mb-2">
                             ROUND {round.roundNumber + 1}
-                          </p>
+                          </h3>
                           {answer && (
                             <div>
                               <p
                                 className={`pixel-text text-base md:text-lg mb-1 md:mb-2 ${answer.artistCorrect ? "text-green-700" : "text-red-700"}`}
+                                aria-label={`Your artist answer: ${answer.artist || "blank"}, ${answer.artistCorrect ? "correct" : "incorrect"}`}
                               >
                                 <span className="hidden md:inline">ARTIST: </span>
                                 {(answer.artist || "(BLANK)").toUpperCase()}
                               </p>
                               <p
                                 className={`pixel-text text-base md:text-lg ${answer.titleCorrect ? "text-green-700" : "text-red-700"}`}
+                                aria-label={`Your title answer: ${answer.title || "blank"}, ${answer.titleCorrect ? "correct" : "incorrect"}`}
                               >
                                 <span className="hidden md:inline">TITLE: </span>
                                 {(answer.title || "(BLANK)").toUpperCase()}
@@ -176,7 +180,7 @@ function Summary() {
                             </div>
                           )}
                         </div>
-                        <p className="pixel-text text-sky-700 text-sm md:text-lg mt-2">
+                        <p className="pixel-text text-sky-700 text-sm md:text-lg mt-2" aria-label={answer ? `You earned ${answer.points} points` : "No answer submitted"}>
                           {answer ? `+${answer.points} PTS` : "NO ANSWER"}
                         </p>
                       </div>
@@ -185,11 +189,11 @@ function Summary() {
                         {albumArt && (
                           <img
                             src={albumArt}
-                            alt="Album art"
+                            alt={`Album art for ${correctTitle} by ${correctArtist}`}
                             className="w-24 h-24 border-4 border-sky-900"
                           />
                         )}
-                        <div className="text-right">
+                        <div className="text-right" aria-label={`Correct answer: ${correctArtist}, ${correctTitle}`}>
                           <p className="pixel-text text-sky-900 text-sm">
                             {correctArtist.toUpperCase()}
                           </p>
@@ -198,21 +202,22 @@ function Summary() {
                           </p>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </article>
+                  </li>
                 );
               })}
-            </div>
-          </div>
+            </ul>
+          </section>
         )}
 
         {/* Action Buttons */}
-        <div className="space-y-4">
+        <nav className="space-y-4" aria-label="Game actions">
           {isHost && (
             <PixelButton
               onClick={handlePlayAgain}
               disabled={isCreatingNewGame}
               className="w-full"
+              aria-label={isCreatingNewGame ? "Creating new game..." : "Play again with same settings"}
             >
               {isCreatingNewGame ? "CREATING..." : "PLAY AGAIN"}
             </PixelButton>
@@ -222,11 +227,12 @@ function Summary() {
             className="w-full"
             size="medium"
             variant="danger"
+            aria-label="Return to home screen"
           >
             BACK TO HOME
           </PixelButton>
-        </div>
-      </div>
+        </nav>
+      </main>
     </div>
   );
 }

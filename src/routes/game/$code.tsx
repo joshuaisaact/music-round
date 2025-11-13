@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getSessionId } from "../../lib/session";
 import { PixelButton, PixelInput, PlayerStandings } from "@/components";
 
@@ -25,6 +25,9 @@ function Game() {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [isAdvancing, setIsAdvancing] = useState(false);
+  const artistInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
   const game = useQuery(api.games.getByCode, { code });
   const currentPlayer = useQuery(
@@ -100,6 +103,25 @@ function Game() {
     setError("");
     setIsAdvancing(false);
   }, [currentRound?._id]);
+
+  // Handle Escape key for modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && showLeaveModal) {
+        setShowLeaveModal(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [showLeaveModal]);
+
+  // Focus cancel button when modal opens
+  useEffect(() => {
+    if (showLeaveModal) {
+      cancelButtonRef.current?.focus();
+    }
+  }, [showLeaveModal]);
 
   const handleSubmit = async () => {
     if (!currentRound || !currentPlayer) return;
@@ -238,15 +260,15 @@ function Game() {
 
   return (
     <div className="min-h-screen bg-sky-400 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
+      <main className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-6 space-y-4">
+        <header className="mb-6 space-y-4">
           <div className="flex items-center justify-between">
-            <p className="pixel-text text-white text-xs opacity-75">{code}</p>
+            <p className="pixel-text text-white text-xs opacity-75" aria-label={`Game code ${code}`}>{code}</p>
             <h1 className="pixel-text text-white text-2xl md:text-4xl">
               ROUND {currentRoundNumber} / {totalRounds}
             </h1>
-            <p className="pixel-text text-white text-xs opacity-75">
+            <p className="pixel-text text-white text-xs opacity-75" aria-label={`Your score: ${currentPlayer.score} points`}>
               SCORE: {currentPlayer.score}
             </p>
           </div>
@@ -265,15 +287,18 @@ function Game() {
                         : "bg-green-300 border-green-600"
                   }
                 `}
+                role="timer"
+                aria-live="polite"
+                aria-atomic="true"
               >
-                <p className="pixel-text text-2xl md:text-3xl">
+                <p className="pixel-text text-2xl md:text-3xl" aria-label={`${timeRemaining} seconds remaining`}>
                   ⏱️ {Math.floor(timeRemaining / 60)}:
                   {(timeRemaining % 60).toString().padStart(2, "0")}
                 </p>
               </div>
             </div>
           )}
-        </div>
+        </header>
 
         {/* Preparing Phase Overlay */}
         {phase === "preparing" && (
@@ -402,6 +427,7 @@ function Game() {
               <div className="space-y-6">
                 <div className={shakeArtist ? "shake" : ""}>
                   <PixelInput
+                    ref={artistInputRef}
                     type="text"
                     label="ARTIST NAME"
                     placeholder="WHO IS THE ARTIST?"
@@ -415,9 +441,12 @@ function Game() {
                           : ""
                     }`}
                     disabled={artistLocked}
+                    aria-label="Artist name"
+                    aria-describedby={artistLocked ? "artist-correct" : undefined}
+                    autoFocus
                   />
                   {artistLocked && (
-                    <p className="pixel-text text-green-700 text-xs mt-1 font-bold">
+                    <p id="artist-correct" className="pixel-text text-green-700 text-xs mt-1 font-bold" role="status">
                       CORRECT!
                     </p>
                   )}
@@ -425,6 +454,7 @@ function Game() {
 
                 <div className={shakeTitle ? "shake" : ""}>
                   <PixelInput
+                    ref={titleInputRef}
                     type="text"
                     label="SONG TITLE"
                     placeholder="WHAT IS THE SONG?"
@@ -439,9 +469,11 @@ function Game() {
                           : ""
                     }`}
                     disabled={titleLocked}
+                    aria-label="Song title"
+                    aria-describedby={titleLocked ? "title-correct" : error ? "answer-error" : undefined}
                   />
                   {titleLocked && (
-                    <p className="pixel-text text-green-700 text-xs mt-1 font-bold">
+                    <p id="title-correct" className="pixel-text text-green-700 text-xs mt-1 font-bold" role="status">
                       CORRECT!
                     </p>
                   )}
@@ -452,17 +484,22 @@ function Game() {
                     onClick={handleSubmit}
                     className="w-full"
                     disabled={phase !== "active"}
+                    aria-label={artistLocked || titleLocked ? "Try again with another guess" : "Submit your answer"}
                   >
                     {artistLocked || titleLocked ? "TRY AGAIN" : "SUBMIT ANSWER"}
                   </PixelButton>
                 )}
 
                 {error && (
-                  <div className={`pixel-text text-sm p-3 border-2 ${
-                    error.includes("correct")
-                      ? "bg-blue-50 border-blue-600 text-blue-900"
-                      : "bg-red-50 border-red-600 text-red-900"
-                  }`}>
+                  <div
+                    id="answer-error"
+                    role="alert"
+                    className={`pixel-text text-sm p-3 border-2 ${
+                      error.includes("correct")
+                        ? "bg-blue-50 border-blue-600 text-blue-900"
+                        : "bg-red-50 border-red-600 text-red-900"
+                    }`}
+                  >
                     {error}
                   </div>
                 )}
@@ -484,7 +521,7 @@ function Game() {
                   </div>
                 )}
 
-                <p className="pixel-text text-sky-600 text-xs text-center">
+                <p className="pixel-text text-sky-600 text-xs text-center" role="status" aria-live="polite" aria-atomic="true">
                   {allPlayersSubmitted
                     ? "ALL PLAYERS SUBMITTED!"
                     : `${roundAnswers?.length}/${players?.length} PLAYERS SUBMITTED`}
@@ -494,29 +531,31 @@ function Game() {
 
             {/* Host Controls */}
             {isHost && (
-              <div className="bg-yellow-100 border-4 border-yellow-600 p-6">
+              <section className="bg-yellow-100 border-4 border-yellow-600 p-6" aria-labelledby="host-controls">
+                <h2 id="host-controls" className="sr-only">Host Controls</h2>
                 <PixelButton
                   onClick={handleNextRound}
                   variant="warning"
                   className="w-full"
                   disabled={isAdvancing}
+                  aria-label={isAdvancing ? "Advancing to next round..." : currentRoundNumber === totalRounds ? "Finish game" : "Advance to next round"}
                 >
                   {getNextRoundButtonText()}
                 </PixelButton>
                 {!allPlayersSubmitted && (
-                  <p className="pixel-text text-yellow-800 text-xs mt-3 text-center">
+                  <p className="pixel-text text-yellow-800 text-xs mt-3 text-center" role="status" aria-live="polite">
                     {roundAnswers?.length}/{players?.length} PLAYERS SUBMITTED
                   </p>
                 )}
-              </div>
+              </section>
             )}
           </div>
 
           {/* Leaderboard - Right/Bottom */}
-          <div className="lg:col-span-1">
+          <aside className="lg:col-span-1" aria-labelledby="leaderboard-heading">
             <div className="bg-white border-4 border-sky-900 p-6 sticky top-4">
-              <h2 className="pixel-text text-sky-900 text-lg mb-4 flex items-center gap-2">
-                🏆 LEADERBOARD
+              <h2 id="leaderboard-heading" className="pixel-text text-sky-900 text-lg mb-4 flex items-center gap-2">
+                <span aria-hidden="true">🏆</span> LEADERBOARD
               </h2>
 
               <PlayerStandings
@@ -525,7 +564,7 @@ function Game() {
                 variant="compact"
               />
             </div>
-          </div>
+          </aside>
         </div>
 
         {/* Leave button */}
@@ -534,26 +573,35 @@ function Game() {
             onClick={() => setShowLeaveModal(true)}
             variant="danger"
             size="small"
+            aria-label="Leave game and return to home"
           >
             LEAVE GAME
           </PixelButton>
         </div>
-      </div>
+      </main>
 
       {/* Leave confirmation modal */}
       {showLeaveModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="leave-modal-title"
+          aria-describedby="leave-modal-description"
+        >
           <div className="bg-white border-4 border-sky-900 p-8 max-w-md w-full">
-            <h3 className="pixel-text text-sky-900 text-xl mb-4 text-center">
+            <h3 id="leave-modal-title" className="pixel-text text-sky-900 text-xl mb-4 text-center">
               LEAVE GAME?
             </h3>
-            <p className="pixel-text text-sky-700 text-sm mb-6 text-center">
+            <p id="leave-modal-description" className="pixel-text text-sky-700 text-sm mb-6 text-center">
               ARE YOU SURE YOU WANT TO LEAVE? YOUR PROGRESS WILL BE LOST.
             </p>
             <div className="flex gap-4">
               <PixelButton
+                ref={cancelButtonRef}
                 onClick={() => setShowLeaveModal(false)}
                 className="flex-1 bg-sky-100 text-sky-900"
+                aria-label="Cancel and stay in game"
               >
                 CANCEL
               </PixelButton>
@@ -561,6 +609,7 @@ function Game() {
                 onClick={handleLeave}
                 variant="danger"
                 className="flex-1"
+                aria-label="Confirm and leave game"
               >
                 LEAVE
               </PixelButton>
