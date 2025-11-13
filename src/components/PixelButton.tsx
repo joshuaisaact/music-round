@@ -1,6 +1,6 @@
 import { ButtonHTMLAttributes, forwardRef } from "react";
 
-type ButtonVariant = "primary" | "danger" | "warning";
+type ButtonVariant = "primary" | "danger" | "warning" | "success";
 type ButtonSize = "small" | "medium" | "large";
 
 interface PixelButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -13,6 +13,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   primary: "bg-white",
   danger: "bg-red-500 hover:bg-red-600 !text-white",
   warning: "bg-yellow-300 text-yellow-900 border-yellow-900",
+  success: "bg-green-500 hover:bg-green-600 !text-white border-green-800",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

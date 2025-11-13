@@ -25,6 +25,7 @@ export default defineSchema({
     name: v.string(),
     score: v.number(),
     isHost: v.boolean(),
+    ready: v.optional(v.boolean()),
     avatar: v.optional(v.string()),
     joinedAt: v.number(),
   })
