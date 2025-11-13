@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { PixelButton, PixelInput } from "@/components";
 
 export const Route = createFileRoute("/lobby/$code")({
@@ -20,6 +20,7 @@ function Lobby() {
   const [copied, setCopied] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
   const game = useQuery(api.games.getByCode, { code });
   const players = useQuery(
@@ -76,6 +77,25 @@ function Lobby() {
       navigate({ to: "/summary/$code", params: { code } });
     }
   }, [game?.status, currentPlayer, code, navigate]);
+
+  // Handle Escape key for modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && showLeaveModal) {
+        setShowLeaveModal(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [showLeaveModal]);
+
+  // Focus cancel button when modal opens
+  useEffect(() => {
+    if (showLeaveModal) {
+      cancelButtonRef.current?.focus();
+    }
+  }, [showLeaveModal]);
 
   const handleCopyCode = async () => {
     try {
@@ -145,7 +165,7 @@ function Lobby() {
   if (!currentPlayer && !hasJoined) {
     return (
       <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-        <div className="relative z-10 text-center max-w-md w-full">
+        <main className="relative z-10 text-center max-w-md w-full">
           <h1 className="text-white mb-8 text-[3rem] sm:text-[7rem] leading-[1.3]" style={{ fontFamily: '"VCR OSD Mono", monospace' }}>JOIN GAME</h1>
 
           <div className="bg-white border-4 border-sky-900 p-8 mb-6">
@@ -161,20 +181,27 @@ function Lobby() {
               onChange={(e) => setPlayerName(e.target.value)}
               onEnterPress={handleJoin}
               maxLength={20}
-              className="w-full bg-white text-center outline-none"
+              className="w-full bg-white text-center"
+              aria-label="Your name"
+              aria-describedby={error ? "join-error" : undefined}
               autoFocus
             />
 
             <PixelButton
               onClick={handleJoin}
               className="w-full"
+              aria-label="Join the game with entered name"
             >
               JOIN GAME
             </PixelButton>
 
-            {error && <div className="pixel-error">{error}</div>}
+            {error && (
+              <div id="join-error" role="alert" className="pixel-error">
+                {error}
+              </div>
+            )}
           </div>
-        </div>
+        </main>
       </div>
     );
   }
@@ -184,19 +211,20 @@ function Lobby() {
 
   return (
     <div className="min-h-screen bg-sky-400 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
+      <main className="max-w-4xl mx-auto">
         {/* Header with Game Code */}
         <div className="text-center mb-8">
           <div className="bg-white border-4 border-sky-900 p-6 inline-block">
             <p className="pixel-text text-sky-600 text-sm md:text-base mb-2">
               GAME CODE
             </p>
-            <p className="pixel-text text-sky-900 text-4xl md:text-6xl tracking-wider">
+            <p className="pixel-text text-sky-900 text-4xl md:text-6xl tracking-wider" aria-label={`Game code ${code.split('').join(' ')}`}>
               {code}
             </p>
             <button
               onClick={handleCopyCode}
-              className="pixel-text text-sky-600 text-sm md:text-base mt-3 hover:text-sky-800 transition-colors cursor-pointer"
+              className="pixel-text text-sky-600 text-sm md:text-base mt-3 hover:text-sky-800 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-4 focus-visible:outline-yellow-400 focus-visible:outline-offset-4"
+              aria-label={copied ? "Code copied to clipboard" : "Copy game code to clipboard"}
             >
               {copied ? "COPIED! ✓" : "SHARE THIS CODE"}
             </button>
@@ -204,32 +232,36 @@ function Lobby() {
         </div>
 
         {/* Players List */}
-        <div className="bg-white border-4 border-sky-900 p-6 mb-6">
-          <h2 className="pixel-text text-sky-900 text-2xl mb-4">
+        <section className="bg-white border-4 border-sky-900 p-6 mb-6" aria-labelledby="players-heading">
+          <h2 id="players-heading" className="pixel-text text-sky-900 text-2xl mb-4">
             PLAYERS ({playersList.length})
           </h2>
 
-          <div className="space-y-3">
+          <ul className="space-y-3" role="list">
             {playersList.length === 0 ? (
-              <p className="pixel-text text-sky-600 text-sm">
-                WAITING FOR PLAYERS...
-              </p>
+              <li>
+                <p className="pixel-text text-sky-600 text-sm">
+                  WAITING FOR PLAYERS...
+                </p>
+              </li>
             ) : (
               playersList.map((player) => (
-                <div
+                <li
                   key={player._id}
                   className="bg-sky-100 border-2 border-sky-900 p-4 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">
+                    <span className="text-2xl" aria-hidden="true">
                       {player.isHost ? "👑" : "🎮"}
                     </span>
                     <span className="pixel-text text-sky-900 text-lg">
                       {player.name.toUpperCase()}
+                      {player.isHost && <span className="sr-only"> (Host)</span>}
+                      {player._id === currentPlayer?._id && <span className="sr-only"> (You)</span>}
                     </span>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2" aria-hidden="true">
                     {player.isHost && (
                       <span className="pixel-text text-sky-600 text-base">
                         (HOST)
@@ -241,11 +273,11 @@ function Lobby() {
                       </span>
                     )}
                   </div>
-                </div>
+                </li>
               ))
             )}
-          </div>
-        </div>
+          </ul>
+        </section>
 
         {/* Action Buttons */}
         <div className="text-center space-y-4">
@@ -254,22 +286,23 @@ function Lobby() {
               onClick={handleStartGame}
               disabled={playersList.length < 1 || isStarting}
               className="w-full max-w-md"
+              aria-label={isStarting ? "Starting game..." : "Start game"}
             >
               {isStarting ? "STARTING..." : "START GAME"}
             </PixelButton>
           ) : (
-            <p className="pixel-text text-white text-sm">
+            <p className="pixel-text text-white text-sm" role="status" aria-live="polite">
               WAITING FOR HOST TO START...
             </p>
           )}
 
           {error && (
-            <div className="pixel-error max-w-md mx-auto">⚠️ {error}</div>
+            <div className="pixel-error max-w-md mx-auto" role="alert">⚠️ {error}</div>
           )}
         </div>
 
         {/* Fun waiting animation */}
-        <div className="text-center mt-8">
+        <div className="text-center mt-8" aria-hidden="true">
           <div className="inline-flex gap-2">
             <span
               className="inline-block animate-bounce text-2xl"
@@ -298,27 +331,36 @@ function Lobby() {
             onClick={() => setShowLeaveModal(true)}
             variant="danger"
             size="small"
+            aria-label="Leave game"
           >
             LEAVE GAME
           </PixelButton>
         </div>
-      </div>
+      </main>
 
       {/* Leave confirmation modal */}
       {showLeaveModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+          aria-describedby="modal-description"
+        >
           <div className="bg-white border-4 border-sky-900 p-8 max-w-md w-full">
-            <h3 className="pixel-text text-sky-900 text-xl mb-4 text-center">
+            <h3 id="modal-title" className="pixel-text text-sky-900 text-xl mb-4 text-center">
               LEAVE GAME?
             </h3>
-            <p className="pixel-text text-sky-700 text-sm mb-6 text-center">
+            <p id="modal-description" className="pixel-text text-sky-700 text-sm mb-6 text-center">
               ARE YOU SURE YOU WANT TO LEAVE THE LOBBY?
             </p>
             <div className="flex gap-4">
               <PixelButton
+                ref={cancelButtonRef}
                 onClick={() => setShowLeaveModal(false)}
                 size="medium"
                 className="flex-1 bg-sky-100 text-sky-900 hover:bg-sky-200"
+                aria-label="Cancel and stay in lobby"
               >
                 CANCEL
               </PixelButton>
@@ -327,6 +369,7 @@ function Lobby() {
                 variant="danger"
                 size="medium"
                 className="flex-1"
+                aria-label="Confirm and leave game"
               >
                 LEAVE
               </PixelButton>

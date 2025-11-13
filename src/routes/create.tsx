@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { getSessionId } from "@/lib/session";
@@ -17,6 +17,7 @@ function CreateGame() {
   const [secondsPerRound, setSecondsPerRound] = useState(30);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreateGame = async () => {
     try {
@@ -26,6 +27,7 @@ function CreateGame() {
       if (!playerName.trim()) {
         setError("Please enter your name!");
         setIsCreating(false);
+        nameInputRef.current?.focus();
         return;
       }
 
@@ -61,13 +63,13 @@ function CreateGame() {
 
   return (
     <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div className="pixel-cloud cloud-1"></div>
         <div className="pixel-cloud cloud-2"></div>
         <div className="pixel-cloud cloud-3"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-md">
+      <main className="relative z-10 w-full max-w-md">
         <h1
           className="text-white text-center mb-8 text-4xl"
           style={{ fontFamily: '"VCR OSD Mono", monospace' }}
@@ -82,6 +84,7 @@ function CreateGame() {
             min={1}
             max={11}
             onChange={setRoundCount}
+            aria-label="Number of rounds in the game"
           />
 
           <PixelSlider
@@ -91,13 +94,16 @@ function CreateGame() {
             max={50}
             step={5}
             onChange={setSecondsPerRound}
+            aria-label="Seconds per round"
           />
 
           <div>
-            <label className="pixel-text text-white text-xl block mb-2">
+            <label htmlFor="player-name" className="pixel-text text-white text-xl block mb-2">
               YOUR NAME
             </label>
             <PixelInput
+              ref={nameInputRef}
+              id="player-name"
               type="text"
               placeholder="ENTER YOUR NAME"
               value={playerName}
@@ -105,6 +111,8 @@ function CreateGame() {
               onEnterPress={handleCreateGame}
               maxLength={20}
               className="w-full bg-white text-center outline-none"
+              aria-label="Your name"
+              aria-describedby={error ? "create-error" : undefined}
               autoFocus
             />
           </div>
@@ -114,6 +122,7 @@ function CreateGame() {
               onClick={handleCreateGame}
               disabled={isCreating}
               className="w-full"
+              aria-label={isCreating ? "Creating game..." : "Start game with current settings"}
             >
               {isCreating ? "CREATING..." : "START GAME"}
             </PixelButton>
@@ -124,18 +133,19 @@ function CreateGame() {
               variant="danger"
               size="medium"
               className="w-full"
+              aria-label="Cancel and return to home"
             >
               CANCEL
             </PixelButton>
           </div>
 
           {error && (
-            <div className="pixel-error bg-red-200 text-xl p-3 leading-relaxed">
+            <div id="create-error" role="alert" className="pixel-error bg-red-200 text-xl p-3 leading-relaxed">
               {error}
             </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
