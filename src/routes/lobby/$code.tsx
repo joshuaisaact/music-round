@@ -35,6 +35,7 @@ function Lobby() {
   const joinGame = useMutation(api.players.join);
   const startGame = useAction(api.games.start);
   const leaveGame = useMutation(api.players.leave);
+  const toggleReady = useMutation(api.players.toggleReady);
 
   const handleJoin = async () => {
     if (!playerName.trim()) {
@@ -208,6 +209,16 @@ function Lobby() {
 
   const isHost = currentPlayer?.isHost === true;
   const playersList = players || [];
+  const allPlayersReady = playersList.length > 0 && playersList.every((p) => p.ready === true);
+
+  const handleToggleReady = async () => {
+    if (!game) return;
+    try {
+      await toggleReady({ gameId: game._id, sessionId });
+    } catch (err) {
+      console.error("Failed to toggle ready:", err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-sky-400 p-4 md:p-8">
@@ -233,9 +244,25 @@ function Lobby() {
 
         {/* Players List */}
         <section className="bg-white border-4 border-sky-900 p-6 mb-6" aria-labelledby="players-heading">
-          <h2 id="players-heading" className="pixel-text text-sky-900 text-2xl mb-4">
-            PLAYERS ({playersList.length})
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 id="players-heading" className="pixel-text text-sky-900 text-2xl">
+              PLAYERS
+            </h2>
+            <div className="flex gap-4" role="group" aria-label="Game settings">
+              <div className="text-center">
+                <p id="rounds-label" className="pixel-text text-sky-600 text-xs">ROUNDS</p>
+                <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="rounds-label" aria-label={`${game.settings.roundCount} rounds`}>
+                  {game.settings.roundCount}
+                </p>
+              </div>
+              <div className="text-center">
+                <p id="secs-label" className="pixel-text text-sky-600 text-xs">SECS</p>
+                <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="secs-label" aria-label={`${game.settings.secondsPerRound} seconds per round`}>
+                  {game.settings.secondsPerRound}
+                </p>
+              </div>
+            </div>
+          </div>
 
           <ul className="space-y-3" role="list">
             {playersList.length === 0 ? (
@@ -248,28 +275,23 @@ function Lobby() {
               playersList.map((player) => (
                 <li
                   key={player._id}
-                  className="bg-sky-100 border-2 border-sky-900 p-4 flex items-center justify-between"
+                  className={`bg-sky-100 border-4 p-4 flex items-center justify-between ${
+                    player.ready ? "border-green-600" : "border-sky-900"
+                  }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl" aria-hidden="true">
-                      {player.isHost ? "👑" : "🎮"}
-                    </span>
-                    <span className="pixel-text text-sky-900 text-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="pixel-text text-sky-900 text-2xl leading-none">
                       {player.name.toUpperCase()}
                       {player.isHost && <span className="sr-only"> (Host)</span>}
                       {player._id === currentPlayer?._id && <span className="sr-only"> (You)</span>}
+                      {player.ready && <span className="sr-only"> (Ready)</span>}
                     </span>
                   </div>
 
-                  <div className="flex gap-2" aria-hidden="true">
-                    {player.isHost && (
-                      <span className="pixel-text text-sky-600 text-base">
-                        (HOST)
-                      </span>
-                    )}
-                    {player._id === currentPlayer?._id && (
-                      <span className="pixel-text text-sky-600 text-base">
-                        (YOU)
+                  <div className="flex items-center gap-2" aria-hidden="true">
+                    {player.ready && (
+                      <span className="pixel-text text-green-700 text-base font-bold leading-none">
+                        READY
                       </span>
                     )}
                   </div>
@@ -279,17 +301,36 @@ function Lobby() {
           </ul>
         </section>
 
-        {/* Action Buttons */}
+        {/* Ready Button */}
         <div className="text-center space-y-4">
+          <PixelButton
+            onClick={handleToggleReady}
+            className="w-full max-w-md"
+            variant={currentPlayer?.ready ? "success" : "primary"}
+            aria-label={currentPlayer?.ready ? "Mark as not ready" : "Mark as ready"}
+          >
+            {currentPlayer?.ready ? "READY ✓" : "READY UP"}
+          </PixelButton>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="text-center space-y-4 mt-4">
           {isHost ? (
-            <PixelButton
-              onClick={handleStartGame}
-              disabled={playersList.length < 1 || isStarting}
-              className="w-full max-w-md"
-              aria-label={isStarting ? "Starting game..." : "Start game"}
-            >
-              {isStarting ? "STARTING..." : "START GAME"}
-            </PixelButton>
+            <>
+              <PixelButton
+                onClick={handleStartGame}
+                disabled={playersList.length < 1 || isStarting || !allPlayersReady}
+                className="w-full max-w-md"
+                aria-label={isStarting ? "Starting game..." : allPlayersReady ? "Start game" : "Waiting for all players to be ready"}
+              >
+                {isStarting ? "STARTING..." : "START GAME"}
+              </PixelButton>
+              {!allPlayersReady && playersList.length > 0 && (
+                <p className="pixel-text text-white text-xs opacity-75">
+                  WAITING FOR ALL PLAYERS TO READY UP...
+                </p>
+              )}
+            </>
           ) : (
             <p className="pixel-text text-white text-sm" role="status" aria-live="polite">
               WAITING FOR HOST TO START...

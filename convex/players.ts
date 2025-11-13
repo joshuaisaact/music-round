@@ -61,6 +61,7 @@ export const join = mutation({
       name,
       score: 0,
       isHost,
+      ready: false,
       joinedAt: Date.now(),
     });
 
@@ -84,5 +85,28 @@ export const leave = mutation({
     if (player) {
       await ctx.db.delete(player._id);
     }
+  },
+});
+
+export const toggleReady = mutation({
+  args: {
+    gameId: v.id("games"),
+    sessionId: v.string(),
+  },
+  handler: async (ctx, { gameId, sessionId }) => {
+    const player = await ctx.db
+      .query("players")
+      .withIndex("by_session", (q) =>
+        q.eq("gameId", gameId).eq("sessionId", sessionId),
+      )
+      .first();
+
+    if (!player) {
+      throw new Error("Player not found");
+    }
+
+    await ctx.db.patch(player._id, {
+      ready: !(player.ready ?? false),
+    });
   },
 });
