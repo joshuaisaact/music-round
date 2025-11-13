@@ -100,6 +100,26 @@ export const create = mutation({
   },
 });
 
+export const updateSettings = mutation({
+  args: {
+    gameId: v.id("games"),
+    settings: v.object({
+      roundCount: v.number(),
+      secondsPerRound: v.number(),
+    }),
+  },
+  handler: async (ctx, { gameId, settings }) => {
+    const game = await ctx.db.get(gameId);
+    if (!game) throw new Error("Game not found");
+
+    if (game.status !== "lobby") {
+      throw new Error("Cannot update settings after game has started");
+    }
+
+    await ctx.db.patch(gameId, { settings });
+  },
+});
+
 export const start = action({
   args: { gameId: v.id("games") },
   handler: async (ctx, { gameId }) => {
