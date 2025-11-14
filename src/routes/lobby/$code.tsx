@@ -3,7 +3,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { useState, useEffect, useRef } from "react";
-import { PixelButton, PixelInput } from "@/components";
+import { PixelButton, PixelInput, PixelSlider } from "@/components";
 
 export const Route = createFileRoute("/lobby/$code")({
   component: Lobby,
@@ -19,8 +19,12 @@ function Lobby() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
+  const [tempRoundCount, setTempRoundCount] = useState(6);
+  const [tempSecondsPerRound, setTempSecondsPerRound] = useState(30);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const settingsCancelButtonRef = useRef<HTMLButtonElement>(null);
 
   const game = useQuery(api.games.getByCode, { code });
   const players = useQuery(
@@ -36,6 +40,7 @@ function Lobby() {
   const startGame = useAction(api.games.start);
   const leaveGame = useMutation(api.players.leave);
   const toggleReady = useMutation(api.players.toggleReady);
+  const updateSettings = useMutation(api.games.updateSettings);
 
   const handleJoin = async () => {
     if (!playerName.trim()) {
@@ -98,6 +103,27 @@ function Lobby() {
     }
   }, [showLeaveModal]);
 
+  // Handle Escape key for settings modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && showSettingsModal) {
+        setShowSettingsModal(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [showSettingsModal]);
+
+  // Focus cancel button and sync settings when modal opens
+  useEffect(() => {
+    if (showSettingsModal && game) {
+      setTempRoundCount(game.settings.roundCount);
+      setTempSecondsPerRound(game.settings.secondsPerRound);
+      settingsCancelButtonRef.current?.focus();
+    }
+  }, [showSettingsModal, game]);
+
   const handleCopyCode = async () => {
     try {
       await navigator.clipboard.writeText(code);
@@ -117,6 +143,23 @@ function Lobby() {
       }
     }
     navigate({ to: "/" });
+  };
+
+  const handleSaveSettings = async () => {
+    if (!game) return;
+    try {
+      await updateSettings({
+        gameId: game._id,
+        settings: {
+          roundCount: tempRoundCount,
+          secondsPerRound: tempSecondsPerRound,
+        },
+      });
+      setShowSettingsModal(false);
+    } catch (err) {
+      console.error("Failed to update settings:", err);
+      setError("Failed to update settings!");
+    }
   };
 
   if (game === undefined) {
@@ -248,18 +291,29 @@ function Lobby() {
             <h2 id="players-heading" className="pixel-text text-sky-900 text-2xl">
               PLAYERS
             </h2>
-            <div className="flex gap-4" role="group" aria-label="Game settings">
-              <div className="text-center">
-                <p id="rounds-label" className="pixel-text text-sky-600 text-xs">ROUNDS</p>
-                <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="rounds-label" aria-label={`${game.settings.roundCount} rounds`}>
-                  {game.settings.roundCount}
-                </p>
-              </div>
-              <div className="text-center">
-                <p id="secs-label" className="pixel-text text-sky-600 text-xs">SECS</p>
-                <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="secs-label" aria-label={`${game.settings.secondsPerRound} seconds per round`}>
-                  {game.settings.secondsPerRound}
-                </p>
+            <div className="flex gap-4 items-center">
+              {isHost && (
+                <PixelButton
+                  onClick={() => setShowSettingsModal(true)}
+                  size="x-small"
+                  aria-label="Edit game settings"
+                >
+                  EDIT
+                </PixelButton>
+              )}
+              <div className="flex gap-4" role="group" aria-label="Game settings">
+                <div className="text-center">
+                  <p id="rounds-label" className="pixel-text text-sky-600 text-xs">ROUNDS</p>
+                  <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="rounds-label" aria-label={`${game.settings.roundCount} rounds`}>
+                    {game.settings.roundCount}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p id="secs-label" className="pixel-text text-sky-600 text-xs">SECS</p>
+                  <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="secs-label" aria-label={`${game.settings.secondsPerRound} seconds per round`}>
+                    {game.settings.secondsPerRound}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -413,6 +467,64 @@ function Lobby() {
                 aria-label="Confirm and leave game"
               >
                 LEAVE
+              </PixelButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings modal */}
+      {showSettingsModal && (
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4 z-50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="settings-modal-title"
+        >
+          <div className="bg-sky-500 border-4 border-sky-900 p-8 max-w-md w-full">
+            <h3 id="settings-modal-title" className="pixel-text text-white text-xl mb-6 text-center">
+              EDIT SETTINGS
+            </h3>
+
+            <div className="space-y-6 mb-6">
+              <PixelSlider
+                label="ROUNDS"
+                value={tempRoundCount}
+                min={1}
+                max={11}
+                onChange={setTempRoundCount}
+                aria-label="Number of rounds in the game"
+              />
+
+              <PixelSlider
+                label="SECONDS"
+                value={tempSecondsPerRound}
+                min={10}
+                max={50}
+                step={5}
+                onChange={setTempSecondsPerRound}
+                aria-label="Seconds per round"
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <PixelButton
+                ref={settingsCancelButtonRef}
+                onClick={() => setShowSettingsModal(false)}
+                variant="danger"
+                size="medium"
+                className="flex-1"
+                aria-label="Cancel and keep current settings"
+              >
+                CANCEL
+              </PixelButton>
+              <PixelButton
+                onClick={handleSaveSettings}
+                size="medium"
+                className="flex-1"
+                aria-label="Save settings"
+              >
+                SAVE
               </PixelButton>
             </div>
           </div>
