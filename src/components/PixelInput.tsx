@@ -54,7 +54,7 @@ export const PixelInput = forwardRef<HTMLInputElement, PixelInputProps>(
     const input = (
       <input
         ref={ref}
-        className={`pixel-input text-xl p-4 ${className}`}
+        className={`pixel-input text-xl p-4 uppercase ${className}`}
         onKeyDown={handleKeyDown}
         {...props}
       />

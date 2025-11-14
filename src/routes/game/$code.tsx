@@ -474,9 +474,6 @@ function Game() {
             {/* Countdown centered */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <h2 className="pixel-text text-white text-4xl md:text-6xl mb-8 animate-pulse">
-                  GET READY!
-                </h2>
                 <p className="pixel-text text-white text-2xl md:text-3xl">
                   ROUND {currentRoundNumber}
                 </p>
