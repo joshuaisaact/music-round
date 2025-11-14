@@ -3,7 +3,8 @@ import { useState, useRef } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { getSessionId } from "@/lib/session";
-import { PixelButton, PixelSlider, PixelInput } from "@/components";
+import { PixelButton, PixelSlider, PixelInput, PixelError } from "@/components";
+import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/create")({ component: CreateGame });
 
@@ -25,6 +26,7 @@ function CreateGame() {
       setError("");
 
       if (!playerName.trim()) {
+        playSound("/sounds/error.ogg");
         setError("Please enter your name!");
         setIsCreating(false);
         nameInputRef.current?.focus();
@@ -32,12 +34,15 @@ function CreateGame() {
       }
 
       if (songCount === 0) {
+        playSound("/sounds/error.ogg");
         setError(
           "No songs in database! Run: npx convex run internal.songs.seedFromPlaylist"
         );
         setIsCreating(false);
         return;
       }
+
+      playSound("/sounds/confirmation.ogg");
 
       const game = await createGame({
         hostId: getSessionId(),
@@ -139,11 +144,7 @@ function CreateGame() {
             </PixelButton>
           </div>
 
-          {error && (
-            <div id="create-error" role="alert" className="pixel-error bg-red-200 text-xl p-3 leading-relaxed">
-              {error}
-            </div>
-          )}
+          {error && <PixelError id="create-error">{error}</PixelError>}
         </div>
       </main>
     </div>
