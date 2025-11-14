@@ -1,0 +1,40 @@
+import { useState, useEffect } from "react";
+import { toggleSound, getSoundEnabled } from "@/lib/audio";
+
+/**
+ * A floating button that toggles sound effects on/off
+ * Appears in the bottom left corner of every page
+ */
+export const SoundToggle = () => {
+  const [soundEnabled, setSoundEnabled] = useState(getSoundEnabled());
+
+  useEffect(() => {
+    // Listen for sound toggle events from other sources
+    const handleSoundToggle = (event: CustomEvent<{ enabled: boolean }>) => {
+      setSoundEnabled(event.detail.enabled);
+    };
+
+    window.addEventListener("soundToggle", handleSoundToggle as EventListener);
+    return () => {
+      window.removeEventListener("soundToggle", handleSoundToggle as EventListener);
+    };
+  }, []);
+
+  const handleToggle = () => {
+    const newState = toggleSound();
+    setSoundEnabled(newState);
+  };
+
+  return (
+    <button
+      onClick={handleToggle}
+      className="fixed bottom-4 left-4 z-50 bg-sky-600 hover:bg-sky-700 border-4 border-sky-900 p-3 transition-colors focus:outline-none focus:ring-4 focus:ring-yellow-400"
+      aria-label={soundEnabled ? "Mute sound effects" : "Unmute sound effects"}
+      title={soundEnabled ? "Sound effects on" : "Sound effects off"}
+    >
+      <span className="text-2xl" aria-hidden="true">
+        {soundEnabled ? "🔊" : "🔇"}
+      </span>
+    </button>
+  );
+};

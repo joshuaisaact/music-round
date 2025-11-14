@@ -1,9 +1,42 @@
+// Sound enabled state (persisted in localStorage)
+const SOUND_ENABLED_KEY = "soundEffectsEnabled";
+
+function isSoundEnabled(): boolean {
+  const stored = localStorage.getItem(SOUND_ENABLED_KEY);
+  return stored === null ? true : stored === "true"; // Default to enabled
+}
+
+function setSoundEnabled(enabled: boolean): void {
+  localStorage.setItem(SOUND_ENABLED_KEY, enabled.toString());
+  // Dispatch event so components can react to changes
+  window.dispatchEvent(new CustomEvent("soundToggle", { detail: { enabled } }));
+}
+
+/**
+ * Toggle sound effects on/off
+ * @returns New enabled state
+ */
+export function toggleSound(): boolean {
+  const newState = !isSoundEnabled();
+  setSoundEnabled(newState);
+  return newState;
+}
+
+/**
+ * Get current sound enabled state
+ */
+export function getSoundEnabled(): boolean {
+  return isSoundEnabled();
+}
+
 /**
  * Play a sound effect
  * @param soundPath - Path to the sound file relative to the public directory
  * @param volume - Volume level between 0 and 1 (default: 1)
  */
 export function playSound(soundPath: string, volume: number = 1): void {
+  if (!isSoundEnabled()) return;
+
   try {
     const audio = new Audio(soundPath);
     audio.volume = Math.max(0, Math.min(1, volume));

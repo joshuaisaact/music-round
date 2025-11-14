@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { PixelButton, PixelInput, PixelError } from "@/components";
+import { PixelButton, PixelInput, PixelError, SoundToggle } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/")({ component: App });
@@ -142,6 +142,7 @@ function App() {
           {error && <PixelError id="join-error">{error}</PixelError>}
         </div>
       </main>
+      <SoundToggle />
     </div>
   );
 }

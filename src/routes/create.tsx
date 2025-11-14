@@ -3,7 +3,7 @@ import { useState, useRef } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { getSessionId } from "@/lib/session";
-import { PixelButton, PixelSlider, PixelInput, PixelError } from "@/components";
+import { PixelButton, PixelSlider, PixelInput, PixelError, SoundToggle } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/create")({ component: CreateGame });
@@ -147,6 +147,7 @@ function CreateGame() {
           {error && <PixelError id="create-error">{error}</PixelError>}
         </div>
       </main>
+      <SoundToggle />
     </div>
   );
 }
