@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useEffect, useState, useRef } from "react";
 import { getSessionId } from "../../lib/session";
-import { PixelButton, PixelInput, PlayerStandings } from "@/components";
+import { PixelButton, PixelInput, PixelAudioPlayer, PlayerStandings } from "@/components";
 
 export const Route = createFileRoute("/game/$code")({
   component: Game,
@@ -372,29 +372,12 @@ function Game() {
                 🎵 LISTEN TO THE SONG
               </h2>
 
-              {currentRound.songData.albumArt && (
-                <div className="mb-4">
-                  <img
-                    src={currentRound.songData.albumArt}
-                    alt="Album art"
-                    className="w-32 h-32 mx-auto border-4 border-sky-900"
-                  />
-                </div>
-              )}
-
               {phase === "active" && currentRound.songData.previewURL ? (
-                <div className="space-y-2">
-                  <audio
-                    key={`${currentRound._id}-${phase}`}
-                    controls
-                    autoPlay
-                    src={currentRound.songData.previewURL}
-                    className="w-full"
-                  />
-                  <p className="pixel-text text-sky-600 text-xs text-center">
-                    🎵 30-SECOND PREVIEW
-                  </p>
-                </div>
+                <PixelAudioPlayer
+                  key={`${currentRound._id}-${phase}`}
+                  src={currentRound.songData.previewURL}
+                  autoPlay
+                />
               ) : phase !== "active" ? (
                 <p className="pixel-text text-sky-600 text-sm text-center">
                   AUDIO WILL START SOON...
