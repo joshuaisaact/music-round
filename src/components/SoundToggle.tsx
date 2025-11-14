@@ -34,9 +34,9 @@ export const SoundToggle = () => {
       title={soundEnabled ? "Sound effects on" : "Sound effects off"}
     >
       {soundEnabled ? (
-        <Volume2Icon size={24} color="currentColor" />
+        <Volume2Icon size={32} color="#ffffff" />
       ) : (
-        <VolumeXIcon size={24} color="currentColor" />
+        <VolumeXIcon size={32} color="#ffffff" />
       )}
     </button>
   );
