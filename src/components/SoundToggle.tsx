@@ -8,6 +8,7 @@ import { Volume2Icon, VolumeXIcon } from "raster-react";
  */
 export const SoundToggle = () => {
   const [soundEnabled, setSoundEnabled] = useState(getSoundEnabled());
+  const [showMessage, setShowMessage] = useState(false);
 
   useEffect(() => {
     // Listen for sound toggle events from other sources
@@ -24,20 +25,35 @@ export const SoundToggle = () => {
   const handleToggle = () => {
     const newState = toggleSound();
     setSoundEnabled(newState);
+
+    // Show message
+    setShowMessage(true);
+    setTimeout(() => setShowMessage(false), 2000);
   };
 
   return (
-    <button
-      onClick={handleToggle}
-      className="fixed bottom-4 left-4 z-50 p-3 bg-transparent hover:opacity-80 transition-opacity focus:outline-none focus:ring-4 focus:ring-yellow-400 cursor-pointer"
-      aria-label={soundEnabled ? "Mute sound effects" : "Unmute sound effects"}
-      title={soundEnabled ? "Sound effects on" : "Sound effects off"}
-    >
-      {soundEnabled ? (
-        <Volume2Icon size={32} color="#ffffff" />
-      ) : (
-        <VolumeXIcon size={32} color="#ffffff" />
+    <>
+      <button
+        onClick={handleToggle}
+        className="fixed bottom-4 left-4 z-50 p-3 bg-transparent hover:opacity-80 transition-opacity focus:outline-none focus:ring-4 focus:ring-yellow-400 cursor-pointer"
+        aria-label={soundEnabled ? "Mute sound effects" : "Unmute sound effects"}
+        title={soundEnabled ? "Sound effects on" : "Sound effects off"}
+      >
+        {soundEnabled ? (
+          <Volume2Icon size={32} color="#ffffff" />
+        ) : (
+          <VolumeXIcon size={32} color="#ffffff" />
+        )}
+      </button>
+
+      {/* Message notification */}
+      {showMessage && (
+        <div className="fixed bottom-20 left-4 z-50 bg-sky-900 border-4 border-sky-700 px-4 py-2 animate-fade-in">
+          <p className="pixel-text text-white text-sm uppercase">
+            SOUND EFFECTS {soundEnabled ? "ON" : "OFF"}
+          </p>
+        </div>
       )}
-    </button>
+    </>
   );
 };
