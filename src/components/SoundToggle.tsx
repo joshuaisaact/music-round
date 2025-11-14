@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toggleSound, getSoundEnabled } from "@/lib/audio";
+import { Volume2Icon, VolumeXIcon } from "raster-react";
 
 /**
  * A floating button that toggles sound effects on/off
@@ -32,9 +33,11 @@ export const SoundToggle = () => {
       aria-label={soundEnabled ? "Mute sound effects" : "Unmute sound effects"}
       title={soundEnabled ? "Sound effects on" : "Sound effects off"}
     >
-      <span className="text-2xl" aria-hidden="true">
-        {soundEnabled ? "🔊" : "🔇"}
-      </span>
+      {soundEnabled ? (
+        <Volume2Icon size={24} color="currentColor" />
+      ) : (
+        <VolumeXIcon size={24} color="currentColor" />
+      )}
     </button>
   );
 };
