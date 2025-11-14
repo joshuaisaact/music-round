@@ -4,6 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import { useEffect, useState, useRef } from "react";
 import { getSessionId } from "../../lib/session";
 import { PixelButton, PixelInput, PixelAudioPlayer, PlayerStandings } from "@/components";
+import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/game/$code")({
   component: Game,
@@ -151,6 +152,17 @@ function Game() {
       setArtistLocked(result.artistCorrect);
       setTitleLocked(result.titleCorrect);
       setIsFullyLocked(result.isLocked);
+
+      // Check if any answer was correct or wrong
+      const anyCorrect = (submittingArtist && result.artistCorrect) || (submittingTitle && result.titleCorrect);
+      const anyWrong = (submittingArtist && !result.artistCorrect) || (submittingTitle && !result.titleCorrect);
+
+      // Play sounds based on results
+      if (anyCorrect) {
+        playSound("/sounds/confirmation.ogg");
+      } else if (anyWrong) {
+        playSound("/sounds/error.ogg");
+      }
 
       // Trigger shake animation for wrong answers
       if (submittingArtist && !result.artistCorrect) {
