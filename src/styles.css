@@ -183,6 +183,23 @@ code {
   animation: bounce-slow 2s ease-in-out infinite;
 }
 
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+
+.shake {
+  animation: shake 0.3s ease-in-out;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .pixel-button {

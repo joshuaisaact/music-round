@@ -669,6 +669,7 @@ function Game() {
                 players={players || []}
                 currentPlayerId={currentPlayer._id}
                 variant="compact"
+                roundAnswers={roundAnswers || []}
               />
             </div>
           </aside>
