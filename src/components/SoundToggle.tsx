@@ -29,7 +29,7 @@ export const SoundToggle = () => {
   return (
     <button
       onClick={handleToggle}
-      className="fixed bottom-4 left-4 z-50 border-4 border-sky-900 p-3 bg-transparent hover:bg-sky-100 transition-colors focus:outline-none focus:ring-4 focus:ring-yellow-400"
+      className="fixed bottom-4 left-4 z-50 p-3 bg-transparent hover:bg-sky-100 transition-colors focus:outline-none focus:ring-4 focus:ring-yellow-400 rounded"
       aria-label={soundEnabled ? "Mute sound effects" : "Unmute sound effects"}
       title={soundEnabled ? "Sound effects on" : "Sound effects off"}
     >
