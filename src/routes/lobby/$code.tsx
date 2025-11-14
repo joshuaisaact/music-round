@@ -3,7 +3,8 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { useState, useEffect, useRef } from "react";
-import { PixelButton, PixelInput, PixelSlider } from "@/components";
+import { PixelButton, PixelInput, PixelSlider, SoundToggle } from "@/components";
+import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/lobby/$code")({
   component: Lobby,
@@ -25,6 +26,7 @@ function Lobby() {
   const [tempSecondsPerRound, setTempSecondsPerRound] = useState(30);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const settingsCancelButtonRef = useRef<HTMLButtonElement>(null);
+  const previousPlayersRef = useRef<typeof players>(undefined);
 
   const game = useQuery(api.games.getByCode, { code });
   const players = useQuery(
@@ -123,6 +125,27 @@ function Lobby() {
       settingsCancelButtonRef.current?.focus();
     }
   }, [showSettingsModal, game]);
+
+  // Play sound when any player readies up
+  useEffect(() => {
+    if (!players || !previousPlayersRef.current) {
+      previousPlayersRef.current = players;
+      return;
+    }
+
+    // Check if any player changed from not ready to ready
+    players.forEach((currentPlayer) => {
+      const previousPlayer = previousPlayersRef.current?.find(
+        (p) => p._id === currentPlayer._id
+      );
+
+      if (previousPlayer && !previousPlayer.ready && currentPlayer.ready) {
+        playSound("/sounds/ready.ogg");
+      }
+    });
+
+    previousPlayersRef.current = players;
+  }, [players]);
 
   const handleCopyCode = async () => {
     try {
@@ -530,6 +553,7 @@ function Lobby() {
           </div>
         </div>
       )}
+      <SoundToggle />
     </div>
   );
 }

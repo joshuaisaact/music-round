@@ -1,29 +1,58 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
-import { useState, useRef } from "react";
-import { PixelButton, PixelInput } from "@/components";
+import { useState, useRef, useEffect } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { PixelButton, PixelInput, PixelError, SoundToggle } from "@/components";
+import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/")({ component: App });
 
 function App() {
   const navigate = useNavigate();
   const [joinCode, setJoinCode] = useState("");
+  const [codeToCheck, setCodeToCheck] = useState<string | null>(null);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Only query when we have a code to check
+  const gameCheck = useQuery(
+    api.games.getByCode,
+    codeToCheck ? { code: codeToCheck } : "skip"
+  );
+
+  // Handle game check result
+  useEffect(() => {
+    if (codeToCheck && gameCheck !== undefined) {
+      if (gameCheck === null) {
+        // Game not found
+        playSound("/sounds/error.ogg");
+        setError("Game not found!");
+        setCodeToCheck(null);
+        inputRef.current?.focus();
+      } else {
+        // Game found - navigate to lobby
+        playSound("/sounds/confirmation.ogg");
+        navigate({ to: `/lobby/${codeToCheck}` });
+      }
+    }
+  }, [gameCheck, codeToCheck, navigate]);
+
   const handleCreateGame = () => {
+    playSound("/sounds/confirmation.ogg");
     navigate({ to: "/create" });
   };
 
   const handleJoinGame = () => {
     const code = joinCode.trim().toUpperCase();
     if (code.length === 0) {
+      playSound("/sounds/error.ogg");
       setError("Please enter a game code!");
       inputRef.current?.focus();
       return;
     }
     setError("");
-    navigate({ to: `/lobby/${code}` });
+    setCodeToCheck(code);
   };
 
   return (
@@ -110,17 +139,10 @@ function App() {
           </PixelButton>
 
           {/* Error Message */}
-          {error && (
-            <div
-              id="join-error"
-              role="alert"
-              className="pixel-error bg-red-200 text-xl p-3 leading-relaxed"
-            >
-              {error}
-            </div>
-          )}
+          {error && <PixelError id="join-error">{error}</PixelError>}
         </div>
       </main>
+      <SoundToggle />
     </div>
   );
 }

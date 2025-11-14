@@ -1,4 +1,5 @@
 import { InputHTMLAttributes, forwardRef, KeyboardEvent } from "react";
+import { playTypingSound } from "@/lib/audio";
 
 interface PixelInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -38,6 +39,12 @@ interface PixelInputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const PixelInput = forwardRef<HTMLInputElement, PixelInputProps>(
   ({ label, onEnterPress, className = "", onKeyDown, ...props }, ref) => {
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+      // Play typing sound for actual character input (not modifier or navigation keys)
+      const isTypingKey = e.key.length === 1 || e.key === "Backspace" || e.key === "Delete";
+      if (isTypingKey) {
+        playTypingSound();
+      }
+
       if (e.key === "Enter" && onEnterPress) {
         onEnterPress();
       }
@@ -47,7 +54,7 @@ export const PixelInput = forwardRef<HTMLInputElement, PixelInputProps>(
     const input = (
       <input
         ref={ref}
-        className={`pixel-input text-xl p-4 ${className}`}
+        className={`pixel-input text-xl p-4 uppercase ${className}`}
         onKeyDown={handleKeyDown}
         {...props}
       />

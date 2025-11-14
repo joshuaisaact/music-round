@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
-import { PixelButton, PlayerStandings } from "@/components";
+import { PixelButton, PlayerStandings, SoundToggle } from "@/components";
 import { useState } from "react";
 
 export const Route = createFileRoute("/summary/$code")({
@@ -233,6 +233,7 @@ function Summary() {
           </PixelButton>
         </nav>
       </main>
+      <SoundToggle />
     </div>
   );
 }

@@ -3,7 +3,8 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useEffect, useState, useRef } from "react";
 import { getSessionId } from "../../lib/session";
-import { PixelButton, PixelInput, PixelAudioPlayer, PlayerStandings } from "@/components";
+import { PixelButton, PixelInput, PixelAudioPlayer, PlayerStandings, SoundToggle } from "@/components";
+import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/game/$code")({
   component: Game,
@@ -151,6 +152,17 @@ function Game() {
       setArtistLocked(result.artistCorrect);
       setTitleLocked(result.titleCorrect);
       setIsFullyLocked(result.isLocked);
+
+      // Check if any answer was correct or wrong
+      const anyCorrect = (submittingArtist && result.artistCorrect) || (submittingTitle && result.titleCorrect);
+      const anyWrong = (submittingArtist && !result.artistCorrect) || (submittingTitle && !result.titleCorrect);
+
+      // Play sounds based on results
+      if (anyCorrect) {
+        playSound("/sounds/confirmation.ogg");
+      } else if (anyWrong) {
+        playSound("/sounds/error.ogg");
+      }
 
       // Trigger shake animation for wrong answers
       if (submittingArtist && !result.artistCorrect) {
@@ -462,9 +474,6 @@ function Game() {
             {/* Countdown centered */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <h2 className="pixel-text text-white text-4xl md:text-6xl mb-8 animate-pulse">
-                  GET READY!
-                </h2>
                 <p className="pixel-text text-white text-2xl md:text-3xl">
                   ROUND {currentRoundNumber}
                 </p>
@@ -715,6 +724,7 @@ function Game() {
           </div>
         </div>
       )}
+      <SoundToggle />
     </div>
   );
 }
