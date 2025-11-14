@@ -292,6 +292,15 @@ function Lobby() {
               PLAYERS
             </h2>
             <div className="flex gap-4 items-center">
+              {isHost && (
+                <PixelButton
+                  onClick={() => setShowSettingsModal(true)}
+                  size="x-small"
+                  aria-label="Edit game settings"
+                >
+                  EDIT
+                </PixelButton>
+              )}
               <div className="flex gap-4" role="group" aria-label="Game settings">
                 <div className="text-center">
                   <p id="rounds-label" className="pixel-text text-sky-600 text-xs">ROUNDS</p>
@@ -306,15 +315,6 @@ function Lobby() {
                   </p>
                 </div>
               </div>
-              {isHost && (
-                <button
-                  onClick={() => setShowSettingsModal(true)}
-                  className="pixel-text text-sky-600 text-xs hover:text-sky-800 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400 focus-visible:outline-offset-2"
-                  aria-label="Edit game settings"
-                >
-                  EDIT
-                </button>
-              )}
             </div>
           </div>
 
@@ -476,13 +476,13 @@ function Lobby() {
       {/* Settings modal */}
       {showSettingsModal && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 flex items-center justify-center p-4 z-50"
           role="dialog"
           aria-modal="true"
           aria-labelledby="settings-modal-title"
         >
-          <div className="bg-white border-4 border-sky-900 p-8 max-w-md w-full">
-            <h3 id="settings-modal-title" className="pixel-text text-sky-900 text-xl mb-6 text-center">
+          <div className="bg-sky-500 border-4 border-sky-900 p-8 max-w-md w-full">
+            <h3 id="settings-modal-title" className="pixel-text text-white text-xl mb-6 text-center">
               EDIT SETTINGS
             </h3>
 
@@ -511,8 +511,9 @@ function Lobby() {
               <PixelButton
                 ref={settingsCancelButtonRef}
                 onClick={() => setShowSettingsModal(false)}
+                variant="danger"
                 size="medium"
-                className="flex-1 bg-sky-100 text-sky-900 hover:bg-sky-200"
+                className="flex-1"
                 aria-label="Cancel and keep current settings"
               >
                 CANCEL
