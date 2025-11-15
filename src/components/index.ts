@@ -7,3 +7,5 @@ export { PixelError } from "./PixelError";
 export { SoundToggle } from "./SoundToggle";
 export { PlaylistCard } from "./PlaylistCard";
 export { GameSettingsForm } from "./GameSettingsForm";
+export { ClientOnly } from "./ClientOnly";
+export { RasterIcon } from "./RasterIcons";

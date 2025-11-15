@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { PixelButton, PixelInput, PixelError, SoundToggle } from "@/components";
+import { PixelButton, PixelInput, PixelError, SoundToggle, RasterIcon } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/")({ component: App });
@@ -79,24 +79,24 @@ function App() {
         </h1>
 
         {/* Musical notes decoration */}
-        <div className="flex justify-center gap-8 mb-12 text-4xl">
+        <div className="flex justify-center gap-8 mb-12">
           <span
             className="inline-block animate-bounce-slow"
             style={{ animationDelay: "0ms" }}
           >
-            🎵
+            <RasterIcon icon="music2" size={48} color="#ffffff" />
           </span>
           <span
             className="inline-block animate-bounce-slow"
             style={{ animationDelay: "200ms" }}
           >
-            🎸
+            <RasterIcon icon="music4" size={48} color="#ffffff" />
           </span>
           <span
             className="inline-block animate-bounce-slow"
             style={{ animationDelay: "400ms" }}
           >
-            🎤
+            <RasterIcon icon="music" size={48} color="#ffffff" />
           </span>
         </div>
 
