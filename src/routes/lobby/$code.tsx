@@ -3,7 +3,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { useState, useEffect, useRef } from "react";
-import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, PlaylistCard } from "@/components";
+import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, PlaylistCard, BouncingMusicIcons } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/lobby/$code")({
@@ -396,11 +396,9 @@ function Lobby() {
               >
                 {isStarting ? "STARTING..." : "START GAME"}
               </PixelButton>
-              {!allPlayersReady && playersList.length > 0 && (
-                <p className="pixel-text text-white text-xs opacity-75">
-                  WAITING FOR ALL PLAYERS TO READY UP...
-                </p>
-              )}
+              <p className={`pixel-text text-white text-sm opacity-75 ${allPlayersReady || playersList.length === 0 ? 'invisible' : ''}`}>
+                WAITING FOR PLAYERS...
+              </p>
             </>
           ) : (
             <p className="pixel-text text-white text-sm" role="status" aria-live="polite">
@@ -415,26 +413,7 @@ function Lobby() {
 
         {/* Fun waiting animation */}
         <div className="text-center mt-8" aria-hidden="true">
-          <div className="inline-flex gap-2">
-            <span
-              className="inline-block animate-bounce text-2xl"
-              style={{ animationDelay: "0ms" }}
-            >
-              🎵
-            </span>
-            <span
-              className="inline-block animate-bounce text-2xl"
-              style={{ animationDelay: "150ms" }}
-            >
-              🎸
-            </span>
-            <span
-              className="inline-block animate-bounce text-2xl"
-              style={{ animationDelay: "300ms" }}
-            >
-              🎤
-            </span>
-          </div>
+          <BouncingMusicIcons size="small" />
         </div>
 
         {/* Leave button */}

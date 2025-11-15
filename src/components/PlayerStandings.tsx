@@ -96,20 +96,40 @@ export function PlayerStandings({
                 ${isShaking ? "shake bg-red-100 !border-red-600" : checkmarks === 2 ? "!border-4 !border-green-600" : ""}
               `}
             >
-              <div className="flex items-center gap-2">
-                <span className="pixel-text text-lg">
-                  {index === 0
-                    ? "🥇"
-                    : index === 1
-                      ? "🥈"
-                      : index === 2
-                        ? "🥉"
-                        : `${index + 1}.`}
-                </span>
-                <span className="pixel-text text-base font-bold truncate max-w-[150px]">
-                  {player.name.toUpperCase()}
-                  {player._id === currentPlayerId && " (YOU)"}
-                </span>
+              <div className="flex items-center">
+                {index === 0 ? (
+                  <>
+                    <img src="/medal-1.svg" alt="" width="24" height="24" aria-hidden="true" className="mr-1" />
+                    <span className="pixel-text text-base font-bold truncate max-w-[150px]">
+                      {player.name.toUpperCase()}
+                      {player._id === currentPlayerId && " (YOU)"}
+                    </span>
+                  </>
+                ) : index === 1 ? (
+                  <>
+                    <img src="/medal-2.svg" alt="" width="24" height="24" aria-hidden="true" className="mr-1" />
+                    <span className="pixel-text text-base font-bold truncate max-w-[150px]">
+                      {player.name.toUpperCase()}
+                      {player._id === currentPlayerId && " (YOU)"}
+                    </span>
+                  </>
+                ) : index === 2 ? (
+                  <>
+                    <img src="/medal-3.svg" alt="" width="24" height="24" aria-hidden="true" className="mr-1" />
+                    <span className="pixel-text text-base font-bold truncate max-w-[150px]">
+                      {player.name.toUpperCase()}
+                      {player._id === currentPlayerId && " (YOU)"}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="pixel-text text-lg mr-1">{index + 1}.</span>
+                    <span className="pixel-text text-base font-bold truncate max-w-[150px]">
+                      {player.name.toUpperCase()}
+                      {player._id === currentPlayerId && " (YOU)"}
+                    </span>
+                  </>
+                )}
                 {checkmarks > 0 && (
                   <span className="text-green-600 text-base font-bold">
                     {checkmarks === 2 ? "✓✓" : "✓"}
@@ -147,29 +167,76 @@ export function PlayerStandings({
               ${isShaking ? "shake bg-red-100 !border-red-600" : checkmarks === 2 ? "!border-[6px] !border-green-600" : ""}
             `}
           >
-            <div className="flex items-center gap-4">
-              <span className="pixel-text text-2xl md:text-3xl w-12">
-                {index === 0
-                  ? "🥇"
-                  : index === 1
-                    ? "🥈"
-                    : index === 2
-                      ? "🥉"
-                      : `${index + 1}.`}
-              </span>
-              <div>
-                <p className="pixel-text text-lg md:text-xl font-bold flex items-center gap-2">
-                  <span>
-                    {player.name.toUpperCase()}
-                    {player._id === currentPlayerId && " (YOU)"}
-                  </span>
-                  {checkmarks > 0 && (
-                    <span className="text-green-600 text-lg font-bold">
-                      {checkmarks === 2 ? "✓✓" : "✓"}
-                    </span>
-                  )}
-                </p>
-              </div>
+            <div className="flex items-center">
+              {index === 0 ? (
+                <>
+                  <img src="/medal-1.svg" alt="" width="36" height="36" aria-hidden="true" className="mr-2" />
+                  <div>
+                    <p className="pixel-text text-lg md:text-xl font-bold flex items-center gap-2">
+                      <span>
+                        {player.name.toUpperCase()}
+                        {player._id === currentPlayerId && " (YOU)"}
+                      </span>
+                      {checkmarks > 0 && (
+                        <span className="text-green-600 text-lg font-bold">
+                          {checkmarks === 2 ? "✓✓" : "✓"}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </>
+              ) : index === 1 ? (
+                <>
+                  <img src="/medal-2.svg" alt="" width="36" height="36" aria-hidden="true" className="mr-2" />
+                  <div>
+                    <p className="pixel-text text-lg md:text-xl font-bold flex items-center gap-2">
+                      <span>
+                        {player.name.toUpperCase()}
+                        {player._id === currentPlayerId && " (YOU)"}
+                      </span>
+                      {checkmarks > 0 && (
+                        <span className="text-green-600 text-lg font-bold">
+                          {checkmarks === 2 ? "✓✓" : "✓"}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </>
+              ) : index === 2 ? (
+                <>
+                  <img src="/medal-3.svg" alt="" width="36" height="36" aria-hidden="true" className="mr-2" />
+                  <div>
+                    <p className="pixel-text text-lg md:text-xl font-bold flex items-center gap-2">
+                      <span>
+                        {player.name.toUpperCase()}
+                        {player._id === currentPlayerId && " (YOU)"}
+                      </span>
+                      {checkmarks > 0 && (
+                        <span className="text-green-600 text-lg font-bold">
+                          {checkmarks === 2 ? "✓✓" : "✓"}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="pixel-text text-2xl md:text-3xl w-12">{index + 1}.</span>
+                  <div>
+                    <p className="pixel-text text-lg md:text-xl font-bold flex items-center gap-2">
+                      <span>
+                        {player.name.toUpperCase()}
+                        {player._id === currentPlayerId && " (YOU)"}
+                      </span>
+                      {checkmarks > 0 && (
+                        <span className="text-green-600 text-lg font-bold">
+                          {checkmarks === 2 ? "✓✓" : "✓"}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
             <p className="pixel-text text-2xl md:text-3xl font-bold">{player.score}</p>
           </div>

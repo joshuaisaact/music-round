@@ -663,7 +663,8 @@ function Game() {
           <aside className="lg:col-span-1" aria-labelledby="leaderboard-heading">
             <div className="bg-white border-4 border-sky-900 p-6 sticky top-4">
               <h2 id="leaderboard-heading" className="pixel-text text-sky-900 text-lg mb-4 flex items-center gap-2">
-                <span aria-hidden="true">🏆</span> LEADERBOARD
+                <img src="/trophy.svg" alt="" width="24" height="24" aria-hidden="true" />
+                LEADERBOARD
               </h2>
 
               <PlayerStandings
