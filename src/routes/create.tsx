@@ -67,13 +67,6 @@ function CreateGame() {
       </div>
 
       <main className="relative z-10 w-full max-w-md">
-        <h1
-          className="text-white text-center mb-8 text-4xl"
-          style={{ fontFamily: '"VCR OSD Mono", monospace' }}
-        >
-          CREATE GAME
-        </h1>
-
         <GameSettingsForm
           mode="create"
           onComplete={handleCreateGame}
