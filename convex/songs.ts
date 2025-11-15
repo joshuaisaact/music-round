@@ -254,13 +254,13 @@ export const getAvailablePlaylists = query({
         previewSong: { artist: "The Killers", title: "Mr. Brightside" },
       },
       "1980s": {
-        name: "80s",
+        name: "1980s",
         section: "Decades",
         order: 1,
         previewSong: { artist: "Michael Jackson", title: "Billie Jean" },
       },
       "1990s": {
-        name: "90s",
+        name: "1990s",
         section: "Decades",
         order: 2,
         previewSong: { artist: "Nirvana", title: "Smells Like Teen Spirit" },
