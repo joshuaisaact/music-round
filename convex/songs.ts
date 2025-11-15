@@ -307,6 +307,12 @@ export const getAvailablePlaylists = query({
         order: 7,
         previewSong: { artist: "The Fratellis", title: "Chelsea Dagger" },
       },
+      "rnb-classics": {
+        name: "R&B CLASSICS",
+        section: "Genre",
+        order: 8,
+        previewSong: { artist: "Blackstreet", title: "No Diggity" },
+      },
     };
 
     // Build result array
