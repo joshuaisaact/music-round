@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { PixelButton, PixelSlider, PixelToggle, PixelInput, PixelError, PlaylistCard } from "@/components";
+import { PixelButton, PixelSlider, PixelInput, PixelError, PlaylistCard } from "@/components";
 import { playSound } from "@/lib/audio";
 
 let globalAudioRef: HTMLAudioElement | null = null;
@@ -17,7 +17,7 @@ interface GameSettingsFormProps {
     playlistTag: string;
     roundCount: number;
     secondsPerRound: number;
-    isSinglePlayer: boolean;
+    isSinglePlayer?: boolean;
     playerName?: string;
   }) => void;
   onCancel: () => void;
@@ -54,7 +54,6 @@ export function GameSettingsForm({
   const [playerName, setPlayerName] = useState(initialPlayerName);
   const [roundCount, setRoundCount] = useState(initialRoundCount);
   const [secondsPerRound, setSecondsPerRound] = useState(initialSecondsPerRound);
-  const [isSinglePlayer, setIsSinglePlayer] = useState(initialIsSinglePlayer);
   const [error, setError] = useState("");
   const [previewAudioUrl, setPreviewAudioUrl] = useState<string | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
@@ -233,7 +232,7 @@ export function GameSettingsForm({
       playlistTag: selectedPlaylist,
       roundCount,
       secondsPerRound,
-      isSinglePlayer,
+      ...(mode === "edit" && { isSinglePlayer: initialIsSinglePlayer }),
       ...(mode === "create" && { playerName: playerName.trim() }),
     });
   };
@@ -347,13 +346,6 @@ export function GameSettingsForm({
         {currentTab === "settings" && (
           <div className="flex flex-col h-full">
             <div className="flex-1 space-y-6">
-              <PixelToggle
-                value={isSinglePlayer}
-                onChange={setIsSinglePlayer}
-                leftLabel="MULTIPLAYER"
-                rightLabel="SOLO"
-              />
-
               <PixelSlider
                 label="ROUNDS"
                 value={roundCount}
