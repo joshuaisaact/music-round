@@ -7,10 +7,24 @@ import { startBackgroundMusic, stopBackgroundMusic } from "@/lib/audio";
  */
 export const BackgroundMusic = () => {
   useEffect(() => {
+    // Try to start music immediately
     startBackgroundMusic("/game-plan.mp3", 0.3);
 
+    // If autoplay is blocked, start on first user interaction
+    const handleFirstInteraction = () => {
+      startBackgroundMusic("/game-plan.mp3", 0.3);
+      // Remove listeners after first interaction
+      document.removeEventListener("click", handleFirstInteraction);
+      document.removeEventListener("keydown", handleFirstInteraction);
+    };
+
+    document.addEventListener("click", handleFirstInteraction);
+    document.addEventListener("keydown", handleFirstInteraction);
+
     return () => {
-      stopBackgroundMusic();
+      document.removeEventListener("click", handleFirstInteraction);
+      document.removeEventListener("keydown", handleFirstInteraction);
+      // Don't stop music on unmount - let it continue across page navigation
     };
   }, []);
 

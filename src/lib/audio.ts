@@ -86,6 +86,11 @@ export function playTypingSound(volume: number = 0.2): void {
 export function startBackgroundMusic(musicPath: string, volume: number = 0.3): void {
   if (typeof window === 'undefined') return; // Skip during SSR
 
+  // If music is already playing the same track, don't restart it
+  if (backgroundMusic && backgroundMusic.src.endsWith(musicPath)) {
+    return;
+  }
+
   // Stop any existing music
   stopBackgroundMusic();
 
@@ -112,5 +117,23 @@ export function stopBackgroundMusic(): void {
   if (backgroundMusic) {
     backgroundMusic.pause();
     backgroundMusic = null;
+  }
+}
+
+/**
+ * Pause background music (without stopping it)
+ */
+export function pauseBackgroundMusic(): void {
+  if (backgroundMusic && !backgroundMusic.paused) {
+    backgroundMusic.pause();
+  }
+}
+
+/**
+ * Resume background music
+ */
+export function resumeBackgroundMusic(): void {
+  if (backgroundMusic && backgroundMusic.paused && isSoundEnabled()) {
+    backgroundMusic.play().catch(console.warn);
   }
 }
