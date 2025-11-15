@@ -15,6 +15,7 @@ export default defineSchema({
       roundCount: v.number(),
       secondsPerRound: v.number(),
       playlistTag: v.optional(v.string()),
+      isSinglePlayer: v.optional(v.boolean()),
     }),
     createdAt: v.number(),
   })

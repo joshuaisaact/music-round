@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { getSessionId } from "@/lib/session";
 import { GameSettingsForm, SoundToggle } from "@/components";
@@ -12,6 +12,7 @@ function CreateGame() {
   const navigate = useNavigate();
   const createGame = useMutation(api.games.create);
   const joinGame = useMutation(api.players.join);
+  const startGame = useAction(api.games.start);
   const songCount = useQuery(api.songs.count);
 
   const [isCreating, setIsCreating] = useState(false);
@@ -20,6 +21,7 @@ function CreateGame() {
     playlistTag: string;
     roundCount: number;
     secondsPerRound: number;
+    isSinglePlayer: boolean;
     playerName?: string;
   }) => {
     try {
@@ -38,6 +40,7 @@ function CreateGame() {
           roundCount: settings.roundCount,
           secondsPerRound: settings.secondsPerRound,
           playlistTag: settings.playlistTag,
+          isSinglePlayer: settings.isSinglePlayer,
         },
       });
 
@@ -47,7 +50,13 @@ function CreateGame() {
         name: settings.playerName!,
       });
 
-      navigate({ to: `/lobby/${game.code}` });
+      // If single player mode, start the game immediately and skip lobby
+      if (settings.isSinglePlayer) {
+        await startGame({ gameId: game.gameId });
+        navigate({ to: `/game/${game.code}` });
+      } else {
+        navigate({ to: `/lobby/${game.code}` });
+      }
     } catch {
       alert("Failed to create game. Try again!");
       setIsCreating(false);
