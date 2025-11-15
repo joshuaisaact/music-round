@@ -218,12 +218,12 @@ export const getAvailablePlaylists = query({
       subtitle?: string;
       section?: string;
       order: number;
-      previewSong?: { artist: string; title: string };
+      previewSong: { artist: string; title: string };
     }> = {
       "daily-songs": {
         name: "Daily Songs",
         order: 0,
-        previewSong: { artist: "Queen", title: "Bohemian Rhapsody" },
+        previewSong: { artist: "The Killers", title: "Mr. Brightside" },
       },
       "1980s": {
         name: "1980s",
