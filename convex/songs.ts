@@ -307,17 +307,17 @@ export const getAvailablePlaylists = query({
         order: 7,
         previewSong: { artist: "The Fratellis", title: "Chelsea Dagger" },
       },
-      "rnb-classics": {
-        name: "R&B CLASSICS",
-        section: "Genre",
-        order: 8,
-        previewSong: { artist: "Blackstreet", title: "No Diggity" },
-      },
       "new-romantics": {
         name: "NEW ROMANTICS",
         section: "Genre",
+        order: 8,
+        previewSong: { artist: "ABC", title: "Poison Arrow" },
+      },
+      "rnb-classics": {
+        name: "R&B CLASSICS",
+        section: "Genre",
         order: 9,
-        previewSong: { artist: "Simple Minds", title: "Don't You (Forget About Me)" },
+        previewSong: { artist: "Blackstreet", title: "No Diggity" },
       },
     };
 
