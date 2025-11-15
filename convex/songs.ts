@@ -11,8 +11,11 @@ export const count = query({
 });
 
 export const getRandomSongs = query({
-  args: { count: v.number() },
-  handler: async (ctx, { count }) => {
+  args: {
+    count: v.number(),
+    playlistTag: v.optional(v.string()),
+  },
+  handler: async (ctx, { count, playlistTag }) => {
     const allSongs = await ctx.db.query("songs").collect();
 
     if (allSongs.length === 0) {
@@ -21,7 +24,20 @@ export const getRandomSongs = query({
       );
     }
 
-    const shuffled = [...allSongs].sort(() => Math.random() - 0.5);
+    // Filter by playlist tag if provided
+    const filteredSongs = playlistTag
+      ? allSongs.filter((song) => song.tags?.includes(playlistTag))
+      : allSongs;
+
+    if (filteredSongs.length === 0) {
+      throw new Error(
+        playlistTag
+          ? `No songs found with tag "${playlistTag}".`
+          : "No songs in database.",
+      );
+    }
+
+    const shuffled = [...filteredSongs].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
   },
 });
@@ -177,6 +193,52 @@ export const getAll = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("songs").collect();
+  },
+});
+
+// Get available playlists with metadata
+export const getAvailablePlaylists = query({
+  args: {},
+  handler: async (ctx) => {
+    const allSongs = await ctx.db.query("songs").collect();
+
+    // Aggregate songs by tag
+    const tagCounts = new Map<string, number>();
+
+    for (const song of allSongs) {
+      const tags = song.tags || [];
+      for (const tag of tags) {
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      }
+    }
+
+    // Define playlist metadata (display names, descriptions)
+    const playlistMetadata: Record<string, { name: string; description?: string }> = {
+      "daily-songs": {
+        name: "Daily Songs",
+      },
+      "1980s": {
+        name: "1980s",
+      },
+      "glastonbury-headliners": {
+        name: "Pyramid Stage Headliners",
+      },
+    };
+
+    // Build result array
+    const playlists = Array.from(tagCounts.entries()).map(([tag, count]) => ({
+      tag,
+      name: playlistMetadata[tag]?.name || tag,
+      description: playlistMetadata[tag]?.description,
+      songCount: count,
+    }));
+
+    // Sort: daily-songs first, then alphabetically
+    return playlists.sort((a, b) => {
+      if (a.tag === "daily-songs") return -1;
+      if (b.tag === "daily-songs") return 1;
+      return a.name.localeCompare(b.name);
+    });
   },
 });
 

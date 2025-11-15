@@ -14,6 +14,7 @@ export default defineSchema({
     settings: v.object({
       roundCount: v.number(),
       secondsPerRound: v.number(),
+      playlistTag: v.optional(v.string()),
     }),
     createdAt: v.number(),
   })

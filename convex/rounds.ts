@@ -28,8 +28,12 @@ export const getCurrent = query({
 });
 
 export const createTestRounds = internalAction({
-  args: { gameId: v.id("games"), count: v.number() },
-  handler: async (ctx, { gameId, count }) => {
+  args: {
+    gameId: v.id("games"),
+    count: v.number(),
+    playlistTag: v.optional(v.string()),
+  },
+  handler: async (ctx, { gameId, count, playlistTag }) => {
     const songs = [];
     const maxAttempts = count * 3; // Try up to 3x the needed count to find songs with previews
     let attempts = 0;
@@ -39,6 +43,7 @@ export const createTestRounds = internalAction({
       const batchSize: number = count - songs.length + 5;
       const randomSongs: Array<{ artist: string; title: string }> = await ctx.runQuery(api.songs.getRandomSongs, {
         count: batchSize,
+        playlistTag,
       });
 
       for (const { artist, title } of randomSongs) {
