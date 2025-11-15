@@ -301,6 +301,12 @@ export const getAvailablePlaylists = query({
         order: 6,
         previewSong: { artist: "blink-182", title: "I Miss You" },
       },
+      "nu-metal": {
+        name: "NU METAL",
+        section: "Genre",
+        order: 7,
+        previewSong: { artist: "Linkin Park", title: "In the End" },
+      },
     };
 
     // Build result array
