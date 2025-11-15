@@ -113,6 +113,34 @@ export const replaceSongs = internalMutation({
   },
 });
 
+export const replaceSongsWithTags = internalMutation({
+  args: {
+    songs: v.array(
+      v.object({
+        artist: v.string(),
+        title: v.string(),
+        spotifyId: v.string(),
+        tags: v.optional(v.array(v.string())),
+      }),
+    ),
+  },
+  handler: async (ctx, { songs }) => {
+    const existingSongs = await ctx.db.query("songs").collect();
+    for (const song of existingSongs) {
+      await ctx.db.delete(song._id);
+    }
+
+    for (const song of songs) {
+      await ctx.db.insert("songs", {
+        artist: song.artist,
+        title: song.title,
+        spotifyId: song.spotifyId,
+        tags: song.tags,
+      });
+    }
+  },
+});
+
 // Helper action to manually add a song - searches Spotify and adds to DB
 export const addSong = action({
   args: {
@@ -262,7 +290,6 @@ export const getAvailablePlaylists = query({
   },
 });
 
-// Migration: Tag all existing songs with "daily-songs"
 export const tagExistingSongs = internalMutation({
   args: {
     tag: v.string(),
@@ -272,7 +299,6 @@ export const tagExistingSongs = internalMutation({
 
     let updatedCount = 0;
     for (const song of allSongs) {
-      // Only update if tags don't exist or don't already contain this tag
       const currentTags = song.tags || [];
       if (!currentTags.includes(tag)) {
         await ctx.db.patch(song._id, {
@@ -283,6 +309,29 @@ export const tagExistingSongs = internalMutation({
     }
 
     console.log(`Tagged ${updatedCount} songs with "${tag}"`);
+    return { updatedCount, totalSongs: allSongs.length };
+  },
+});
+
+export const tagUntaggedSongs = internalMutation({
+  args: {
+    tag: v.string(),
+  },
+  handler: async (ctx, { tag }) => {
+    const allSongs = await ctx.db.query("songs").collect();
+
+    let updatedCount = 0;
+    for (const song of allSongs) {
+      const currentTags = song.tags || [];
+      if (currentTags.length === 0) {
+        await ctx.db.patch(song._id, {
+          tags: [tag],
+        });
+        updatedCount++;
+      }
+    }
+
+    console.log(`Tagged ${updatedCount} untagged songs with "${tag}"`);
     return { updatedCount, totalSongs: allSongs.length };
   },
 });
