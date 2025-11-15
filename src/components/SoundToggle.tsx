@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { toggleSound, getSoundEnabled } from "@/lib/audio";
-import { Volume2, VolumeX } from "lucide-react";
+import { ClientOnly } from "./ClientOnly";
+
+const RasterIcons = () => {
+  const { Volume2Icon, VolumeXIcon } = require("raster-react");
+  return { Volume2Icon, VolumeXIcon };
+};
 
 /**
  * A floating button that toggles sound effects on/off
@@ -39,11 +44,16 @@ export const SoundToggle = () => {
         aria-label={soundEnabled ? "Mute sound effects" : "Unmute sound effects"}
         title={soundEnabled ? "Sound effects on" : "Sound effects off"}
       >
-        {soundEnabled ? (
-          <Volume2 size={32} color="#ffffff" />
-        ) : (
-          <VolumeX size={32} color="#ffffff" />
-        )}
+        <ClientOnly>
+          {(() => {
+            const { Volume2Icon, VolumeXIcon } = RasterIcons();
+            return soundEnabled ? (
+              <Volume2Icon size={32} color="#ffffff" />
+            ) : (
+              <VolumeXIcon size={32} color="#ffffff" />
+            );
+          })()}
+        </ClientOnly>
       </button>
 
       {/* Message notification */}
