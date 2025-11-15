@@ -94,7 +94,7 @@ export function PlayerStandings({
                 border-2 p-3 flex text-lg items-center justify-between transition-colors
                 ${index === 0 ? "bg-yellow-100 border-yellow-600" : "bg-sky-100 border-sky-600"}
                 ${player._id === currentPlayerId ? "ring-2 ring-sky-900" : ""}
-                ${isShaking ? "shake bg-red-100 !border-red-600" : checkmarks === 2 ? "!border-green-600" : ""}
+                ${isShaking ? "shake bg-red-100 !border-red-600" : checkmarks === 2 ? "!border-4 !border-green-600" : ""}
               `}
             >
               <div className="flex items-center gap-2">
@@ -146,7 +146,7 @@ export function PlayerStandings({
                       : "bg-sky-50 border-sky-300"
               }
               ${player._id === currentPlayerId ? "ring-4 ring-sky-900" : ""}
-              ${isShaking ? "shake bg-red-100 !border-red-600" : checkmarks === 2 ? "!border-green-600" : ""}
+              ${isShaking ? "shake bg-red-100 !border-red-600" : checkmarks === 2 ? "!border-[6px] !border-green-600" : ""}
             `}
           >
             <div className="flex items-center gap-4">
