@@ -295,6 +295,12 @@ export const getAvailablePlaylists = query({
         order: 5,
         previewSong: { artist: "Creed", title: "My Sacrifice" },
       },
+      "emo": {
+        name: "EMO",
+        section: "Genre",
+        order: 6,
+        previewSong: { artist: "My Chemical Romance", title: "Welcome to the Black Parade" },
+      },
     };
 
     // Build result array
