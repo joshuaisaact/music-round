@@ -45,7 +45,7 @@ export const SoundToggle = () => {
       {/* Message notification */}
       {showMessage && (
         <p className="pixel-text text-white text-2xl uppercase whitespace-nowrap">
-          SOUND {soundEnabled ? "ON" : "OFF"}
+          SOUND EFFECTS {soundEnabled ? "ON" : "OFF"}
         </p>
       )}
     </div>

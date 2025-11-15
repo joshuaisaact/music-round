@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { PixelButton, PixelSlider, PixelInput, PixelError, PlaylistCard } from "@/components";
-import { playSound, pauseBackgroundMusic, resumeBackgroundMusic } from "@/lib/audio";
+import { playSound } from "@/lib/audio";
 
 let globalAudioRef: HTMLAudioElement | null = null;
 
@@ -74,8 +74,6 @@ export function GameSettingsForm({
         globalAudioRef = null;
       }
       setPlayingPreviewTag(null);
-      // Resume background music when preview stops
-      resumeBackgroundMusic();
       return;
     }
 
@@ -87,9 +85,6 @@ export function GameSettingsForm({
       audioRef.current.pause();
       audioRef.current = null;
     }
-
-    // Pause background music when preview starts
-    pauseBackgroundMusic();
 
     setIsLoadingPreview(true);
 
@@ -109,8 +104,6 @@ export function GameSettingsForm({
           if (globalAudioRef === audio) {
             globalAudioRef = null;
           }
-          // Resume background music when preview ends
-          resumeBackgroundMusic();
         };
 
         await audio.play();
@@ -120,8 +113,6 @@ export function GameSettingsForm({
       }
     } catch (error) {
       console.error("Failed to play preview:", error);
-      // Resume background music if preview fails to play
-      resumeBackgroundMusic();
     } finally {
       setIsLoadingPreview(false);
     }
@@ -166,8 +157,6 @@ export function GameSettingsForm({
         globalAudioRef = null;
       }
       setPlayingPreviewTag(null);
-      // Resume background music when leaving playlist tab
-      resumeBackgroundMusic();
     }
     setCurrentTab(tab);
     setError("");

@@ -1,9 +1,6 @@
 // Sound enabled state (persisted in localStorage)
 const SOUND_ENABLED_KEY = "soundEffectsEnabled";
 
-// Global background music audio element
-let backgroundMusic: HTMLAudioElement | null = null;
-
 function isSoundEnabled(): boolean {
   if (typeof window === 'undefined') return true; // Default to enabled during SSR
   const stored = localStorage.getItem(SOUND_ENABLED_KEY);
@@ -13,16 +10,6 @@ function isSoundEnabled(): boolean {
 function setSoundEnabled(enabled: boolean): void {
   if (typeof window === 'undefined') return; // Skip during SSR
   localStorage.setItem(SOUND_ENABLED_KEY, enabled.toString());
-
-  // Control background music
-  if (backgroundMusic) {
-    if (enabled) {
-      backgroundMusic.play().catch(console.warn);
-    } else {
-      backgroundMusic.pause();
-    }
-  }
-
   // Dispatch event so components can react to changes
   window.dispatchEvent(new CustomEvent("soundToggle", { detail: { enabled } }));
 }
@@ -76,64 +63,4 @@ export function playTypingSound(volume: number = 0.2): void {
   const sounds = ["/sounds/click1.ogg", "/sounds/click2.ogg"];
   playSound(sounds[clickSoundIndex], volume);
   clickSoundIndex = (clickSoundIndex + 1) % sounds.length;
-}
-
-/**
- * Start background music
- * @param musicPath - Path to the music file relative to the public directory
- * @param volume - Volume level between 0 and 1 (default: 0.3)
- */
-export function startBackgroundMusic(musicPath: string, volume: number = 0.3): void {
-  if (typeof window === 'undefined') return; // Skip during SSR
-
-  // If music is already playing the same track, don't restart it
-  if (backgroundMusic && backgroundMusic.src.endsWith(musicPath)) {
-    return;
-  }
-
-  // Stop any existing music
-  stopBackgroundMusic();
-
-  try {
-    backgroundMusic = new Audio(musicPath);
-    backgroundMusic.loop = true;
-    backgroundMusic.volume = Math.max(0, Math.min(1, volume));
-
-    // Only play if sound is enabled
-    if (isSoundEnabled()) {
-      backgroundMusic.play().catch((error) => {
-        console.warn("Failed to play background music:", error);
-      });
-    }
-  } catch (error) {
-    console.warn("Failed to create background music:", error);
-  }
-}
-
-/**
- * Stop background music
- */
-export function stopBackgroundMusic(): void {
-  if (backgroundMusic) {
-    backgroundMusic.pause();
-    backgroundMusic = null;
-  }
-}
-
-/**
- * Pause background music (without stopping it)
- */
-export function pauseBackgroundMusic(): void {
-  if (backgroundMusic && !backgroundMusic.paused) {
-    backgroundMusic.pause();
-  }
-}
-
-/**
- * Resume background music
- */
-export function resumeBackgroundMusic(): void {
-  if (backgroundMusic && backgroundMusic.paused && isSoundEnabled()) {
-    backgroundMusic.play().catch(console.warn);
-  }
 }
