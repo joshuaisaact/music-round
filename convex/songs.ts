@@ -242,7 +242,7 @@ export const getAvailablePlaylists = query({
         name: "Buttrock",
         section: "Genre",
         order: 3,
-        previewSong: { artist: "Nickelback", title: "Photograph" },
+        previewSong: { artist: "Creed", title: "Higher" },
       },
     };
 
