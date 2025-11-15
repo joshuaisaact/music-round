@@ -265,17 +265,23 @@ export const getAvailablePlaylists = query({
         order: 2,
         previewSong: { artist: "Nirvana", title: "Smells Like Teen Spirit" },
       },
+      "2000s": {
+        name: "00s",
+        section: "Decades",
+        order: 3,
+        previewSong: { artist: "OutKast", title: "Hey Ya!" },
+      },
       "glastonbury-headliners": {
         name: "PYRAMID STAGE HEADLINERS",
         subtitle: "Glastonbury 2010-2025",
         section: "Festivals",
-        order: 3,
+        order: 4,
         previewSong: { artist: "Radiohead", title: "Karma Police" },
       },
       "buttrock": {
         name: "BUTTROCK",
         section: "Genre",
-        order: 4,
+        order: 5,
         previewSong: { artist: "Creed", title: "My Sacrifice" },
       },
     };
