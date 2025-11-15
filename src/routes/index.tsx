@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, OrDivider } from "@/components";
+import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, OrDivider, BackgroundMusic } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/")({ component: App });
@@ -150,6 +150,7 @@ function App() {
         </div>
       </main>
       <SoundToggle />
+      <BackgroundMusic />
     </div>
   );
 }

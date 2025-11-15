@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { getSessionId } from "@/lib/session";
-import { GameSettingsForm, SoundToggle, PixelButton, OrDivider } from "@/components";
+import { GameSettingsForm, SoundToggle, PixelButton, OrDivider, BackgroundMusic } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/create")({ component: CreateGame });
@@ -125,6 +125,7 @@ function CreateGame() {
           </div>
         </main>
         <SoundToggle />
+        <BackgroundMusic />
       </div>
     );
   }
@@ -147,6 +148,7 @@ function CreateGame() {
         />
       </main>
       <SoundToggle />
+      <BackgroundMusic />
     </div>
   );
 }
