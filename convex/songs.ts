@@ -212,16 +212,27 @@ export const getAvailablePlaylists = query({
       }
     }
 
-    // Define playlist metadata (display names, descriptions)
-    const playlistMetadata: Record<string, { name: string; description?: string }> = {
+    // Define playlist metadata (display names, sections, etc.)
+    const playlistMetadata: Record<string, {
+      name: string;
+      subtitle?: string;
+      section?: string;
+      order: number;
+    }> = {
       "daily-songs": {
         name: "Daily Songs",
+        order: 0,
       },
       "1980s": {
         name: "1980s",
+        section: "Decades",
+        order: 1,
       },
       "glastonbury-headliners": {
-        name: "Pyramid Stage Headliners",
+        name: "Glastonbury",
+        subtitle: "Pyramid Stage Headliners 2010-2025",
+        section: "Festivals",
+        order: 2,
       },
     };
 
@@ -229,16 +240,14 @@ export const getAvailablePlaylists = query({
     const playlists = Array.from(tagCounts.entries()).map(([tag, count]) => ({
       tag,
       name: playlistMetadata[tag]?.name || tag,
-      description: playlistMetadata[tag]?.description,
+      subtitle: playlistMetadata[tag]?.subtitle,
+      section: playlistMetadata[tag]?.section,
       songCount: count,
+      order: playlistMetadata[tag]?.order ?? 999,
     }));
 
-    // Sort: daily-songs first, then alphabetically
-    return playlists.sort((a, b) => {
-      if (a.tag === "daily-songs") return -1;
-      if (b.tag === "daily-songs") return 1;
-      return a.name.localeCompare(b.name);
-    });
+    // Sort by order
+    return playlists.sort((a, b) => a.order - b.order);
   },
 });
 
