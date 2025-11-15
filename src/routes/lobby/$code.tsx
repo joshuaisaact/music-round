@@ -496,13 +496,9 @@ function Lobby() {
           className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="settings-modal-title"
+          aria-label="Edit game settings"
         >
           <div className="max-w-md w-full">
-            <h2 id="settings-modal-title" className="pixel-text text-white text-center mb-4 text-4xl" style={{ fontFamily: '"VCR OSD Mono", monospace' }}>
-              EDIT SETTINGS
-            </h2>
-
             <GameSettingsForm
               mode="edit"
               initialPlaylist={game.settings.playlistTag}
