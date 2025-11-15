@@ -112,7 +112,7 @@ export function PlayerStandings({
                   {player._id === currentPlayerId && " (YOU)"}
                 </span>
                 {checkmarks > 0 && (
-                  <span className="text-green-600 text-sm">
+                  <span className="text-green-600 text-base font-bold">
                     {checkmarks === 2 ? "✓✓" : "✓"}
                   </span>
                 )}
@@ -166,7 +166,7 @@ export function PlayerStandings({
                     {player._id === currentPlayerId && " (YOU)"}
                   </span>
                   {checkmarks > 0 && (
-                    <span className="text-green-600 text-base">
+                    <span className="text-green-600 text-lg font-bold">
                       {checkmarks === 2 ? "✓✓" : "✓"}
                     </span>
                   )}
