@@ -299,7 +299,7 @@ export const getAvailablePlaylists = query({
         name: "EMO",
         section: "Genre",
         order: 6,
-        previewSong: { artist: "My Chemical Romance", title: "Welcome to the Black Parade" },
+        previewSong: { artist: "blink-182", title: "I Miss You" },
       },
     };
 
