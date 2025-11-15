@@ -259,17 +259,23 @@ export const getAvailablePlaylists = query({
         order: 1,
         previewSong: { artist: "Michael Jackson", title: "Billie Jean" },
       },
+      "1990s": {
+        name: "1990s",
+        section: "Decades",
+        order: 2,
+        previewSong: { artist: "Nirvana", title: "Smells Like Teen Spirit" },
+      },
       "glastonbury-headliners": {
         name: "Pyramid Stage Headliners",
         subtitle: "Glastonbury 2010-2025",
         section: "Festivals",
-        order: 2,
+        order: 3,
         previewSong: { artist: "Radiohead", title: "Karma Police" },
       },
       "buttrock": {
         name: "Buttrock",
         section: "Genre",
-        order: 3,
+        order: 4,
         previewSong: { artist: "Creed", title: "My Sacrifice" },
       },
     };
