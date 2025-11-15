@@ -218,21 +218,25 @@ export const getAvailablePlaylists = query({
       subtitle?: string;
       section?: string;
       order: number;
+      previewSong?: { artist: string; title: string };
     }> = {
       "daily-songs": {
         name: "Daily Songs",
         order: 0,
+        previewSong: { artist: "Queen", title: "Bohemian Rhapsody" },
       },
       "1980s": {
         name: "1980s",
         section: "Decades",
         order: 1,
+        previewSong: { artist: "Michael Jackson", title: "Billie Jean" },
       },
       "glastonbury-headliners": {
         name: "Glastonbury",
         subtitle: "Pyramid Stage Headliners 2010-2025",
         section: "Festivals",
         order: 2,
+        previewSong: { artist: "Radiohead", title: "Karma Police" },
       },
     };
 
@@ -244,6 +248,7 @@ export const getAvailablePlaylists = query({
       section: playlistMetadata[tag]?.section,
       songCount: count,
       order: playlistMetadata[tag]?.order ?? 999,
+      previewSong: playlistMetadata[tag]?.previewSong,
     }));
 
     // Sort by order
