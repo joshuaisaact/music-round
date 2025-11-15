@@ -12,10 +12,12 @@ interface GameSettingsFormProps {
   initialRoundCount?: number;
   initialSecondsPerRound?: number;
   initialPlayerName?: string;
+  initialIsSinglePlayer?: boolean;
   onComplete: (settings: {
     playlistTag: string;
     roundCount: number;
     secondsPerRound: number;
+    isSinglePlayer?: boolean;
     playerName?: string;
   }) => void;
   onCancel: () => void;
@@ -39,6 +41,7 @@ export function GameSettingsForm({
   initialRoundCount = 6,
   initialSecondsPerRound = 30,
   initialPlayerName = "",
+  initialIsSinglePlayer = false,
   onComplete,
   onCancel,
   isSubmitting = false,
@@ -229,6 +232,7 @@ export function GameSettingsForm({
       playlistTag: selectedPlaylist,
       roundCount,
       secondsPerRound,
+      ...(mode === "edit" && { isSinglePlayer: initialIsSinglePlayer }),
       ...(mode === "create" && { playerName: playerName.trim() }),
     });
   };

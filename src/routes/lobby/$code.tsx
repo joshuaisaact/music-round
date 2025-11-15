@@ -149,6 +149,7 @@ function Lobby() {
     playlistTag: string;
     roundCount: number;
     secondsPerRound: number;
+    isSinglePlayer: boolean;
   }) => {
     if (!game) return;
     try {
@@ -158,6 +159,7 @@ function Lobby() {
           roundCount: settings.roundCount,
           secondsPerRound: settings.secondsPerRound,
           playlistTag: settings.playlistTag,
+          isSinglePlayer: settings.isSinglePlayer,
         },
       });
       setShowSettingsModal(false);
@@ -483,6 +485,7 @@ function Lobby() {
               initialPlaylist={game.settings.playlistTag}
               initialRoundCount={game.settings.roundCount}
               initialSecondsPerRound={game.settings.secondsPerRound}
+              initialIsSinglePlayer={game.settings.isSinglePlayer}
               onComplete={handleSaveSettings}
               onCancel={() => setShowSettingsModal(false)}
             />

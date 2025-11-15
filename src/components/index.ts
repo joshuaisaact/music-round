@@ -1,6 +1,7 @@
 export { PixelButton } from "./PixelButton";
 export { PixelInput } from "./PixelInput";
 export { PixelSlider } from "./PixelSlider";
+export { PixelToggle } from "./PixelToggle";
 export { PixelAudioPlayer } from "./PixelAudioPlayer";
 export { PlayerStandings } from "./PlayerStandings";
 export { PixelError } from "./PixelError";
@@ -10,3 +11,4 @@ export { GameSettingsForm } from "./GameSettingsForm";
 export { ClientOnly } from "./ClientOnly";
 export { RasterIcon } from "./RasterIcons";
 export { BouncingMusicIcons } from "./BouncingMusicIcons";
+export { OrDivider } from "./OrDivider";

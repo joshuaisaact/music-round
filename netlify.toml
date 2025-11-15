@@ -1,3 +1,16 @@
 [build]
   command = "npx convex deploy --cmd 'npx convex codegen && npm run build'"
   publish = "dist/client"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ."
+
+# Only build production branch (main)
+[context.production]
+  command = "npx convex deploy --cmd 'npx convex codegen && npm run build'"
+
+# Disable branch deploy previews to save build minutes
+[context.branch-deploy]
+  ignore = "exit 0"
+
+# Disable deploy previews to save build minutes
+[context.deploy-preview]
+  ignore = "exit 0"

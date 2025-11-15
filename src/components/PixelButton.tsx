@@ -17,10 +17,10 @@ const variantStyles: Record<ButtonVariant, string> = {
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  "x-small": "text-xs py-2 px-3",
-  small: "text-sm py-3 px-6",
-  medium: "text-base py-3 px-4",
-  large: "text-xl py-5 px-8",
+  "x-small": "text-sm py-2 px-3",
+  small: "text-base py-3 px-6",
+  medium: "text-lg py-3 px-4",
+  large: "text-2xl py-5 px-8",
 };
 
 /**

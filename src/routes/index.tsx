@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons } from "@/components";
+import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, OrDivider } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/")({ component: App });
@@ -135,11 +135,7 @@ function App() {
             </PixelButton>
           </div>
 
-          <div className="flex items-center gap-4" aria-hidden="true">
-            <div className="flex-1 h-1 bg-white"></div>
-            <span className="text-white pixel-text text-xl">OR</span>
-            <div className="flex-1 h-1 bg-white"></div>
-          </div>
+          <OrDivider />
 
           <PixelButton
             onClick={handleCreateGame}
