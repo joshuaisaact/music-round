@@ -153,3 +153,28 @@ export const getAll = query({
     return await ctx.db.query("songs").collect();
   },
 });
+
+// Migration: Tag all existing songs with "daily-songs"
+export const tagExistingSongs = internalMutation({
+  args: {
+    tag: v.string(),
+  },
+  handler: async (ctx, { tag }) => {
+    const allSongs = await ctx.db.query("songs").collect();
+
+    let updatedCount = 0;
+    for (const song of allSongs) {
+      // Only update if tags don't exist or don't already contain this tag
+      const currentTags = song.tags || [];
+      if (!currentTags.includes(tag)) {
+        await ctx.db.patch(song._id, {
+          tags: [...currentTags, tag],
+        });
+        updatedCount++;
+      }
+    }
+
+    console.log(`Tagged ${updatedCount} songs with "${tag}"`);
+    return { updatedCount, totalSongs: allSongs.length };
+  },
+});

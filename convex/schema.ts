@@ -75,5 +75,6 @@ export default defineSchema({
     artist: v.string(),
     title: v.string(),
     spotifyId: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
   }),
 });
