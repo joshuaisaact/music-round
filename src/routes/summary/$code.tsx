@@ -32,6 +32,7 @@ function Summary() {
     api.answers.listForPlayer,
     currentPlayer ? { playerId: currentPlayer._id } : "skip",
   );
+  const availablePlaylists = useQuery(api.songs.getAvailablePlaylists);
 
   const createGame = useMutation(api.games.create);
   const joinGame = useMutation(api.players.join);
@@ -91,13 +92,6 @@ function Summary() {
   return (
     <div className="min-h-screen bg-sky-400 p-4 md:p-8">
       <main className="max-w-4xl mx-auto">
-        {/* Header */}
-        <header className="text-center mb-8">
-          <p className="pixel-text text-white text-xs opacity-75" aria-label={`Game code ${code}`}>
-            GAME CODE: {code}
-          </p>
-        </header>
-
         {/* Winner Announcement - only show if multiplayer */}
         {players.length > 1 && (
           <section className="bg-yellow-100 border-4 border-yellow-600 p-8 mb-6" aria-labelledby="winner-heading">
@@ -128,17 +122,56 @@ function Summary() {
           </section>
         )}
 
-        {/* Final Leaderboard */}
+        {/* Final Leaderboard or Solo Score */}
         <section className="bg-white border-4 border-sky-900 p-6 mb-6" aria-labelledby="standings-heading">
-          <h2 id="standings-heading" className="pixel-text text-sky-900 text-2xl mb-6 text-center">
-            FINAL STANDINGS
-          </h2>
-
-          <PlayerStandings
-            players={players}
-            currentPlayerId={currentPlayer._id}
-            variant="detailed"
-          />
+          {game.settings.isSinglePlayer ? (
+            <div className="text-center">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="pixel-text text-sky-600 text-sm mb-2">PLAYER</p>
+                    <p className="pixel-text text-sky-900 text-2xl md:text-3xl font-bold">
+                      {currentPlayer.name.toUpperCase()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="pixel-text text-sky-600 text-sm mb-2">PLAYLIST</p>
+                    <p className="pixel-text text-sky-900 text-xl md:text-2xl font-bold">
+                      {availablePlaylists?.find(p => p.tag === game.settings.playlistTag)?.name || game.settings.playlistTag || "Daily Songs"}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="pixel-text text-sky-600 text-sm mb-2">FINAL SCORE</p>
+                    <p className="pixel-text text-sky-900 text-3xl md:text-4xl font-bold">
+                      {currentPlayer.score} / {game.settings.roundCount * 1000}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="pixel-text text-sky-600 text-sm mb-2">ACCURACY</p>
+                    <p className="pixel-text text-sky-900 text-3xl md:text-4xl font-bold">
+                      {playerAnswers ?
+                        `${playerAnswers.filter(a => a.artistCorrect).length + playerAnswers.filter(a => a.titleCorrect).length} / ${game.settings.roundCount * 2}` :
+                        '0 / 0'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h2 id="standings-heading" className="pixel-text text-sky-900 text-2xl mb-6 text-center">
+                FINAL STANDINGS
+              </h2>
+              <PlayerStandings
+                players={players}
+                currentPlayerId={currentPlayer._id}
+                variant="detailed"
+              />
+            </>
+          )}
         </section>
 
         {/* Round Breakdown */}
@@ -161,7 +194,7 @@ function Summary() {
                       <div className="flex-1 flex flex-col justify-between">
                         <div>
                           <h3 className="pixel-text text-sky-900 text-sm font-bold mb-2">
-                            ROUND {round.roundNumber + 1}
+                            SONG {round.roundNumber + 1}
                           </h3>
                           {answer && (
                             <div>
@@ -170,21 +203,33 @@ function Summary() {
                                 aria-label={`Your artist answer: ${answer.artist || "blank"}, ${answer.artistCorrect ? "correct" : "incorrect"}`}
                               >
                                 <span className="hidden md:inline">ARTIST: </span>
-                                {(answer.artist || "(BLANK)").toUpperCase()}
+                                {answer.artist ? answer.artist.toUpperCase() : "—"}
                               </p>
                               <p
                                 className={`pixel-text text-base md:text-lg ${answer.titleCorrect ? "text-green-700" : "text-red-700"}`}
                                 aria-label={`Your title answer: ${answer.title || "blank"}, ${answer.titleCorrect ? "correct" : "incorrect"}`}
                               >
                                 <span className="hidden md:inline">TITLE: </span>
-                                {(answer.title || "(BLANK)").toUpperCase()}
+                                {answer.title ? answer.title.toUpperCase() : "—"}
                               </p>
                             </div>
                           )}
                         </div>
-                        <p className="pixel-text text-sky-700 text-sm md:text-lg mt-2" aria-label={answer ? `You earned ${answer.points} points` : "No answer submitted"}>
-                          {answer ? `+${answer.points} PTS` : "NO ANSWER"}
-                        </p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <p className="pixel-text text-sky-700 text-sm md:text-lg" aria-label={answer ? `You earned ${answer.points} points` : "No answer submitted"}>
+                            {answer ? `${answer.points > 0 ? '+' : ''}${answer.points} PTS` : "NO ANSWER"}
+                          </p>
+                          {answer && answer.hintsUsed && answer.hintsUsed > 0 && (
+                            <div className="flex items-center gap-1">
+                              {Array.from({ length: answer.hintsUsed }).map((_, i) => (
+                                <img key={i} src="/light-bulb.svg" alt="" width="12" height="12" aria-hidden="true" />
+                              ))}
+                              <span className="pixel-text text-yellow-700 text-xs">
+                                {answer.hintsUsed} {answer.hintsUsed === 1 ? 'HINT' : 'HINTS'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex flex-col items-end gap-2">

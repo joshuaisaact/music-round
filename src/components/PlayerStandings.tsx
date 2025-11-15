@@ -14,6 +14,7 @@ interface Answer {
   artistCorrect: boolean;
   titleCorrect: boolean;
   attempts?: number;
+  hintsUsed?: number;
 }
 
 interface PlayerStandingsProps {
@@ -80,23 +81,34 @@ export function PlayerStandings({
     return correctCount;
   };
 
+  // Get hints used for a player
+  const getHintsUsed = (playerId: Id<"players">): number => {
+    if (!roundAnswers) return 0;
+
+    const answer = roundAnswers.find((a) => a.playerId === playerId);
+    if (!answer) return 0;
+
+    return answer.hintsUsed ?? 0;
+  };
+
   if (variant === "compact") {
     return (
       <div className="space-y-2">
         {sortedPlayers.map((player, index) => {
           const isShaking = shakingPlayers.has(player._id);
           const checkmarks = getCheckmarks(player._id);
+          const hintsUsed = getHintsUsed(player._id);
 
           return (
             <div
               key={player._id}
               className={`
                 border-2 p-3 flex text-lg items-center justify-between transition-colors
-                ${index === 0 ? "bg-yellow-100 border-yellow-600" : "bg-sky-100 border-sky-600"}
+                bg-sky-100 border-sky-600
                 ${isShaking ? "shake bg-red-100 !border-red-600" : checkmarks === 2 ? "!border-4 !border-green-600" : ""}
               `}
             >
-              <div className="flex items-center">
+              <div className="flex items-center gap-1">
                 {index === 0 ? (
                   <>
                     <img src="/medal-1.svg" alt="" width="24" height="24" aria-hidden="true" className="mr-1" />
@@ -135,6 +147,13 @@ export function PlayerStandings({
                     {checkmarks === 2 ? "✓✓" : "✓"}
                   </span>
                 )}
+                {hintsUsed > 0 && (
+                  <span className="flex items-center gap-0.5">
+                    {Array.from({ length: hintsUsed }).map((_, i) => (
+                      <img key={i} src="/light-bulb.svg" alt="" width="12" height="12" aria-hidden="true" />
+                    ))}
+                  </span>
+                )}
               </div>
               <span className="pixel-text text-lg font-bold">{player.score}</span>
             </div>
@@ -149,6 +168,7 @@ export function PlayerStandings({
       {sortedPlayers.map((player, index) => {
         const isShaking = shakingPlayers.has(player._id);
         const checkmarks = getCheckmarks(player._id);
+        const hintsUsed = getHintsUsed(player._id);
 
         return (
           <div
@@ -182,6 +202,13 @@ export function PlayerStandings({
                           {checkmarks === 2 ? "✓✓" : "✓"}
                         </span>
                       )}
+                      {hintsUsed > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          {Array.from({ length: hintsUsed }).map((_, i) => (
+                            <img key={i} src="/light-bulb.svg" alt="" width="14" height="14" aria-hidden="true" />
+                          ))}
+                        </span>
+                      )}
                     </p>
                   </div>
                 </>
@@ -197,6 +224,13 @@ export function PlayerStandings({
                       {checkmarks > 0 && (
                         <span className="text-green-600 text-lg font-bold">
                           {checkmarks === 2 ? "✓✓" : "✓"}
+                        </span>
+                      )}
+                      {hintsUsed > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          {Array.from({ length: hintsUsed }).map((_, i) => (
+                            <img key={i} src="/light-bulb.svg" alt="" width="14" height="14" aria-hidden="true" />
+                          ))}
                         </span>
                       )}
                     </p>
@@ -216,6 +250,13 @@ export function PlayerStandings({
                           {checkmarks === 2 ? "✓✓" : "✓"}
                         </span>
                       )}
+                      {hintsUsed > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          {Array.from({ length: hintsUsed }).map((_, i) => (
+                            <img key={i} src="/light-bulb.svg" alt="" width="14" height="14" aria-hidden="true" />
+                          ))}
+                        </span>
+                      )}
                     </p>
                   </div>
                 </>
@@ -231,6 +272,13 @@ export function PlayerStandings({
                       {checkmarks > 0 && (
                         <span className="text-green-600 text-lg font-bold">
                           {checkmarks === 2 ? "✓✓" : "✓"}
+                        </span>
+                      )}
+                      {hintsUsed > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          {Array.from({ length: hintsUsed }).map((_, i) => (
+                            <img key={i} src="/light-bulb.svg" alt="" width="14" height="14" aria-hidden="true" />
+                          ))}
                         </span>
                       )}
                     </p>

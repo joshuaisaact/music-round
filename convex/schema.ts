@@ -16,6 +16,7 @@ export default defineSchema({
       secondsPerRound: v.number(),
       playlistTag: v.optional(v.string()),
       isSinglePlayer: v.optional(v.boolean()),
+      hintsPerPlayer: v.optional(v.number()),
     }),
     createdAt: v.number(),
   })
@@ -30,6 +31,7 @@ export default defineSchema({
     ready: v.optional(v.boolean()),
     avatar: v.optional(v.string()),
     joinedAt: v.number(),
+    hintsUsed: v.optional(v.number()),
   })
     .index("by_game", ["gameId"])
     .index("by_session", ["gameId", "sessionId"]),
@@ -69,6 +71,10 @@ export default defineSchema({
     lockedAt: v.optional(v.number()),
     artistLockedAt: v.optional(v.number()),
     titleLockedAt: v.optional(v.number()),
+    hintsUsed: v.optional(v.number()),
+    hintUsedAt: v.optional(v.number()),
+    revealedArtistLetters: v.optional(v.array(v.object({ index: v.number(), letter: v.string() }))),
+    revealedTitleLetters: v.optional(v.array(v.object({ index: v.number(), letter: v.string() }))),
   })
     .index("by_round", ["roundId"])
     .index("by_player", ["playerId"])

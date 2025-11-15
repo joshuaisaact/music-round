@@ -1,25 +1,26 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+function normalize(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s&\-\/]/g, "") // Remove punctuation early (keep &, -, / for now)
+    .replace(/\s*&\s*/g, " and ") // Convert & to "and" (with spaces normalized)
+    .replace(/\s*-\s*.*?(remastered|remix|re-?master|deluxe|edition|version|live|acoustic).*$/i, "") // Remove remaster/remix/edition suffixes (with optional year/text before keyword)
+    .replace(/^the\s+/i, "") // Remove leading "the"
+    .replace(/[-\/]/g, " ") // Convert hyphens and slashes to spaces
+    .replace(/[^\w\s]/g, "") // Remove any remaining punctuation
+    .replace(/\s+/g, " ") // Normalize whitespace
+    .trim();
+}
+
 function calculateScore(
   submittedArtist: string,
   correctArtist: string,
   submittedTitle: string,
   correctTitle: string,
 ): { points: number; artistCorrect: boolean; titleCorrect: boolean } {
-  const normalize = (s: string) =>
-    s
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s&\-\/]/g, "") // Remove punctuation early (keep &, -, / for now)
-      .replace(/\s*&\s*/g, " and ") // Convert & to "and" (with spaces normalized)
-      .replace(/\s*-\s*.*?(remastered|remix|re-?master|deluxe|edition|version|live|acoustic).*$/i, "") // Remove remaster/remix/edition suffixes (with optional year/text before keyword)
-      .replace(/^the\s+/i, "") // Remove leading "the"
-      .replace(/[-\/]/g, " ") // Convert hyphens and slashes to spaces
-      .replace(/[^\w\s]/g, "") // Remove any remaining punctuation
-      .replace(/\s+/g, " ") // Normalize whitespace
-      .trim();
-
   const artistMatch = normalize(submittedArtist) === normalize(correctArtist);
   const titleMatch = normalize(submittedTitle) === normalize(correctTitle);
 
@@ -64,6 +65,133 @@ export const listForPlayer = query({
       .query("answers")
       .withIndex("by_player", (q) => q.eq("playerId", playerId))
       .collect();
+  },
+});
+
+export const useHint = mutation({
+  args: {
+    roundId: v.id("rounds"),
+    playerId: v.id("players"),
+  },
+  handler: async (ctx, { roundId, playerId }) => {
+    const round = await ctx.db.get(roundId);
+    if (!round) throw new Error("Round not found");
+
+    // Only allow hints during active phase
+    if (round.phase !== "active") {
+      throw new Error("Can only use hints during the active phase");
+    }
+
+    const game = await ctx.db.get(round.gameId);
+    if (!game) throw new Error("Game not found");
+
+    const hintsPerPlayer = game.settings.hintsPerPlayer ?? 3;
+
+    // Get player to check total hints used across all rounds
+    const player = await ctx.db.get(playerId);
+    if (!player) throw new Error("Player not found");
+
+    const totalHintsUsed = player.hintsUsed ?? 0;
+
+    // Check if player has hints remaining for the entire game
+    if (totalHintsUsed >= hintsPerPlayer) {
+      throw new Error("No hints remaining");
+    }
+
+    // Get or create answer record for this round
+    let answer = await ctx.db
+      .query("answers")
+      .withIndex("by_round", (q) => q.eq("roundId", roundId))
+      .filter((q) => q.eq(q.field("playerId"), playerId))
+      .first();
+
+    // Check if already fully correct
+    if (answer && answer.artistCorrect && answer.titleCorrect) {
+      throw new Error("Answer already complete");
+    }
+
+    // Generate random letter positions for artist and title
+    // Normalize to match what players need to type
+    const correctArtist = normalize(round.songData.correctArtist);
+    const correctTitle = normalize(round.songData.correctTitle);
+
+    const getRandomLetters = (
+      text: string,
+      count: number,
+      existingLetters: { index: number; letter: string }[] = []
+    ) => {
+      const letters: { index: number; letter: string }[] = [...existingLetters];
+      const validIndices: number[] = [];
+      const alreadyRevealedIndices = new Set(existingLetters.map(l => l.index));
+
+      // Find all valid letter indices (not spaces or punctuation) that aren't already revealed
+      for (let i = 0; i < text.length; i++) {
+        if (text[i].match(/[a-zA-Z0-9]/) && !alreadyRevealedIndices.has(i)) {
+          validIndices.push(i);
+        }
+      }
+
+      // Pick random indices
+      const shuffled = [...validIndices].sort(() => Math.random() - 0.5);
+      const selectedIndices = shuffled.slice(0, Math.min(count, validIndices.length));
+
+      for (const index of selectedIndices) {
+        letters.push({ index, letter: text[index] });
+      }
+
+      return letters;
+    };
+
+    // Get existing revealed letters or start fresh
+    const existingArtistLetters = answer?.revealedArtistLetters || [];
+    const existingTitleLetters = answer?.revealedTitleLetters || [];
+
+    // Add 2 MORE letters to existing ones
+    const revealedArtistLetters = getRandomLetters(correctArtist, 2, existingArtistLetters);
+    const revealedTitleLetters = getRandomLetters(correctTitle, 2, existingTitleLetters);
+
+    const now = Date.now();
+
+    if (answer) {
+      // Update existing answer with revealed letters
+      const currentRoundHints = answer.hintsUsed ?? 0;
+      await ctx.db.patch(answer._id, {
+        hintsUsed: currentRoundHints + 1,
+        hintUsedAt: now,
+        revealedArtistLetters,
+        revealedTitleLetters,
+      });
+    } else {
+      // Create new answer record with hint usage
+      await ctx.db.insert("answers", {
+        roundId,
+        playerId,
+        gameId: round.gameId,
+        artist: "",
+        title: "",
+        submittedAt: now,
+        points: 0,
+        artistCorrect: false,
+        titleCorrect: false,
+        attempts: 0,
+        hintsUsed: 1,
+        hintUsedAt: now,
+        revealedArtistLetters,
+        revealedTitleLetters,
+      });
+    }
+
+    // Increment player's total hints used and apply -100 point penalty
+    await ctx.db.patch(playerId, {
+      hintsUsed: totalHintsUsed + 1,
+      score: Math.max(0, player.score - 100), // Don't go below 0
+    });
+
+    return {
+      revealedArtistLetters,
+      revealedTitleLetters,
+      hintsRemaining: hintsPerPlayer - (totalHintsUsed + 1),
+    };
   },
 });
 

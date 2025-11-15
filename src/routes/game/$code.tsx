@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useEffect, useState, useRef } from "react";
 import { getSessionId } from "../../lib/session";
-import { PixelButton, PixelInput, PixelAudioPlayer, PlayerStandings, SoundToggle } from "@/components";
+import { PixelButton, PixelInput, PixelAudioPlayer, PlayerStandings, SoundToggle, HintDisplay } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/game/$code")({
@@ -26,6 +26,9 @@ function Game() {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [isAdvancing, setIsAdvancing] = useState(false);
+  const [revealedArtistLetters, setRevealedArtistLetters] = useState<{ index: number; letter: string }[]>([]);
+  const [revealedTitleLetters, setRevealedTitleLetters] = useState<{ index: number; letter: string }[]>([]);
+  const [hintsRemaining, setHintsRemaining] = useState<number | null>(null);
   const artistInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
@@ -61,21 +64,39 @@ function Game() {
   const submitAnswer = useMutation(api.answers.submit);
   const nextRound = useMutation(api.games.nextRound);
   const leaveGame = useMutation(api.players.leave);
+  const useHintMutation = useMutation(api.answers.useHint);
 
   useEffect(() => {
-    if (currentPlayer && roundAnswers) {
+    if (currentPlayer && roundAnswers && game) {
       const myAnswer = roundAnswers.find(
         (a) => a.playerId === currentPlayer._id,
       );
       if (myAnswer) {
-        setArtistGuess(myAnswer.artist);
-        setTitleGuess(myAnswer.title);
+        // Only update inputs if there's been a submission (attempts > 0)
+        // This prevents hints from clearing typed text
+        if (myAnswer.attempts && myAnswer.attempts > 0) {
+          setArtistGuess(myAnswer.artist);
+          setTitleGuess(myAnswer.title);
+        }
         setArtistLocked(myAnswer.artistCorrect);
         setTitleLocked(myAnswer.titleCorrect);
         setIsFullyLocked(myAnswer.lockedAt !== undefined);
+
+        // Load hint data from answer for this round
+        if (myAnswer.revealedArtistLetters) {
+          setRevealedArtistLetters(myAnswer.revealedArtistLetters);
+        }
+        if (myAnswer.revealedTitleLetters) {
+          setRevealedTitleLetters(myAnswer.revealedTitleLetters);
+        }
       }
+
+      // Calculate hints remaining based on player's total hints used across entire game
+      const hintsPerPlayer = game.settings.hintsPerPlayer ?? 3;
+      const totalHintsUsed = currentPlayer.hintsUsed ?? 0;
+      setHintsRemaining(hintsPerPlayer - totalHintsUsed);
     }
-  }, [roundAnswers, currentPlayer]);
+  }, [roundAnswers, currentPlayer, game]);
 
   useEffect(() => {
     if (game && game.status === "finished") {
@@ -103,6 +124,9 @@ function Game() {
     setShakeTitle(false);
     setError("");
     setIsAdvancing(false);
+    setRevealedArtistLetters([]);
+    setRevealedTitleLetters([]);
+    // Don't reset hints remaining - it's tracked per game, not per round
   }, [currentRound?._id]);
 
   // Handle Escape key for modal
@@ -188,6 +212,36 @@ function Game() {
       }
     } catch (err) {
       setError("Failed to submit answer!");
+      console.error(err);
+    }
+  };
+
+  const handleUseHint = async () => {
+    if (!currentRound || !currentPlayer) return;
+
+    // Don't allow hints if fully locked
+    if (isFullyLocked) return;
+
+    // Check if hints remaining
+    if (hintsRemaining === null || hintsRemaining <= 0) {
+      setError("No hints remaining!");
+      return;
+    }
+
+    try {
+      setError("");
+      playSound("/sounds/hint.ogg");
+      const result = await useHintMutation({
+        roundId: currentRound._id,
+        playerId: currentPlayer._id,
+      });
+
+      setRevealedArtistLetters(result.revealedArtistLetters);
+      setRevealedTitleLetters(result.revealedTitleLetters);
+      setHintsRemaining(result.hintsRemaining);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to use hint!";
+      setError(errorMessage);
       console.error(err);
     }
   };
@@ -348,19 +402,15 @@ function Game() {
       <main className="max-w-6xl mx-auto">
         {/* Header */}
         <header className="mb-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="pixel-text text-white text-xs opacity-75" aria-label={`Game code ${code}`}>{code}</p>
-            <h1 className="pixel-text text-white text-2xl md:text-4xl">
-              ROUND {currentRoundNumber} / {totalRounds}
-            </h1>
-            <p className="pixel-text text-white text-xs opacity-75" aria-label={`Your score: ${currentPlayer.score} points`}>
-              SCORE: {currentPlayer.score}
-            </p>
-          </div>
-
           {/* Timer and Points */}
           {timeRemaining !== null && phase === "active" && (
-            <div className="flex justify-center gap-4 flex-wrap">
+            <div className="flex justify-between items-center gap-4 flex-wrap">
+              {/* Song Counter */}
+              <div className="px-6 py-3 border-4 bg-white border-sky-900">
+                <p className="pixel-text text-sky-900 text-2xl md:text-3xl">
+                  SONG {currentRoundNumber}/{totalRounds}
+                </p>
+              </div>
               {/* Timer */}
               <div
                 className={`
@@ -377,8 +427,9 @@ function Game() {
                 aria-live="polite"
                 aria-atomic="true"
               >
-                <p className="pixel-text text-2xl md:text-3xl" aria-label={`${timeRemaining} seconds remaining`}>
-                  ⏱️ {Math.floor(timeRemaining / 60)}:
+                <p className="pixel-text text-2xl md:text-3xl flex items-center gap-2" aria-label={`${timeRemaining} seconds remaining`}>
+                  <img src="/clock.svg" alt="" width="28" height="28" aria-hidden="true" />
+                  {Math.floor(timeRemaining / 60)}:
                   {(timeRemaining % 60).toString().padStart(2, "0")}
                 </p>
               </div>
@@ -403,24 +454,35 @@ function Game() {
               >
                 <p className="pixel-text text-2xl md:text-3xl" aria-label={`${availablePoints.total} points available`}>
                   {availablePoints.isLocked ? (
-                    <>🔒 {availablePoints.total}</>
+                    <>{availablePoints.total}PTS</>
                   ) : artistLocked && titleLocked ? (
-                    <>🔒 {availablePoints.total}</>
+                    <>{availablePoints.total}PTS</>
                   ) : artistLocked ? (
                     <>
                       <span className="opacity-75">{availablePoints.lockedArtistPoints}</span>
                       {" + "}
-                      {availablePoints.titlePoints}
+                      {availablePoints.titlePoints}PTS
                     </>
                   ) : titleLocked ? (
                     <>
                       {availablePoints.artistPoints}
                       {" + "}
-                      <span className="opacity-75">{availablePoints.lockedTitlePoints}</span>
+                      <span className="opacity-75">{availablePoints.lockedTitlePoints}</span>PTS
                     </>
                   ) : (
-                    <>⭐ {availablePoints.total}</>
+                    <>{availablePoints.total}PTS</>
                   )}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Show song counter when timer is not active */}
+          {(timeRemaining === null || phase !== "active") && (
+            <div className="flex justify-center">
+              <div className="px-6 py-3 border-4 bg-white border-sky-900">
+                <p className="pixel-text text-sky-900 text-2xl md:text-3xl">
+                  SONG {currentRoundNumber}/{totalRounds}
                 </p>
               </div>
             </div>
@@ -433,40 +495,34 @@ function Game() {
             {/* Previous round info at top */}
             {previousRound && (
               <div className="flex justify-center pt-8 px-4">
-                <div className="bg-white border-4 border-sky-900 p-6 max-w-2xl w-full">
-                  <h3 className="pixel-text text-sky-900 text-lg md:text-xl mb-4 text-center">
-                    🎵 PREVIOUS ROUND
-                  </h3>
-
-                  {previousRound.songData.albumArt && (
-                    <div className="mb-4">
-                      <img
-                        src={previousRound.songData.albumArt}
-                        alt="Album art"
-                        className="w-24 h-24 md:w-32 md:h-32 mx-auto border-4 border-sky-900"
-                      />
-                    </div>
-                  )}
-
-                  <div className="space-y-2 text-center">
-                    <div>
-                      <p className="pixel-text text-sky-600 text-xs mb-1">
-                        ARTIST
-                      </p>
-                      <p className="pixel-text text-sky-900 text-base md:text-lg">
-                        {previousRound.songData.correctArtist}
-                      </p>
+                <div className="bg-white border-4 border-sky-900 p-4 max-w-2xl w-full">
+                  <article className="flex gap-4">
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="pixel-text text-sky-900 text-sm font-bold mb-2">
+                          SONG {currentRoundNumber - 1}
+                        </h3>
+                        <div className="space-y-2">
+                          <p className="pixel-text text-sky-900 text-xl md:text-2xl font-bold">
+                            {previousRound.songData.correctTitle.toUpperCase()}
+                          </p>
+                          <p className="pixel-text text-sky-700 text-lg md:text-xl">
+                            {previousRound.songData.correctArtist.toUpperCase()}
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
-                    <div>
-                      <p className="pixel-text text-sky-600 text-xs mb-1">
-                        TITLE
-                      </p>
-                      <p className="pixel-text text-sky-900 text-base md:text-lg">
-                        {previousRound.songData.correctTitle}
-                      </p>
-                    </div>
-                  </div>
+                    {previousRound.songData.albumArt && (
+                      <div className="flex flex-col items-end gap-2">
+                        <img
+                          src={previousRound.songData.albumArt}
+                          alt={`Album art for ${previousRound.songData.correctTitle} by ${previousRound.songData.correctArtist}`}
+                          className="w-24 h-24 border-4 border-sky-900"
+                        />
+                      </div>
+                    )}
+                  </article>
                 </div>
               </div>
             )}
@@ -533,6 +589,14 @@ function Game() {
 
               <div className="space-y-6">
                 <div className={shakeArtist ? "shake" : ""}>
+                  {currentRound && revealedArtistLetters.length > 0 && !artistLocked && (
+                    <div className="mb-2 bg-yellow-50 border-2 border-yellow-600 p-2">
+                      <HintDisplay
+                        text={currentRound.songData.correctArtist}
+                        revealedLetters={revealedArtistLetters}
+                      />
+                    </div>
+                  )}
                   <PixelInput
                     ref={artistInputRef}
                     type="text"
@@ -561,6 +625,14 @@ function Game() {
                 </div>
 
                 <div className={shakeTitle ? "shake" : ""}>
+                  {currentRound && revealedTitleLetters.length > 0 && !titleLocked && (
+                    <div className="mb-2 bg-yellow-50 border-2 border-yellow-600 p-2">
+                      <HintDisplay
+                        text={currentRound.songData.correctTitle}
+                        revealedLetters={revealedTitleLetters}
+                      />
+                    </div>
+                  )}
                   <PixelInput
                     ref={titleInputRef}
                     type="text"
@@ -588,14 +660,27 @@ function Game() {
                 </div>
 
                 {!isFullyLocked && (
-                  <PixelButton
-                    onClick={handleSubmit}
-                    className="w-full"
-                    disabled={phase !== "active"}
-                    aria-label={artistLocked || titleLocked ? "Try again with another guess" : "Submit your answer"}
-                  >
-                    {artistLocked || titleLocked ? "TRY AGAIN" : "SUBMIT ANSWER"}
-                  </PixelButton>
+                  <>
+                    <PixelButton
+                      onClick={handleSubmit}
+                      className="w-full"
+                      disabled={phase !== "active"}
+                      aria-label={artistLocked || titleLocked ? "Try again with another guess" : "Submit your answer"}
+                    >
+                      {artistLocked || titleLocked ? "TRY AGAIN" : "SUBMIT ANSWER"}
+                    </PixelButton>
+                    <PixelButton
+                      onClick={handleUseHint}
+                      className="w-full"
+                      disabled={phase !== "active" || hintsRemaining === 0}
+                      aria-label={`Use hint (${hintsRemaining} remaining)`}
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        <img src="/light-bulb.svg" alt="" width="20" height="20" aria-hidden="true" />
+                        {hintsRemaining === 0 ? "OUT OF HINTS!" : `HINT (${hintsRemaining})`}
+                      </span>
+                    </PixelButton>
+                  </>
                 )}
 
                 {error && (
@@ -612,28 +697,30 @@ function Game() {
                   </div>
                 )}
 
-                {/* Show correct answer when fully locked */}
-                {isFullyLocked && currentRound && (
-                  <div className="bg-green-100 border-4 border-green-600 p-4">
-                    <p className="pixel-text text-green-800 text-lg mb-3 font-bold">
-                      BOTH CORRECT!
-                    </p>
-                    <div className="space-y-1">
-                      <p className="pixel-text text-green-700 text-sm">
-                        Artist: {currentRound.songData.correctArtist}
-                      </p>
-                      <p className="pixel-text text-green-700 text-sm">
-                        Title: {currentRound.songData.correctTitle}
-                      </p>
-                    </div>
+                {/* Show stats when fully locked */}
+                {isFullyLocked && currentRound && roundAnswers && (
+                  <div className="bg-green-100 border-4 border-green-600 p-6 text-center">
+                    {(() => {
+                      const myAnswer = roundAnswers.find((a) => a.playerId === currentPlayer._id);
+                      const points = myAnswer?.points || 0;
+                      const message = points >= 900 ? "INCREDIBLE!" : points >= 700 ? "GREAT!" : points >= 500 ? "NICE!" : "GOT IT!";
+
+                      return (
+                        <div className="space-y-3">
+                          <p className="pixel-text text-green-600 text-sm font-bold">
+                            {message}
+                          </p>
+                          <p className="pixel-text text-green-900 text-4xl md:text-5xl font-bold">
+                            {points}
+                          </p>
+                          <p className="pixel-text text-green-700 text-xs">
+                            POINTS EARNED
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
-
-                <p className="pixel-text text-sky-600 text-xs text-center" role="status" aria-live="polite" aria-atomic="true">
-                  {allPlayersSubmitted
-                    ? "ALL PLAYERS SUBMITTED!"
-                    : `${roundAnswers?.length}/${players?.length} PLAYERS SUBMITTED`}
-                </p>
               </div>
             </div>
 
