@@ -313,6 +313,12 @@ export const getAvailablePlaylists = query({
         order: 8,
         previewSong: { artist: "Blackstreet", title: "No Diggity" },
       },
+      "new-romantics": {
+        name: "NEW ROMANTICS",
+        section: "Genre",
+        order: 9,
+        previewSong: { artist: "Simple Minds", title: "Don't You (Forget About Me)" },
+      },
     };
 
     // Build result array
