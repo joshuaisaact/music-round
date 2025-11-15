@@ -5,3 +5,5 @@ export { PixelAudioPlayer } from "./PixelAudioPlayer";
 export { PlayerStandings } from "./PlayerStandings";
 export { PixelError } from "./PixelError";
 export { SoundToggle } from "./SoundToggle";
+export { PlaylistCard } from "./PlaylistCard";
+export { GameSettingsForm } from "./GameSettingsForm";

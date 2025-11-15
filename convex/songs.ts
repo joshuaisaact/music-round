@@ -232,11 +232,17 @@ export const getAvailablePlaylists = query({
         previewSong: { artist: "Michael Jackson", title: "Billie Jean" },
       },
       "glastonbury-headliners": {
-        name: "Glastonbury",
-        subtitle: "Pyramid Stage Headliners 2010-2025",
+        name: "Pyramid Stage Headliners",
+        subtitle: "Glastonbury 2010-2025",
         section: "Festivals",
         order: 2,
         previewSong: { artist: "Radiohead", title: "Karma Police" },
+      },
+      "buttrock": {
+        name: "Buttrock",
+        section: "Genre",
+        order: 3,
+        previewSong: { artist: "Nickelback", title: "Photograph" },
       },
     };
 
