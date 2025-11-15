@@ -314,6 +314,12 @@ function Lobby() {
               )}
               <div className="flex gap-4" role="group" aria-label="Game settings">
                 <div className="text-center">
+                  <p id="playlist-label" className="pixel-text text-sky-600 text-xs">PLAYLIST</p>
+                  <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="playlist-label">
+                    {playlistDisplayName}
+                  </p>
+                </div>
+                <div className="text-center">
                   <p id="rounds-label" className="pixel-text text-sky-600 text-xs">ROUNDS</p>
                   <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="rounds-label" aria-label={`${game.settings.roundCount} rounds`}>
                     {game.settings.roundCount}
@@ -391,23 +397,9 @@ function Lobby() {
                 {isStarting ? "STARTING..." : "START GAME"}
               </PixelButton>
               {!allPlayersReady && playersList.length > 0 && (
-                <>
-                  <p className="pixel-text text-white text-xs opacity-75">
-                    WAITING FOR ALL PLAYERS TO READY UP...
-                  </p>
-                  {currentPlaylist && (
-                    <div className="max-w-md mx-auto mt-4">
-                      <PlaylistCard
-                        tag={currentPlaylist.tag}
-                        name={currentPlaylist.name}
-                        subtitle={currentPlaylist.subtitle}
-                        songCount={currentPlaylist.songCount}
-                        isSelected={false}
-                        onSelect={() => {}}
-                      />
-                    </div>
-                  )}
-                </>
+                <p className="pixel-text text-white text-xs opacity-75">
+                  WAITING FOR ALL PLAYERS TO READY UP...
+                </p>
               )}
             </>
           ) : (
