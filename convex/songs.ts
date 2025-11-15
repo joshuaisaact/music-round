@@ -45,6 +45,32 @@ export const seedFromPlaylist = internalAction({
   },
 });
 
+// Import playlist with tags (appends, doesn't replace)
+export const importPlaylistWithTags = internalAction({
+  args: {
+    playlistId: v.string(),
+    tags: v.array(v.string()),
+  },
+  handler: async (ctx, { playlistId, tags }): Promise<{ added: number; updated: number; skipped: number; total: number }> => {
+    console.log(`Fetching tracks from Spotify playlist ${playlistId}...`);
+
+    const tracks: { artist: string; title: string; spotifyId: string }[] = await ctx.runAction(api.spotify.getPlaylistTracks, {
+      playlistId,
+    });
+
+    console.log(`Fetched ${tracks.length} tracks from playlist`);
+
+    const result = await ctx.runMutation(internal.songs.appendSongsWithTags, {
+      songs: tracks,
+      tags,
+    });
+
+    console.log(`Import complete: ${result.added} added, ${result.updated} updated, ${result.skipped} skipped`);
+
+    return result;
+  },
+});
+
 export const replaceSongs = internalMutation({
   args: {
     songs: v.array(
@@ -176,5 +202,61 @@ export const tagExistingSongs = internalMutation({
 
     console.log(`Tagged ${updatedCount} songs with "${tag}"`);
     return { updatedCount, totalSongs: allSongs.length };
+  },
+});
+
+// Append songs with tags (handles duplicates by spotifyId)
+export const appendSongsWithTags = internalMutation({
+  args: {
+    songs: v.array(
+      v.object({
+        artist: v.string(),
+        title: v.string(),
+        spotifyId: v.string(),
+      }),
+    ),
+    tags: v.array(v.string()),
+  },
+  handler: async (ctx, { songs, tags }) => {
+    const allExistingSongs = await ctx.db.query("songs").collect();
+    const existingSongsBySpotifyId = new Map(
+      allExistingSongs
+        .filter((s) => s.spotifyId)
+        .map((s) => [s.spotifyId, s])
+    );
+
+    let added = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    for (const song of songs) {
+      const existing = existingSongsBySpotifyId.get(song.spotifyId);
+
+      if (existing) {
+        // Song exists - check if we need to add new tags
+        const currentTags = existing.tags || [];
+        const newTags = tags.filter((tag) => !currentTags.includes(tag));
+
+        if (newTags.length > 0) {
+          await ctx.db.patch(existing._id, {
+            tags: [...currentTags, ...newTags],
+          });
+          updated++;
+        } else {
+          skipped++;
+        }
+      } else {
+        // New song - insert with tags
+        await ctx.db.insert("songs", {
+          artist: song.artist,
+          title: song.title,
+          spotifyId: song.spotifyId,
+          tags,
+        });
+        added++;
+      }
+    }
+
+    return { added, updated, skipped, total: songs.length };
   },
 });
