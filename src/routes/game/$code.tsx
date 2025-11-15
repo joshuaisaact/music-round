@@ -540,6 +540,7 @@ function Game() {
                     placeholder="WHO IS THE ARTIST?"
                     value={artistGuess}
                     onChange={(e) => !artistLocked && setArtistGuess(e.target.value)}
+                    onEnterPress={!isFullyLocked ? handleSubmit : undefined}
                     className={`w-full ${
                       artistLocked
                         ? "!border-green-600 !border-4"
