@@ -37,7 +37,7 @@ export function PlaylistCard({
         }}
         className="flex-1 text-left cursor-pointer"
       >
-        <div className="pixel-text text-sky-900 text-lg font-bold">
+        <div className="pixel-text text-sky-900 text-lg font-bold uppercase">
           {name}
         </div>
         {subtitle && (
