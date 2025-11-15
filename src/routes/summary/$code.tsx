@@ -102,8 +102,10 @@ function Summary() {
         {players.length > 1 && (
           <section className="bg-yellow-100 border-4 border-yellow-600 p-8 mb-6" aria-labelledby="winner-heading">
             <div className="text-center">
-              <h1 id="winner-heading" className="pixel-text text-yellow-900 text-2xl md:text-4xl mb-4">
-                <span aria-hidden="true">🏆</span> {winners.length > 1 ? "TIE!" : "WINNER"} <span aria-hidden="true">🏆</span>
+              <h1 id="winner-heading" className="pixel-text text-yellow-900 text-2xl md:text-4xl mb-4 flex items-center justify-center gap-4">
+                <img src="/trophy.svg" alt="" width="40" height="40" aria-hidden="true" />
+                {winners.length > 1 ? "TIE!" : "WINNER"}
+                <img src="/trophy.svg" alt="" width="40" height="40" aria-hidden="true" />
               </h1>
               {winners.length > 1 ? (
                 <div className="space-y-2" role="list" aria-label="Tied winners">
