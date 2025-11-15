@@ -295,6 +295,30 @@ export const getAvailablePlaylists = query({
         order: 5,
         previewSong: { artist: "Creed", title: "My Sacrifice" },
       },
+      "emo": {
+        name: "EMO",
+        section: "Genre",
+        order: 6,
+        previewSong: { artist: "blink-182", title: "I Miss You" },
+      },
+      "landfill-indie": {
+        name: "LANDFILL INDIE",
+        section: "Genre",
+        order: 7,
+        previewSong: { artist: "The Fratellis", title: "Chelsea Dagger" },
+      },
+      "new-romantics": {
+        name: "NEW ROMANTICS",
+        section: "Genre",
+        order: 8,
+        previewSong: { artist: "ABC", title: "Poison Arrow" },
+      },
+      "rnb-classics": {
+        name: "R&B CLASSICS",
+        section: "Genre",
+        order: 9,
+        previewSong: { artist: "Blackstreet", title: "No Diggity" },
+      },
     };
 
     // Build result array
@@ -412,5 +436,41 @@ export const appendSongsWithTags = internalMutation({
     }
 
     return { added, updated, skipped, total: songs.length };
+  },
+});
+
+// Remove a tag from all songs (and delete songs that only have this tag)
+export const removeTag = internalMutation({
+  args: {
+    tag: v.string(),
+  },
+  handler: async (ctx, { tag }) => {
+    const allSongs = await ctx.db.query("songs").collect();
+
+    let removed = 0;
+    let deleted = 0;
+
+    for (const song of allSongs) {
+      const currentTags = song.tags || [];
+
+      if (currentTags.includes(tag)) {
+        const newTags = currentTags.filter((t) => t !== tag);
+
+        if (newTags.length === 0) {
+          // Delete songs that only have this tag
+          await ctx.db.delete(song._id);
+          deleted++;
+        } else {
+          // Just remove the tag
+          await ctx.db.patch(song._id, {
+            tags: newTags,
+          });
+          removed++;
+        }
+      }
+    }
+
+    console.log(`Removed "${tag}" from ${removed} songs, deleted ${deleted} songs`);
+    return { removed, deleted, totalSongs: allSongs.length };
   },
 });
