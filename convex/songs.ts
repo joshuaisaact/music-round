@@ -301,6 +301,12 @@ export const getAvailablePlaylists = query({
         order: 6,
         previewSong: { artist: "blink-182", title: "I Miss You" },
       },
+      "landfill-indie": {
+        name: "LANDFILL INDIE",
+        section: "Genre",
+        order: 7,
+        previewSong: { artist: "The Fratellis", title: "Chelsea Dagger" },
+      },
     };
 
     // Build result array
