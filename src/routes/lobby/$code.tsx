@@ -3,7 +3,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { useState, useEffect, useRef } from "react";
-import { PixelButton, PixelInput, GameSettingsForm, SoundToggle } from "@/components";
+import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, PlaylistCard } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/lobby/$code")({
@@ -315,7 +315,7 @@ function Lobby() {
               <div className="flex gap-4" role="group" aria-label="Game settings">
                 <div className="text-center">
                   <p id="playlist-label" className="pixel-text text-sky-600 text-xs">PLAYLIST</p>
-                  <p className="pixel-text text-sky-900 text-sm font-bold uppercase" aria-labelledby="playlist-label">
+                  <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="playlist-label">
                     {playlistDisplayName}
                   </p>
                 </div>
@@ -496,13 +496,9 @@ function Lobby() {
           className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="settings-modal-title"
+          aria-label="Edit game settings"
         >
           <div className="max-w-md w-full">
-            <h2 id="settings-modal-title" className="pixel-text text-white text-center mb-4 text-4xl" style={{ fontFamily: '"VCR OSD Mono", monospace' }}>
-              EDIT SETTINGS
-            </h2>
-
             <GameSettingsForm
               mode="edit"
               initialPlaylist={game.settings.playlistTag}

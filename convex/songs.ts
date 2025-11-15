@@ -249,27 +249,39 @@ export const getAvailablePlaylists = query({
       previewSong: { artist: string; title: string };
     }> = {
       "daily-songs": {
-        name: "Daily Songs",
+        name: "DAILY SONGS",
         order: 0,
         previewSong: { artist: "The Killers", title: "Mr. Brightside" },
       },
       "1980s": {
-        name: "1980s",
+        name: "80s",
         section: "Decades",
         order: 1,
         previewSong: { artist: "Michael Jackson", title: "Billie Jean" },
       },
+      "1990s": {
+        name: "90s",
+        section: "Decades",
+        order: 2,
+        previewSong: { artist: "Nirvana", title: "Smells Like Teen Spirit" },
+      },
+      "2000s": {
+        name: "00s",
+        section: "Decades",
+        order: 3,
+        previewSong: { artist: "OutKast", title: "Hey Ya!" },
+      },
       "glastonbury-headliners": {
-        name: "Pyramid Stage Headliners",
+        name: "PYRAMID STAGE HEADLINERS",
         subtitle: "Glastonbury 2010-2025",
         section: "Festivals",
-        order: 2,
+        order: 4,
         previewSong: { artist: "Radiohead", title: "Karma Police" },
       },
       "buttrock": {
-        name: "Buttrock",
+        name: "BUTTROCK",
         section: "Genre",
-        order: 3,
+        order: 5,
         previewSong: { artist: "Creed", title: "My Sacrifice" },
       },
     };
