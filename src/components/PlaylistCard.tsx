@@ -1,10 +1,6 @@
 import { playSound } from "@/lib/audio";
 import { ClientOnly } from "./ClientOnly";
-
-const RasterIcons = () => {
-  const { Volume2Icon, VolumeXIcon } = require("raster-react");
-  return { Volume2Icon, VolumeXIcon };
-};
+import { Volume2Icon, VolumeXIcon } from "raster-react";
 
 interface PlaylistCardProps {
   tag: string;
@@ -65,14 +61,11 @@ export function PlaylistCard({
           aria-label={isPlaying ? "Pause preview" : "Play preview"}
         >
           <ClientOnly>
-            {(() => {
-              const { Volume2Icon, VolumeXIcon } = RasterIcons();
-              return isPlaying ? (
-                <Volume2Icon size={24} color="#0c4a6e" />
-              ) : (
-                <VolumeXIcon size={24} color="#0c4a6e" />
-              );
-            })()}
+            {isPlaying ? (
+              <Volume2Icon size={24} color="#0c4a6e" />
+            ) : (
+              <VolumeXIcon size={24} color="#0c4a6e" />
+            )}
           </ClientOnly>
         </button>
       )}

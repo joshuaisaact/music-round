@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
 import { toggleSound, getSoundEnabled } from "@/lib/audio";
 import { ClientOnly } from "./ClientOnly";
-
-const RasterIcons = () => {
-  const { Volume2Icon, VolumeXIcon } = require("raster-react");
-  return { Volume2Icon, VolumeXIcon };
-};
+import { Volume2Icon, VolumeXIcon } from "raster-react";
 
 /**
  * A floating button that toggles sound effects on/off
@@ -45,14 +41,11 @@ export const SoundToggle = () => {
         title={soundEnabled ? "Sound effects on" : "Sound effects off"}
       >
         <ClientOnly>
-          {(() => {
-            const { Volume2Icon, VolumeXIcon } = RasterIcons();
-            return soundEnabled ? (
-              <Volume2Icon size={32} color="#ffffff" />
-            ) : (
-              <VolumeXIcon size={32} color="#ffffff" />
-            );
-          })()}
+          {soundEnabled ? (
+            <Volume2Icon size={32} color="#ffffff" />
+          ) : (
+            <VolumeXIcon size={32} color="#ffffff" />
+          )}
         </ClientOnly>
       </button>
 
