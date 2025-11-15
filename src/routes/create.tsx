@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { getSessionId } from "@/lib/session";
-import { GameSettingsForm, SoundToggle, PixelButton } from "@/components";
+import { GameSettingsForm, SoundToggle, PixelButton, OrDivider } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/create")({ component: CreateGame });
@@ -100,11 +100,7 @@ function CreateGame() {
               SOLO
             </PixelButton>
 
-            <div className="flex items-center gap-4" aria-hidden="true">
-              <div className="flex-1 h-1 bg-white"></div>
-              <span className="text-white pixel-text text-xl">OR</span>
-              <div className="flex-1 h-1 bg-white"></div>
-            </div>
+            <OrDivider />
 
             <PixelButton
               onClick={() => {
