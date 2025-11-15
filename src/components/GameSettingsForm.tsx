@@ -13,11 +13,13 @@ interface GameSettingsFormProps {
   initialSecondsPerRound?: number;
   initialPlayerName?: string;
   initialIsSinglePlayer?: boolean;
+  initialHintsPerPlayer?: number;
   onComplete: (settings: {
     playlistTag: string;
     roundCount: number;
     secondsPerRound: number;
     isSinglePlayer?: boolean;
+    hintsPerPlayer?: number;
     playerName?: string;
   }) => void;
   onCancel: () => void;
@@ -42,6 +44,7 @@ export function GameSettingsForm({
   initialSecondsPerRound = 30,
   initialPlayerName = "",
   initialIsSinglePlayer = false,
+  initialHintsPerPlayer = 3,
   onComplete,
   onCancel,
   isSubmitting = false,
@@ -54,6 +57,7 @@ export function GameSettingsForm({
   const [playerName, setPlayerName] = useState(initialPlayerName);
   const [roundCount, setRoundCount] = useState(initialRoundCount);
   const [secondsPerRound, setSecondsPerRound] = useState(initialSecondsPerRound);
+  const [hintsPerPlayer, setHintsPerPlayer] = useState(initialHintsPerPlayer);
   const [error, setError] = useState("");
   const [previewAudioUrl, setPreviewAudioUrl] = useState<string | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
@@ -232,6 +236,7 @@ export function GameSettingsForm({
       playlistTag: selectedPlaylist,
       roundCount,
       secondsPerRound,
+      hintsPerPlayer,
       ...(mode === "edit" && { isSinglePlayer: initialIsSinglePlayer }),
       ...(mode === "create" && { playerName: playerName.trim() }),
     });
@@ -363,6 +368,15 @@ export function GameSettingsForm({
                 step={5}
                 onChange={setSecondsPerRound}
                 aria-label="Seconds per round"
+              />
+
+              <PixelSlider
+                label="HINTS"
+                value={hintsPerPlayer}
+                min={0}
+                max={6}
+                onChange={setHintsPerPlayer}
+                aria-label="Hints per player"
               />
             </div>
 

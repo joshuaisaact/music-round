@@ -14,8 +14,9 @@ export const getRandomSongs = query({
   args: {
     count: v.number(),
     playlistTag: v.optional(v.string()),
+    seed: v.optional(v.number()),
   },
-  handler: async (ctx, { count, playlistTag }) => {
+  handler: async (ctx, { count, playlistTag, seed }) => {
     const allSongs = await ctx.db.query("songs").collect();
 
     if (allSongs.length === 0) {
@@ -37,7 +38,17 @@ export const getRandomSongs = query({
       );
     }
 
-    const shuffled = [...filteredSongs].sort(() => Math.random() - 0.5);
+    // Use seed (timestamp) for better randomization
+    const randomSeed = seed || Date.now();
+
+    // Shuffle using a seeded random approach
+    const shuffled = [...filteredSongs].map((song, index) => ({
+      song,
+      sort: Math.sin(randomSeed + index) * 10000
+    }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ song }) => song);
+
     return shuffled.slice(0, count);
   },
 });

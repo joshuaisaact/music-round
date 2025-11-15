@@ -150,6 +150,7 @@ function Lobby() {
     roundCount: number;
     secondsPerRound: number;
     isSinglePlayer: boolean;
+    hintsPerPlayer?: number;
   }) => {
     if (!game) return;
     try {
@@ -160,6 +161,7 @@ function Lobby() {
           secondsPerRound: settings.secondsPerRound,
           playlistTag: settings.playlistTag,
           isSinglePlayer: settings.isSinglePlayer,
+          hintsPerPlayer: settings.hintsPerPlayer,
         },
       });
       setShowSettingsModal(false);
@@ -333,6 +335,12 @@ function Lobby() {
                     {game.settings.secondsPerRound}
                   </p>
                 </div>
+                <div className="text-center">
+                  <p id="hints-label" className="pixel-text text-sky-600 text-xs">HINTS</p>
+                  <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="hints-label" aria-label={`${game.settings.hintsPerPlayer ?? 3} hints per player`}>
+                    {game.settings.hintsPerPlayer ?? 3}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -486,6 +494,7 @@ function Lobby() {
               initialRoundCount={game.settings.roundCount}
               initialSecondsPerRound={game.settings.secondsPerRound}
               initialIsSinglePlayer={game.settings.isSinglePlayer}
+              initialHintsPerPlayer={game.settings.hintsPerPlayer}
               onComplete={handleSaveSettings}
               onCancel={() => setShowSettingsModal(false)}
             />

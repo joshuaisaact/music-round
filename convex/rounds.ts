@@ -44,6 +44,7 @@ export const createTestRounds = internalAction({
       const randomSongs: Array<{ artist: string; title: string }> = await ctx.runQuery(api.songs.getRandomSongs, {
         count: batchSize,
         playlistTag,
+        seed: Date.now() + attempts, // Use current time + attempts to ensure different songs each call
       });
 
       for (const { artist, title } of randomSongs) {

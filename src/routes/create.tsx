@@ -22,6 +22,7 @@ function CreateGame() {
     playlistTag: string;
     roundCount: number;
     secondsPerRound: number;
+    hintsPerPlayer?: number;
     playerName?: string;
   }) => {
     if (!selectedMode) return;
@@ -44,6 +45,7 @@ function CreateGame() {
           secondsPerRound: settings.secondsPerRound,
           playlistTag: settings.playlistTag,
           isSinglePlayer,
+          hintsPerPlayer: settings.hintsPerPlayer,
         },
       });
 

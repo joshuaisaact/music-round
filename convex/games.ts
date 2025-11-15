@@ -66,6 +66,7 @@ export const create = mutation({
       secondsPerRound: v.number(),
       playlistTag: v.optional(v.string()),
       isSinglePlayer: v.optional(v.boolean()),
+      hintsPerPlayer: v.optional(v.number()),
     }),
   },
   handler: async (ctx, { hostId, settings }) => {
@@ -110,6 +111,7 @@ export const updateSettings = mutation({
       secondsPerRound: v.number(),
       playlistTag: v.optional(v.string()),
       isSinglePlayer: v.optional(v.boolean()),
+      hintsPerPlayer: v.optional(v.number()),
     }),
   },
   handler: async (ctx, { gameId, settings }) => {
