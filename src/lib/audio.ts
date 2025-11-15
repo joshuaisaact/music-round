@@ -2,11 +2,13 @@
 const SOUND_ENABLED_KEY = "soundEffectsEnabled";
 
 function isSoundEnabled(): boolean {
+  if (typeof window === 'undefined') return true; // Default to enabled during SSR
   const stored = localStorage.getItem(SOUND_ENABLED_KEY);
   return stored === null ? true : stored === "true"; // Default to enabled
 }
 
 function setSoundEnabled(enabled: boolean): void {
+  if (typeof window === 'undefined') return; // Skip during SSR
   localStorage.setItem(SOUND_ENABLED_KEY, enabled.toString());
   // Dispatch event so components can react to changes
   window.dispatchEvent(new CustomEvent("soundToggle", { detail: { enabled } }));
@@ -35,6 +37,7 @@ export function getSoundEnabled(): boolean {
  * @param volume - Volume level between 0 and 1 (default: 1)
  */
 export function playSound(soundPath: string, volume: number = 1): void {
+  if (typeof window === 'undefined') return; // Skip during SSR
   if (!isSoundEnabled()) return;
 
   try {

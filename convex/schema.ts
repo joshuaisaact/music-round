@@ -14,6 +14,7 @@ export default defineSchema({
     settings: v.object({
       roundCount: v.number(),
       secondsPerRound: v.number(),
+      playlistTag: v.optional(v.string()),
     }),
     createdAt: v.number(),
   })
@@ -75,5 +76,6 @@ export default defineSchema({
     artist: v.string(),
     title: v.string(),
     spotifyId: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
   }),
 });

@@ -109,13 +109,15 @@ export const searchTrack = action({
 });
 
 export const getPlaylistTracks = action({
-  args: {},
-  handler: async () => {
-    const playlistId = "6G9mBCSozMx0sOSXhSzZRY"; // Rolling Stone's 500 Greatest Songs
+  args: {
+    playlistId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const playlistId = args.playlistId || "6G9mBCSozMx0sOSXhSzZRY"; // Rolling Stone's 500 Greatest Songs
     const accessToken = await getSpotifyAccessToken();
 
     const allTracks: { artist: string; title: string; spotifyId: string }[] = [];
-    let nextUrl: string | null = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50`;
+    let nextUrl: string | null = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50&market=US`;
 
     while (nextUrl) {
       const response: Response = await fetch(nextUrl, {

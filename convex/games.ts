@@ -64,6 +64,7 @@ export const create = mutation({
     settings: v.object({
       roundCount: v.number(),
       secondsPerRound: v.number(),
+      playlistTag: v.optional(v.string()),
     }),
   },
   handler: async (ctx, { hostId, settings }) => {
@@ -106,6 +107,7 @@ export const updateSettings = mutation({
     settings: v.object({
       roundCount: v.number(),
       secondsPerRound: v.number(),
+      playlistTag: v.optional(v.string()),
     }),
   },
   handler: async (ctx, { gameId, settings }) => {
@@ -135,6 +137,7 @@ export const start = action({
       await ctx.runAction(internal.rounds.createTestRounds, {
         gameId,
         count: game.settings.roundCount,
+        playlistTag: game.settings.playlistTag || "daily-songs",
       });
     }
 

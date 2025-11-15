@@ -3,7 +3,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { useState, useEffect, useRef } from "react";
-import { PixelButton, PixelInput, PixelSlider, SoundToggle } from "@/components";
+import { PixelButton, PixelInput, GameSettingsForm, SoundToggle } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/lobby/$code")({
@@ -22,10 +22,7 @@ function Lobby() {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
-  const [tempRoundCount, setTempRoundCount] = useState(6);
-  const [tempSecondsPerRound, setTempSecondsPerRound] = useState(30);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
-  const settingsCancelButtonRef = useRef<HTMLButtonElement>(null);
   const previousPlayersRef = useRef<typeof players>(undefined);
 
   const game = useQuery(api.games.getByCode, { code });
@@ -37,6 +34,7 @@ function Lobby() {
     api.players.getBySession,
     game ? { gameId: game._id, sessionId } : "skip",
   );
+  const availablePlaylists = useQuery(api.songs.getAvailablePlaylists);
 
   const joinGame = useMutation(api.players.join);
   const startGame = useAction(api.games.start);
@@ -105,27 +103,6 @@ function Lobby() {
     }
   }, [showLeaveModal]);
 
-  // Handle Escape key for settings modal
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && showSettingsModal) {
-        setShowSettingsModal(false);
-      }
-    };
-
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [showSettingsModal]);
-
-  // Focus cancel button and sync settings when modal opens
-  useEffect(() => {
-    if (showSettingsModal && game) {
-      setTempRoundCount(game.settings.roundCount);
-      setTempSecondsPerRound(game.settings.secondsPerRound);
-      settingsCancelButtonRef.current?.focus();
-    }
-  }, [showSettingsModal, game]);
-
   // Play sound when any player readies up
   useEffect(() => {
     if (!players || !previousPlayersRef.current) {
@@ -168,14 +145,19 @@ function Lobby() {
     navigate({ to: "/" });
   };
 
-  const handleSaveSettings = async () => {
+  const handleSaveSettings = async (settings: {
+    playlistTag: string;
+    roundCount: number;
+    secondsPerRound: number;
+  }) => {
     if (!game) return;
     try {
       await updateSettings({
         gameId: game._id,
         settings: {
-          roundCount: tempRoundCount,
-          secondsPerRound: tempSecondsPerRound,
+          roundCount: settings.roundCount,
+          secondsPerRound: settings.secondsPerRound,
+          playlistTag: settings.playlistTag,
         },
       });
       setShowSettingsModal(false);
@@ -277,6 +259,12 @@ function Lobby() {
   const playersList = players || [];
   const allPlayersReady = playersList.length > 0 && playersList.every((p) => p.ready === true);
 
+  // Get current playlist display name
+  const currentPlaylist = availablePlaylists?.find(
+    (p) => p.tag === game?.settings.playlistTag
+  );
+  const playlistDisplayName = currentPlaylist?.name || game?.settings.playlistTag || "Daily Songs";
+
   const handleToggleReady = async () => {
     if (!game) return;
     try {
@@ -325,6 +313,12 @@ function Lobby() {
                 </PixelButton>
               )}
               <div className="flex gap-4" role="group" aria-label="Game settings">
+                <div className="text-center">
+                  <p id="playlist-label" className="pixel-text text-sky-600 text-xs">PLAYLIST</p>
+                  <p className="pixel-text text-sky-900 text-sm font-bold uppercase" aria-labelledby="playlist-label">
+                    {playlistDisplayName}
+                  </p>
+                </div>
                 <div className="text-center">
                   <p id="rounds-label" className="pixel-text text-sky-600 text-xs">ROUNDS</p>
                   <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="rounds-label" aria-label={`${game.settings.roundCount} rounds`}>
@@ -497,59 +491,26 @@ function Lobby() {
       )}
 
       {/* Settings modal */}
-      {showSettingsModal && (
+      {showSettingsModal && game && (
         <div
-          className="fixed inset-0 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           role="dialog"
           aria-modal="true"
           aria-labelledby="settings-modal-title"
         >
-          <div className="bg-sky-500 border-4 border-sky-900 p-8 max-w-md w-full">
-            <h3 id="settings-modal-title" className="pixel-text text-white text-xl mb-6 text-center">
+          <div className="max-w-md w-full">
+            <h2 id="settings-modal-title" className="pixel-text text-white text-center mb-4 text-4xl" style={{ fontFamily: '"VCR OSD Mono", monospace' }}>
               EDIT SETTINGS
-            </h3>
+            </h2>
 
-            <div className="space-y-6 mb-6">
-              <PixelSlider
-                label="ROUNDS"
-                value={tempRoundCount}
-                min={1}
-                max={11}
-                onChange={setTempRoundCount}
-                aria-label="Number of rounds in the game"
-              />
-
-              <PixelSlider
-                label="SECONDS"
-                value={tempSecondsPerRound}
-                min={10}
-                max={50}
-                step={5}
-                onChange={setTempSecondsPerRound}
-                aria-label="Seconds per round"
-              />
-            </div>
-
-            <div className="flex gap-4">
-              <PixelButton
-                ref={settingsCancelButtonRef}
-                onClick={() => setShowSettingsModal(false)}
-                variant="danger"
-                size="medium"
-                className="flex-1"
-                aria-label="Cancel and keep current settings"
-              >
-                CANCEL
-              </PixelButton>
-              <PixelButton
-                onClick={handleSaveSettings}
-                size="medium"
-                className="flex-1"
-                aria-label="Save settings"
-              >
-                SAVE
-              </PixelButton>
-            </div>
+            <GameSettingsForm
+              mode="edit"
+              initialPlaylist={game.settings.playlistTag}
+              initialRoundCount={game.settings.roundCount}
+              initialSecondsPerRound={game.settings.secondsPerRound}
+              onComplete={handleSaveSettings}
+              onCancel={() => setShowSettingsModal(false)}
+            />
           </div>
         </div>
       )}
