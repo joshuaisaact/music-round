@@ -195,6 +195,8 @@ ${window.location.origin}/daily`;
 ${playlistName}
 ${songEmojis}${moreRounds}
 Rounds Survived: ${roundsCompleted} | Score: ${currentPlayer.score.toLocaleString()}
+
+${window.location.href}
 ${window.location.origin}${battleRoyaleRoute}`;
 
     navigator.clipboard.writeText(shareText).then(() => {
