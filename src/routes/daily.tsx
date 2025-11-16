@@ -115,6 +115,14 @@ function DailyChallenge() {
       </div>
 
       <main id="main-content" className="relative z-10 text-center">
+        {/* Date Display */}
+        <div className="bg-yellow-400 border-4 border-yellow-600 px-6 py-3 mb-8 inline-block">
+          <p className="pixel-text text-sky-900 text-xl flex items-center justify-center gap-2">
+            <img src="/calendar.svg" alt="" width="24" height="24" aria-hidden="true" />
+            {formatDate()}
+          </p>
+        </div>
+
         {/* Title */}
         <h1
           className="text-white max-w-[800px] mx-auto text-[3rem] sm:text-[6rem] leading-[1.3] mb-4"
@@ -150,14 +158,6 @@ function DailyChallenge() {
         >
           CHALLENGE
         </h1>
-
-        {/* Date Display */}
-        <div className="bg-yellow-400 border-4 border-yellow-600 px-6 py-3 mb-8 inline-block">
-          <p className="pixel-text text-sky-900 text-xl flex items-center justify-center gap-2">
-            <img src="/calendar.svg" alt="" width="24" height="24" aria-hidden="true" />
-            {formatDate()}
-          </p>
-        </div>
 
         <div className="space-y-6 max-w-sm mx-auto">
           {/* Already Completed Banner */}
