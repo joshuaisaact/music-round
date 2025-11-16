@@ -73,11 +73,22 @@ export const transitionToEnded = internalMutation({
 
         const answer = answers.find((a) => a.playerId === player._id);
 
-        // If no answer submitted, or wrong answer(s), lose a life
+        // Determine correctness
         const isFullyCorrect = answer?.artistCorrect && answer?.titleCorrect;
+        const isBothWrong = answer && !answer.artistCorrect && !answer.titleCorrect;
         const isPartiallyCorrect = answer?.artistCorrect || answer?.titleCorrect;
 
-        // Lose a life if not fully correct
+        // Rule 1: Both wrong = eliminated immediately
+        if (isBothWrong) {
+          await ctx.db.patch(player._id, {
+            lives: 0,
+            eliminated: true,
+            eliminatedAtRound: round.roundNumber,
+          });
+          continue;
+        }
+
+        // Rule 2: One wrong or no answer = lose 1 life
         if (!isFullyCorrect) {
           const currentLives = player.lives ?? 3;
           const newLives = currentLives - 1;
