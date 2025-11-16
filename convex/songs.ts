@@ -289,10 +289,31 @@ export const getAvailablePlaylists = query({
         order: 4,
         previewSong: { artist: "Radiohead", title: "Karma Police" },
       },
+      "glastonbury-2025": {
+        name: "GLASTONBURY 2025",
+        subtitle: "THE MAIN STAGES",
+        section: "Festivals",
+        order: 5,
+        previewSong: { artist: "Olivia Rodrigo", title: "vampire" },
+      },
+      "glastonbury-2024": {
+        name: "GLASTONBURY 2024",
+        subtitle: "THE MAIN STAGES",
+        section: "Festivals",
+        order: 6,
+        previewSong: { artist: "Dua Lipa", title: "Houdini" },
+      },
+      "glastonbury-2023": {
+        name: "GLASTONBURY 2023",
+        subtitle: "THE MAIN STAGES",
+        section: "Festivals",
+        order: 7,
+        previewSong: { artist: "Elton John", title: "Rocket Man" },
+      },
       "buttrock": {
         name: "BUTTROCK",
         section: "Genre",
-        order: 5,
+        order: 6,
         previewSong: { artist: "Creed", title: "My Sacrifice" },
       },
       "emo": {
