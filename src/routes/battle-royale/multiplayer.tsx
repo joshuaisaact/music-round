@@ -1,5 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { createFileRoute, useNavigate } from "@tanstack/router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
