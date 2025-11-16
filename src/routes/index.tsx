@@ -68,6 +68,11 @@ function App() {
     navigate({ to: "/daily" });
   };
 
+  const handleBattleRoyale = () => {
+    playSound("/sounds/confirmation.ogg");
+    navigate({ to: "/battle-royale" });
+  };
+
   return (
     <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
       {/* Skip to main content link for screen readers */}
@@ -140,6 +145,14 @@ function App() {
               DAILY CHALLENGE
             </PixelButton>
           </div>
+
+          <PixelButton
+            onClick={handleBattleRoyale}
+            className="w-full bg-red-500 hover:bg-red-400 border-red-700"
+            aria-label="Play battle royale mode"
+          >
+            BATTLE ROYALE
+          </PixelButton>
 
           <OrDivider />
 

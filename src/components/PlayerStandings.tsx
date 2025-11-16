@@ -6,6 +6,8 @@ interface Player {
   _id: Id<"players">;
   name: string;
   score: number;
+  lives?: number;
+  eliminated?: boolean;
 }
 
 interface Answer {
@@ -22,6 +24,8 @@ interface PlayerStandingsProps {
   currentPlayerId: Id<"players">;
   variant?: "compact" | "detailed";
   roundAnswers?: Answer[];
+  showRankMedals?: boolean;
+  showLives?: boolean;
 }
 
 export function PlayerStandings({
@@ -29,6 +33,8 @@ export function PlayerStandings({
   currentPlayerId,
   variant = "compact",
   roundAnswers,
+  showRankMedals = true,
+  showLives = false,
 }: PlayerStandingsProps) {
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
   const [shakingPlayers, setShakingPlayers] = useState<Set<Id<"players">>>(new Set());
@@ -109,7 +115,7 @@ export function PlayerStandings({
               `}
             >
               <div className="flex items-center gap-1">
-                {index === 0 ? (
+                {showRankMedals && index === 0 ? (
                   <>
                     <img src="/medal-1.svg" alt="" width="24" height="24" aria-hidden="true" className="mr-1" />
                     <span className="pixel-text text-base font-bold truncate max-w-[150px]">
@@ -117,7 +123,7 @@ export function PlayerStandings({
                       {player._id === currentPlayerId && " (YOU)"}
                     </span>
                   </>
-                ) : index === 1 ? (
+                ) : showRankMedals && index === 1 ? (
                   <>
                     <img src="/medal-2.svg" alt="" width="24" height="24" aria-hidden="true" className="mr-1" />
                     <span className="pixel-text text-base font-bold truncate max-w-[150px]">
@@ -125,7 +131,7 @@ export function PlayerStandings({
                       {player._id === currentPlayerId && " (YOU)"}
                     </span>
                   </>
-                ) : index === 2 ? (
+                ) : showRankMedals && index === 2 ? (
                   <>
                     <img src="/medal-3.svg" alt="" width="24" height="24" aria-hidden="true" className="mr-1" />
                     <span className="pixel-text text-base font-bold truncate max-w-[150px]">
@@ -133,7 +139,7 @@ export function PlayerStandings({
                       {player._id === currentPlayerId && " (YOU)"}
                     </span>
                   </>
-                ) : (
+                ) : showRankMedals ? (
                   <>
                     <span className="pixel-text text-lg mr-1">{index + 1}.</span>
                     <span className="pixel-text text-base font-bold truncate max-w-[150px]">
@@ -141,6 +147,11 @@ export function PlayerStandings({
                       {player._id === currentPlayerId && " (YOU)"}
                     </span>
                   </>
+                ) : (
+                  <span className="pixel-text text-base font-bold truncate max-w-[150px]">
+                    {player.name.toUpperCase()}
+                    {player._id === currentPlayerId && " (YOU)"}
+                  </span>
                 )}
                 {checkmarks > 0 && (
                   <span className="text-green-600 text-base font-bold">
@@ -155,7 +166,24 @@ export function PlayerStandings({
                   </span>
                 )}
               </div>
-              <span className="pixel-text text-lg font-bold">{player.score}</span>
+              <div className="flex items-center gap-2">
+                {showLives && (
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <img
+                        key={i}
+                        src="/heart.svg"
+                        alt=""
+                        width="16"
+                        height="16"
+                        aria-hidden="true"
+                        className={`${i >= (player.lives ?? 3) ? "opacity-20" : ""}`}
+                      />
+                    ))}
+                  </div>
+                )}
+                <span className="pixel-text text-lg font-bold">{player.score}</span>
+              </div>
             </div>
           );
         })}
@@ -176,11 +204,11 @@ export function PlayerStandings({
             className={`
               border-4 p-4 flex items-center justify-between transition-colors
               ${
-                index === 0
+                showRankMedals && index === 0
                   ? "bg-yellow-100 border-yellow-600"
-                  : index === 1
+                  : showRankMedals && index === 1
                     ? "bg-gray-100 border-gray-400"
-                    : index === 2
+                    : showRankMedals && index === 2
                       ? "bg-orange-100 border-orange-600"
                       : "bg-sky-50 border-sky-300"
               }
@@ -188,7 +216,7 @@ export function PlayerStandings({
             `}
           >
             <div className="flex items-center">
-              {index === 0 ? (
+              {showRankMedals && index === 0 ? (
                 <>
                   <img src="/medal-1.svg" alt="" width="36" height="36" aria-hidden="true" className="mr-2" />
                   <div>
@@ -212,7 +240,7 @@ export function PlayerStandings({
                     </p>
                   </div>
                 </>
-              ) : index === 1 ? (
+              ) : showRankMedals && index === 1 ? (
                 <>
                   <img src="/medal-2.svg" alt="" width="36" height="36" aria-hidden="true" className="mr-2" />
                   <div>
@@ -236,7 +264,7 @@ export function PlayerStandings({
                     </p>
                   </div>
                 </>
-              ) : index === 2 ? (
+              ) : showRankMedals && index === 2 ? (
                 <>
                   <img src="/medal-3.svg" alt="" width="36" height="36" aria-hidden="true" className="mr-2" />
                   <div>
@@ -260,7 +288,7 @@ export function PlayerStandings({
                     </p>
                   </div>
                 </>
-              ) : (
+              ) : showRankMedals ? (
                 <>
                   <span className="pixel-text text-2xl md:text-3xl w-12">{index + 1}.</span>
                   <div>
@@ -284,9 +312,47 @@ export function PlayerStandings({
                     </p>
                   </div>
                 </>
+              ) : (
+                <div>
+                  <p className="pixel-text text-lg md:text-xl font-bold flex items-center gap-2">
+                    <span>
+                      {player.name.toUpperCase()}
+                      {player._id === currentPlayerId && " (YOU)"}
+                    </span>
+                    {checkmarks > 0 && (
+                      <span className="text-green-600 text-lg font-bold">
+                        {checkmarks === 2 ? "✓✓" : "✓"}
+                      </span>
+                    )}
+                    {hintsUsed > 0 && (
+                      <span className="flex items-center gap-0.5">
+                        {Array.from({ length: hintsUsed }).map((_, i) => (
+                          <img key={i} src="/light-bulb.svg" alt="" width="14" height="14" aria-hidden="true" />
+                        ))}
+                      </span>
+                    )}
+                  </p>
+                </div>
               )}
             </div>
-            <p className="pixel-text text-2xl md:text-3xl font-bold">{player.score}</p>
+            <div className="flex items-center gap-3">
+              {showLives && (
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <img
+                      key={i}
+                      src="/heart.svg"
+                      alt=""
+                      width="20"
+                      height="20"
+                      aria-hidden="true"
+                      className={`${i >= (player.lives ?? 3) ? "opacity-20" : ""}`}
+                    />
+                  ))}
+                </div>
+              )}
+              <p className="pixel-text text-2xl md:text-3xl font-bold">{player.score}</p>
+            </div>
           </div>
         );
       })}

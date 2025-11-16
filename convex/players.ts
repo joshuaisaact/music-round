@@ -55,6 +55,9 @@ export const join = mutation({
 
     const isHost = game.hostId === sessionId;
 
+    // Initialize lives for battle royale mode
+    const isBattleRoyale = game.settings.gameMode === "battle_royale";
+
     const playerId = await ctx.db.insert("players", {
       gameId: game._id,
       sessionId,
@@ -63,6 +66,8 @@ export const join = mutation({
       isHost,
       ready: false,
       joinedAt: Date.now(),
+      lives: isBattleRoyale ? 3 : undefined,
+      eliminated: isBattleRoyale ? false : undefined,
     });
 
     return playerId;

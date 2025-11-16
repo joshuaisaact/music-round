@@ -44,8 +44,9 @@ export const createTestRounds = internalAction({
     count: v.number(),
     playlistTag: v.optional(v.string()),
     dailySeed: v.optional(v.string()), // For daily mode to ensure same songs for everyone
+    startingRoundNumber: v.optional(v.number()), // For battle royale on-demand generation
   },
-  handler: async (ctx, { gameId, count, playlistTag, dailySeed }) => {
+  handler: async (ctx, { gameId, count, playlistTag, dailySeed, startingRoundNumber }) => {
     const songs = [];
     const maxAttempts = count * 3; // Try up to 3x the needed count to find songs with previews
     let attempts = 0;
@@ -108,6 +109,7 @@ export const createTestRounds = internalAction({
     await ctx.runMutation(internal.rounds.insertRounds, {
       gameId,
       songs: songs.slice(0, count),
+      startingRoundNumber: startingRoundNumber ?? 0,
     });
   },
 });
@@ -125,12 +127,13 @@ export const insertRounds = internalMutation({
         releaseYear: v.optional(v.number()),
       }),
     ),
+    startingRoundNumber: v.number(),
   },
-  handler: async (ctx, { gameId, songs }) => {
+  handler: async (ctx, { gameId, songs, startingRoundNumber }) => {
     for (let i = 0; i < songs.length; i++) {
       await ctx.db.insert("rounds", {
         gameId,
-        roundNumber: i,
+        roundNumber: startingRoundNumber + i,
         songData: songs[i],
       });
     }

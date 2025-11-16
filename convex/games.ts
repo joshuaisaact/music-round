@@ -71,6 +71,7 @@ export const create = mutation({
         v.literal("solo"),
         v.literal("multiplayer"),
         v.literal("daily"),
+        v.literal("battle_royale"),
       )),
     }),
   },
@@ -95,7 +96,7 @@ export const create = mutation({
       throw new Error("Failed to generate unique code. Please try again.");
     }
 
-    // Force specific settings for daily mode
+    // Force specific settings for special modes
     let finalSettings = { ...settings };
     if (settings.gameMode === "daily") {
       finalSettings = {
@@ -106,6 +107,15 @@ export const create = mutation({
         isSinglePlayer: true,
         hintsPerPlayer: 3,
         gameMode: "daily",
+      };
+    } else if (settings.gameMode === "battle_royale") {
+      finalSettings = {
+        ...settings,
+        roundCount: 50,
+        secondsPerRound: 30,
+        isSinglePlayer: true,
+        hintsPerPlayer: 3,
+        gameMode: "battle_royale",
       };
     }
 
@@ -135,6 +145,7 @@ export const updateSettings = mutation({
         v.literal("solo"),
         v.literal("multiplayer"),
         v.literal("daily"),
+        v.literal("battle_royale"),
       )),
     }),
   },
@@ -146,9 +157,9 @@ export const updateSettings = mutation({
       throw new Error("Cannot update settings after game has started");
     }
 
-    // Prevent updating settings for daily mode games
-    if (game.settings.gameMode === "daily") {
-      throw new Error("Cannot update settings for daily challenge games");
+    // Prevent updating settings for special mode games
+    if (game.settings.gameMode === "daily" || game.settings.gameMode === "battle_royale") {
+      throw new Error("Cannot update settings for this game mode");
     }
 
     await ctx.db.patch(gameId, { settings });
@@ -167,17 +178,27 @@ export const start = action({
 
     // Create rounds if they don't exist (fetches from Spotify)
     if (existingRounds.length === 0) {
-      // For daily mode, use deterministic seed based on date
-      const dailySeed = game.settings.gameMode === "daily"
-        ? await ctx.runQuery(api.daily.getDailySeed, {})
-        : undefined;
+      // For battle royale, create the first 3 rounds (on-demand generation for rest)
+      if (game.settings.gameMode === "battle_royale") {
+        await ctx.runAction(internal.rounds.createTestRounds, {
+          gameId,
+          count: 3, // Create first 3 rounds to ensure smooth transitions
+          playlistTag: game.settings.playlistTag || "daily-songs",
+        });
+      } else {
+        // For other modes, create all rounds upfront
+        // For daily mode, use deterministic seed based on date
+        const dailySeed = game.settings.gameMode === "daily"
+          ? await ctx.runQuery(api.daily.getDailySeed, {})
+          : undefined;
 
-      await ctx.runAction(internal.rounds.createTestRounds, {
-        gameId,
-        count: game.settings.roundCount,
-        playlistTag: game.settings.playlistTag || "daily-songs",
-        dailySeed,
-      });
+        await ctx.runAction(internal.rounds.createTestRounds, {
+          gameId,
+          count: game.settings.roundCount,
+          playlistTag: game.settings.playlistTag || "daily-songs",
+          dailySeed,
+        });
+      }
     }
 
     // Update game status to playing

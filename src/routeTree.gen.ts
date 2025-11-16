@@ -13,9 +13,12 @@ import { Route as DailyLeaderboardRouteImport } from './routes/daily-leaderboard
 import { Route as DailyRouteImport } from './routes/daily'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BattleRoyaleIndexRouteImport } from './routes/battle-royale/index'
 import { Route as SummaryCodeRouteImport } from './routes/summary/$code'
 import { Route as LobbyCodeRouteImport } from './routes/lobby/$code'
 import { Route as GameCodeRouteImport } from './routes/game/$code'
+import { Route as BattleRoyaleSoloRouteImport } from './routes/battle-royale/solo'
+import { Route as BattleRoyaleMultiplayerRouteImport } from './routes/battle-royale/multiplayer'
 
 const DailyLeaderboardRoute = DailyLeaderboardRouteImport.update({
   id: '/daily-leaderboard',
@@ -37,6 +40,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BattleRoyaleIndexRoute = BattleRoyaleIndexRouteImport.update({
+  id: '/battle-royale/',
+  path: '/battle-royale/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SummaryCodeRoute = SummaryCodeRouteImport.update({
   id: '/summary/$code',
   path: '/summary/$code',
@@ -52,24 +60,40 @@ const GameCodeRoute = GameCodeRouteImport.update({
   path: '/game/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BattleRoyaleSoloRoute = BattleRoyaleSoloRouteImport.update({
+  id: '/battle-royale/solo',
+  path: '/battle-royale/solo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BattleRoyaleMultiplayerRoute = BattleRoyaleMultiplayerRouteImport.update({
+  id: '/battle-royale/multiplayer',
+  path: '/battle-royale/multiplayer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRoute
   '/daily-leaderboard': typeof DailyLeaderboardRoute
+  '/battle-royale/multiplayer': typeof BattleRoyaleMultiplayerRoute
+  '/battle-royale/solo': typeof BattleRoyaleSoloRoute
   '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
   '/summary/$code': typeof SummaryCodeRoute
+  '/battle-royale': typeof BattleRoyaleIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRoute
   '/daily-leaderboard': typeof DailyLeaderboardRoute
+  '/battle-royale/multiplayer': typeof BattleRoyaleMultiplayerRoute
+  '/battle-royale/solo': typeof BattleRoyaleSoloRoute
   '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
   '/summary/$code': typeof SummaryCodeRoute
+  '/battle-royale': typeof BattleRoyaleIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,9 +101,12 @@ export interface FileRoutesById {
   '/create': typeof CreateRoute
   '/daily': typeof DailyRoute
   '/daily-leaderboard': typeof DailyLeaderboardRoute
+  '/battle-royale/multiplayer': typeof BattleRoyaleMultiplayerRoute
+  '/battle-royale/solo': typeof BattleRoyaleSoloRoute
   '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
   '/summary/$code': typeof SummaryCodeRoute
+  '/battle-royale/': typeof BattleRoyaleIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -88,27 +115,36 @@ export interface FileRouteTypes {
     | '/create'
     | '/daily'
     | '/daily-leaderboard'
+    | '/battle-royale/multiplayer'
+    | '/battle-royale/solo'
     | '/game/$code'
     | '/lobby/$code'
     | '/summary/$code'
+    | '/battle-royale'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/create'
     | '/daily'
     | '/daily-leaderboard'
+    | '/battle-royale/multiplayer'
+    | '/battle-royale/solo'
     | '/game/$code'
     | '/lobby/$code'
     | '/summary/$code'
+    | '/battle-royale'
   id:
     | '__root__'
     | '/'
     | '/create'
     | '/daily'
     | '/daily-leaderboard'
+    | '/battle-royale/multiplayer'
+    | '/battle-royale/solo'
     | '/game/$code'
     | '/lobby/$code'
     | '/summary/$code'
+    | '/battle-royale/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,9 +152,12 @@ export interface RootRouteChildren {
   CreateRoute: typeof CreateRoute
   DailyRoute: typeof DailyRoute
   DailyLeaderboardRoute: typeof DailyLeaderboardRoute
+  BattleRoyaleMultiplayerRoute: typeof BattleRoyaleMultiplayerRoute
+  BattleRoyaleSoloRoute: typeof BattleRoyaleSoloRoute
   GameCodeRoute: typeof GameCodeRoute
   LobbyCodeRoute: typeof LobbyCodeRoute
   SummaryCodeRoute: typeof SummaryCodeRoute
+  BattleRoyaleIndexRoute: typeof BattleRoyaleIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -151,6 +190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/battle-royale/': {
+      id: '/battle-royale/'
+      path: '/battle-royale'
+      fullPath: '/battle-royale'
+      preLoaderRoute: typeof BattleRoyaleIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/summary/$code': {
       id: '/summary/$code'
       path: '/summary/$code'
@@ -172,6 +218,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GameCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/battle-royale/solo': {
+      id: '/battle-royale/solo'
+      path: '/battle-royale/solo'
+      fullPath: '/battle-royale/solo'
+      preLoaderRoute: typeof BattleRoyaleSoloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/battle-royale/multiplayer': {
+      id: '/battle-royale/multiplayer'
+      path: '/battle-royale/multiplayer'
+      fullPath: '/battle-royale/multiplayer'
+      preLoaderRoute: typeof BattleRoyaleMultiplayerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -180,9 +240,12 @@ const rootRouteChildren: RootRouteChildren = {
   CreateRoute: CreateRoute,
   DailyRoute: DailyRoute,
   DailyLeaderboardRoute: DailyLeaderboardRoute,
+  BattleRoyaleMultiplayerRoute: BattleRoyaleMultiplayerRoute,
+  BattleRoyaleSoloRoute: BattleRoyaleSoloRoute,
   GameCodeRoute: GameCodeRoute,
   LobbyCodeRoute: LobbyCodeRoute,
   SummaryCodeRoute: SummaryCodeRoute,
+  BattleRoyaleIndexRoute: BattleRoyaleIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
