@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, OrDivider } from "@/components";
+import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, OrDivider, OnboardingModal } from "@/components";
 import { playSound } from "@/lib/audio";
 import { getSessionId } from "@/lib/session";
 
@@ -14,6 +14,7 @@ function App() {
   const [joinCode, setJoinCode] = useState("");
   const [codeToCheck, setCodeToCheck] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const sessionId = getSessionId();
 
@@ -126,18 +127,18 @@ function App() {
         <div className="space-y-6 max-w-sm mx-auto">
           {/* Daily Challenge Section */}
           <div className="space-y-3">
+            {playerDailyScore && (
+              <div className="text-white pixel-text text-sm bg-sky-700 border-4 border-sky-900 p-2">
+                COMPLETED - SCORE: {playerDailyScore.score.toLocaleString()}
+              </div>
+            )}
             <PixelButton
               onClick={handleDailyChallenge}
               className="w-full bg-yellow-400 hover:bg-yellow-300 border-yellow-600"
               aria-label="Play today's daily challenge"
             >
-              🎵 DAILY CHALLENGE
+              DAILY CHALLENGE
             </PixelButton>
-            {playerDailyScore && (
-              <div className="text-white pixel-text text-sm bg-sky-700 border-4 border-sky-900 p-2">
-                ✅ Completed - Score: {playerDailyScore.score.toLocaleString()}
-              </div>
-            )}
           </div>
 
           <OrDivider />
@@ -174,11 +175,30 @@ function App() {
             CREATE GAME
           </PixelButton>
 
+          {/* How to Play Button */}
+          <PixelButton
+            onClick={() => setShowOnboarding(true)}
+            className="w-full"
+            size="small"
+            aria-label="Learn how to play"
+          >
+            HOW TO PLAY
+          </PixelButton>
+
           {/* Error Message */}
           {error && <PixelError id="join-error">{error}</PixelError>}
         </div>
       </main>
       <SoundToggle />
+
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <OnboardingModal
+          onClose={() => setShowOnboarding(false)}
+          isDailyMode={false}
+          secondsPerRound={30}
+        />
+      )}
     </div>
   );
 }

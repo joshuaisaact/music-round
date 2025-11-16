@@ -13,3 +13,4 @@ export { RasterIcon } from "./RasterIcons";
 export { BouncingMusicIcons } from "./BouncingMusicIcons";
 export { OrDivider } from "./OrDivider";
 export { HintDisplay } from "./HintDisplay";
+export { OnboardingModal } from "./OnboardingModal";
