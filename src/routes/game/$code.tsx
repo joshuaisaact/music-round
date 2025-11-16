@@ -397,11 +397,33 @@ function Game() {
 
   const availablePoints = getAvailablePoints();
 
+  const isDailyMode = game.settings.gameMode === "daily";
+
+  // Format today's date for display
+  const formatDate = () => {
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    };
+    return now.toLocaleDateString('en-US', options);
+  };
+
   return (
     <div className="min-h-screen bg-sky-400 p-4 md:p-8">
       <main className="max-w-6xl mx-auto">
         {/* Header */}
         <header className="mb-6 space-y-4">
+          {/* Daily Challenge Banner */}
+          {isDailyMode && (
+            <div className="px-6 py-4 border-4 bg-yellow-400 border-yellow-600 text-center">
+              <p className="pixel-text text-sky-900 text-xl md:text-2xl">
+                🎵 DAILY CHALLENGE - {formatDate()}
+              </p>
+            </div>
+          )}
+
           {/* Timer and Points */}
           {timeRemaining !== null && phase === "active" && (
             <div className="flex justify-between items-center gap-4 flex-wrap">
@@ -746,12 +768,12 @@ function Game() {
             )}
           </div>
 
-          {/* Leaderboard - Right/Bottom */}
+          {/* Leaderboard/Score - Right/Bottom */}
           <aside className="lg:col-span-1" aria-labelledby="leaderboard-heading">
             <div className="bg-white border-4 border-sky-900 p-6 sticky top-4">
               <h2 id="leaderboard-heading" className="pixel-text text-sky-900 text-lg mb-4 flex items-center gap-2">
                 <img src="/trophy.svg" alt="" width="24" height="24" aria-hidden="true" />
-                LEADERBOARD
+                {isDailyMode ? "YOUR SCORE" : "LEADERBOARD"}
               </h2>
 
               <PlayerStandings

@@ -27,13 +27,25 @@ export const getCurrent = query({
   },
 });
 
+// Simple hash function to convert string to number
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+}
+
 export const createTestRounds = internalAction({
   args: {
     gameId: v.id("games"),
     count: v.number(),
     playlistTag: v.optional(v.string()),
+    dailySeed: v.optional(v.string()), // For daily mode to ensure same songs for everyone
   },
-  handler: async (ctx, { gameId, count, playlistTag }) => {
+  handler: async (ctx, { gameId, count, playlistTag, dailySeed }) => {
     const songs = [];
     const maxAttempts = count * 3; // Try up to 3x the needed count to find songs with previews
     let attempts = 0;
@@ -41,10 +53,17 @@ export const createTestRounds = internalAction({
     while (songs.length < count && attempts < maxAttempts) {
       // Fetch more songs than we need to account for ones without previews
       const batchSize: number = count - songs.length + 5;
+
+      // Use daily seed if provided (for daily mode), otherwise use timestamp
+      // Convert string seed to number using hash function
+      const seed = dailySeed
+        ? hashString(`${dailySeed}-${attempts}`)
+        : Date.now() + attempts;
+
       const randomSongs: Array<{ artist: string; title: string }> = await ctx.runQuery(api.songs.getRandomSongs, {
         count: batchSize,
         playlistTag,
-        seed: Date.now() + attempts, // Use current time + attempts to ensure different songs each call
+        seed,
       });
 
       for (const { artist, title } of randomSongs) {

@@ -17,6 +17,11 @@ export default defineSchema({
       playlistTag: v.optional(v.string()),
       isSinglePlayer: v.optional(v.boolean()),
       hintsPerPlayer: v.optional(v.number()),
+      gameMode: v.optional(v.union(
+        v.literal("solo"),
+        v.literal("multiplayer"),
+        v.literal("daily"),
+      )),
     }),
     createdAt: v.number(),
   })
@@ -85,4 +90,23 @@ export default defineSchema({
     spotifyId: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
   }),
+  dailyScores: defineTable({
+    date: v.string(),
+    playerId: v.string(),
+    playerName: v.string(),
+    score: v.number(),
+    completedAt: v.number(),
+    gameId: v.id("games"),
+  })
+    .index("by_date", ["date"])
+    .index("by_date_and_score", ["date", "score"])
+    .index("by_player_and_date", ["playerId", "date"]),
+  playerStats: defineTable({
+    playerId: v.string(),
+    currentStreak: v.number(),
+    longestStreak: v.number(),
+    lastPlayedDate: v.string(),
+    totalDaysPlayed: v.number(),
+  })
+    .index("by_player", ["playerId"]),
 });

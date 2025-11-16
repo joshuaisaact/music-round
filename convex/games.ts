@@ -67,6 +67,11 @@ export const create = mutation({
       playlistTag: v.optional(v.string()),
       isSinglePlayer: v.optional(v.boolean()),
       hintsPerPlayer: v.optional(v.number()),
+      gameMode: v.optional(v.union(
+        v.literal("solo"),
+        v.literal("multiplayer"),
+        v.literal("daily"),
+      )),
     }),
   },
   handler: async (ctx, { hostId, settings }) => {
@@ -90,12 +95,26 @@ export const create = mutation({
       throw new Error("Failed to generate unique code. Please try again.");
     }
 
+    // Force specific settings for daily mode
+    let finalSettings = { ...settings };
+    if (settings.gameMode === "daily") {
+      finalSettings = {
+        ...settings,
+        roundCount: 5,
+        secondsPerRound: 30,
+        playlistTag: "daily-songs",
+        isSinglePlayer: true,
+        hintsPerPlayer: 3,
+        gameMode: "daily",
+      };
+    }
+
     const gameId = await ctx.db.insert("games", {
       code,
       hostId,
       status: "lobby",
       currentRound: 0,
-      settings,
+      settings: finalSettings,
       createdAt: Date.now(),
     });
 
@@ -112,6 +131,11 @@ export const updateSettings = mutation({
       playlistTag: v.optional(v.string()),
       isSinglePlayer: v.optional(v.boolean()),
       hintsPerPlayer: v.optional(v.number()),
+      gameMode: v.optional(v.union(
+        v.literal("solo"),
+        v.literal("multiplayer"),
+        v.literal("daily"),
+      )),
     }),
   },
   handler: async (ctx, { gameId, settings }) => {
@@ -120,6 +144,11 @@ export const updateSettings = mutation({
 
     if (game.status !== "lobby") {
       throw new Error("Cannot update settings after game has started");
+    }
+
+    // Prevent updating settings for daily mode games
+    if (game.settings.gameMode === "daily") {
+      throw new Error("Cannot update settings for daily challenge games");
     }
 
     await ctx.db.patch(gameId, { settings });
@@ -138,10 +167,16 @@ export const start = action({
 
     // Create rounds if they don't exist (fetches from Spotify)
     if (existingRounds.length === 0) {
+      // For daily mode, use deterministic seed based on date
+      const dailySeed = game.settings.gameMode === "daily"
+        ? await ctx.runQuery(api.daily.getDailySeed, {})
+        : undefined;
+
       await ctx.runAction(internal.rounds.createTestRounds, {
         gameId,
         count: game.settings.roundCount,
         playlistTag: game.settings.playlistTag || "daily-songs",
+        dailySeed,
       });
     }
 
