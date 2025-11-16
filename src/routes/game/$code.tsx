@@ -401,6 +401,7 @@ function Game() {
 
   const isDailyMode = game.settings.gameMode === "daily";
   const isBattleRoyale = game.settings.gameMode === "battle_royale";
+  const isEliminated = currentPlayer.eliminated === true;
 
   // Format today's date for display
   const formatDate = () => {
@@ -423,6 +424,18 @@ function Game() {
             <div className="px-6 py-4 border-4 bg-yellow-400 border-yellow-600 text-center">
               <p className="pixel-text text-sky-900 text-xl md:text-2xl">
                 🎵 DAILY CHALLENGE - {formatDate()}
+              </p>
+            </div>
+          )}
+
+          {/* Eliminated Banner */}
+          {isBattleRoyale && isEliminated && (
+            <div className="px-6 py-4 border-4 bg-red-600 border-red-900 text-center">
+              <p className="pixel-text text-white text-xl md:text-2xl">
+                💀 YOU'VE BEEN ELIMINATED - ROUND {(currentPlayer.eliminatedAtRound ?? 0) + 1}
+              </p>
+              <p className="pixel-text text-red-100 text-sm mt-2">
+                SPECTATING...
               </p>
             </div>
           )}
@@ -686,10 +699,10 @@ function Game() {
                           ? "!border-red-600 !border-4"
                           : ""
                     }`}
-                    disabled={artistLocked}
+                    disabled={artistLocked || isEliminated}
                     aria-label="Artist name"
                     aria-describedby={artistLocked ? "artist-correct" : undefined}
-                    autoFocus
+                    autoFocus={!isEliminated}
                   />
                   {artistLocked && (
                     <p id="artist-correct" className="pixel-text text-green-700 text-xs mt-1 font-bold" role="status">
@@ -722,7 +735,7 @@ function Game() {
                           ? "!border-red-600 !border-4"
                           : ""
                     }`}
-                    disabled={titleLocked}
+                    disabled={titleLocked || isEliminated}
                     aria-label="Song title"
                     aria-describedby={titleLocked ? "title-correct" : error ? "answer-error" : undefined}
                   />
@@ -738,7 +751,7 @@ function Game() {
                     <PixelButton
                       onClick={handleSubmit}
                       className="w-full"
-                      disabled={phase !== "active"}
+                      disabled={phase !== "active" || isEliminated}
                       aria-label={artistLocked || titleLocked ? "Try again with another guess" : "Submit your answer"}
                     >
                       {artistLocked || titleLocked ? "TRY AGAIN" : "SUBMIT ANSWER"}
@@ -746,7 +759,7 @@ function Game() {
                     <PixelButton
                       onClick={handleUseHint}
                       className="w-full"
-                      disabled={phase !== "active" || hintsRemaining === 0}
+                      disabled={phase !== "active" || hintsRemaining === 0 || isEliminated}
                       aria-label={`Use hint (${hintsRemaining} remaining)`}
                     >
                       <span className="flex items-center justify-center gap-2">
