@@ -221,6 +221,16 @@ function DailyChallenge() {
             VIEW TODAY'S LEADERBOARD
           </PixelButton>
 
+          {/* How to Play Button */}
+          <PixelButton
+            onClick={() => setShowOnboarding(true)}
+            className="w-full"
+            size="small"
+            disabled={isCreating}
+          >
+            HOW TO PLAY
+          </PixelButton>
+
           {/* Back Button */}
           <PixelButton
             onClick={() => navigate({ to: "/" })}
