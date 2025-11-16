@@ -432,10 +432,10 @@ function Game() {
           {isBattleRoyale && isEliminated && (
             <div className="px-6 py-4 border-4 bg-red-600 border-red-900 text-center">
               <p className="pixel-text text-white text-xl md:text-2xl">
-                💀 YOU'VE BEEN ELIMINATED - ROUND {(currentPlayer.eliminatedAtRound ?? 0) + 1}
+                💀 ELIMINATED - ROUND {(currentPlayer.eliminatedAtRound ?? 0) + 1}
               </p>
               <p className="pixel-text text-red-100 text-sm mt-2">
-                SPECTATING...
+                KEEP PLAYING FOR FUN! (NO POINTS)
               </p>
             </div>
           )}
@@ -699,10 +699,10 @@ function Game() {
                           ? "!border-red-600 !border-4"
                           : ""
                     }`}
-                    disabled={artistLocked || isEliminated}
+                    disabled={artistLocked}
                     aria-label="Artist name"
                     aria-describedby={artistLocked ? "artist-correct" : undefined}
-                    autoFocus={!isEliminated}
+                    autoFocus
                   />
                   {artistLocked && (
                     <p id="artist-correct" className="pixel-text text-green-700 text-xs mt-1 font-bold" role="status">
@@ -735,7 +735,7 @@ function Game() {
                           ? "!border-red-600 !border-4"
                           : ""
                     }`}
-                    disabled={titleLocked || isEliminated}
+                    disabled={titleLocked}
                     aria-label="Song title"
                     aria-describedby={titleLocked ? "title-correct" : error ? "answer-error" : undefined}
                   />
@@ -751,7 +751,7 @@ function Game() {
                     <PixelButton
                       onClick={handleSubmit}
                       className="w-full"
-                      disabled={phase !== "active" || isEliminated}
+                      disabled={phase !== "active"}
                       aria-label={artistLocked || titleLocked ? "Try again with another guess" : "Submit your answer"}
                     >
                       {artistLocked || titleLocked ? "TRY AGAIN" : "SUBMIT ANSWER"}
@@ -759,7 +759,7 @@ function Game() {
                     <PixelButton
                       onClick={handleUseHint}
                       className="w-full"
-                      disabled={phase !== "active" || hintsRemaining === 0 || isEliminated}
+                      disabled={phase !== "active" || hintsRemaining === 0}
                       aria-label={`Use hint (${hintsRemaining} remaining)`}
                     >
                       <span className="flex items-center justify-center gap-2">

@@ -182,9 +182,10 @@ export const useHint = mutation({
     }
 
     // Increment player's total hints used and apply -100 point penalty
+    // Don't penalize eliminated players
     await ctx.db.patch(playerId, {
       hintsUsed: totalHintsUsed + 1,
-      score: Math.max(0, player.score - 100), // Don't go below 0
+      score: player.eliminated ? player.score : Math.max(0, player.score - 100), // Don't go below 0 or penalize eliminated
     });
 
     return {
@@ -297,7 +298,8 @@ export const submit = mutation({
 
       if (pointsToAward > 0) {
         const player = await ctx.db.get(playerId);
-        if (player) {
+        // Don't award points to eliminated players
+        if (player && !player.eliminated) {
           await ctx.db.patch(playerId, {
             score: player.score + pointsToAward,
           });
@@ -338,7 +340,8 @@ export const submit = mutation({
     // Award points for any correct parts on first submission
     if (totalPoints > 0) {
       const player = await ctx.db.get(playerId);
-      if (player) {
+      // Don't award points to eliminated players
+      if (player && !player.eliminated) {
         await ctx.db.patch(playerId, {
           score: player.score + totalPoints,
         });
