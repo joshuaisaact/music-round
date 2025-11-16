@@ -5,6 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, OrDivider } from "@/components";
 import { playSound } from "@/lib/audio";
+import { getSessionId } from "@/lib/session";
 
 export const Route = createFileRoute("/")({ component: App });
 
@@ -14,6 +15,12 @@ function App() {
   const [codeToCheck, setCodeToCheck] = useState<string | null>(null);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const sessionId = getSessionId();
+
+  // Check if player has completed today's daily challenge
+  const playerDailyScore = useQuery(api.daily.getPlayerDailyScore, {
+    playerId: sessionId,
+  });
 
   // Only query when we have a code to check
   const gameCheck = useQuery(
@@ -53,6 +60,11 @@ function App() {
     }
     setError("");
     setCodeToCheck(code);
+  };
+
+  const handleDailyChallenge = () => {
+    playSound("/sounds/confirmation.ogg");
+    navigate({ to: "/daily" });
   };
 
   return (
@@ -112,6 +124,24 @@ function App() {
         </h1>
 
         <div className="space-y-6 max-w-sm mx-auto">
+          {/* Daily Challenge Section */}
+          <div className="space-y-3">
+            <PixelButton
+              onClick={handleDailyChallenge}
+              className="w-full bg-yellow-400 hover:bg-yellow-300 border-yellow-600"
+              aria-label="Play today's daily challenge"
+            >
+              🎵 DAILY CHALLENGE
+            </PixelButton>
+            {playerDailyScore && (
+              <div className="text-white pixel-text text-sm bg-sky-700 border-4 border-sky-900 p-2">
+                ✅ Completed - Score: {playerDailyScore.score.toLocaleString()}
+              </div>
+            )}
+          </div>
+
+          <OrDivider />
+
           <div className="space-y-3">
             <PixelInput
               ref={inputRef}
@@ -124,7 +154,6 @@ function App() {
               className="w-full bg-white text-center"
               aria-label="Game code"
               aria-describedby={error ? "join-error" : undefined}
-              autoFocus
             />
             <PixelButton
               onClick={handleJoinGame}

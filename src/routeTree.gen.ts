@@ -9,12 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DailyLeaderboardRouteImport } from './routes/daily-leaderboard'
+import { Route as DailyRouteImport } from './routes/daily'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SummaryCodeRouteImport } from './routes/summary/$code'
 import { Route as LobbyCodeRouteImport } from './routes/lobby/$code'
 import { Route as GameCodeRouteImport } from './routes/game/$code'
 
+const DailyLeaderboardRoute = DailyLeaderboardRouteImport.update({
+  id: '/daily-leaderboard',
+  path: '/daily-leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DailyRoute = DailyRouteImport.update({
+  id: '/daily',
+  path: '/daily',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -44,6 +56,8 @@ const GameCodeRoute = GameCodeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/daily': typeof DailyRoute
+  '/daily-leaderboard': typeof DailyLeaderboardRoute
   '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
   '/summary/$code': typeof SummaryCodeRoute
@@ -51,6 +65,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/daily': typeof DailyRoute
+  '/daily-leaderboard': typeof DailyLeaderboardRoute
   '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
   '/summary/$code': typeof SummaryCodeRoute
@@ -59,19 +75,37 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/daily': typeof DailyRoute
+  '/daily-leaderboard': typeof DailyLeaderboardRoute
   '/game/$code': typeof GameCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
   '/summary/$code': typeof SummaryCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create' | '/game/$code' | '/lobby/$code' | '/summary/$code'
+  fullPaths:
+    | '/'
+    | '/create'
+    | '/daily'
+    | '/daily-leaderboard'
+    | '/game/$code'
+    | '/lobby/$code'
+    | '/summary/$code'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/game/$code' | '/lobby/$code' | '/summary/$code'
+  to:
+    | '/'
+    | '/create'
+    | '/daily'
+    | '/daily-leaderboard'
+    | '/game/$code'
+    | '/lobby/$code'
+    | '/summary/$code'
   id:
     | '__root__'
     | '/'
     | '/create'
+    | '/daily'
+    | '/daily-leaderboard'
     | '/game/$code'
     | '/lobby/$code'
     | '/summary/$code'
@@ -80,6 +114,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
+  DailyRoute: typeof DailyRoute
+  DailyLeaderboardRoute: typeof DailyLeaderboardRoute
   GameCodeRoute: typeof GameCodeRoute
   LobbyCodeRoute: typeof LobbyCodeRoute
   SummaryCodeRoute: typeof SummaryCodeRoute
@@ -87,6 +123,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/daily-leaderboard': {
+      id: '/daily-leaderboard'
+      path: '/daily-leaderboard'
+      fullPath: '/daily-leaderboard'
+      preLoaderRoute: typeof DailyLeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daily': {
+      id: '/daily'
+      path: '/daily'
+      fullPath: '/daily'
+      preLoaderRoute: typeof DailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/create': {
       id: '/create'
       path: '/create'
@@ -128,6 +178,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
+  DailyRoute: DailyRoute,
+  DailyLeaderboardRoute: DailyLeaderboardRoute,
   GameCodeRoute: GameCodeRoute,
   LobbyCodeRoute: LobbyCodeRoute,
   SummaryCodeRoute: SummaryCodeRoute,

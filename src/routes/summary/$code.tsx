@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { PixelButton, PlayerStandings, SoundToggle } from "@/components";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/summary/$code")({
   component: Summary,
@@ -34,8 +34,47 @@ function Summary() {
   );
   const availablePlaylists = useQuery(api.songs.getAvailablePlaylists);
 
+  // Daily mode specific queries
+  const isDailyMode = game?.settings.gameMode === "daily";
+  const dailyLeaderboard = useQuery(
+    api.daily.getDailyLeaderboard,
+    isDailyMode ? { limit: 10 } : "skip"
+  );
+  const playerRank = useQuery(
+    api.daily.getPlayerRank,
+    isDailyMode ? { playerId: sessionId } : "skip"
+  );
+  const playerStats = useQuery(
+    api.daily.getPlayerStats,
+    isDailyMode ? { playerId: sessionId } : "skip"
+  );
+
   const createGame = useMutation(api.games.create);
   const joinGame = useMutation(api.players.join);
+  const submitDailyScore = useMutation(api.daily.submitDailyScore);
+  const updateStreak = useMutation(api.daily.updateStreak);
+
+  // Submit daily score and update streak on mount for daily mode
+  useEffect(() => {
+    if (isDailyMode && game && currentPlayer) {
+      // Submit score
+      submitDailyScore({
+        playerId: sessionId,
+        playerName: currentPlayer.name,
+        score: currentPlayer.score,
+        gameId: game._id,
+      }).catch(err => {
+        console.error("Failed to submit daily score:", err);
+      });
+
+      // Update streak
+      updateStreak({
+        playerId: sessionId,
+      }).catch(err => {
+        console.error("Failed to update streak:", err);
+      });
+    }
+  }, [isDailyMode, game?._id, currentPlayer?.score, currentPlayer?.name, sessionId, submitDailyScore, updateStreak]);
 
   const handlePlayAgain = async () => {
     if (!game || !currentPlayer || isCreatingNewGame) return;
@@ -54,11 +93,47 @@ function Summary() {
         name: currentPlayer.name,
       });
 
-      navigate({ to: `/lobby/${newGame.code}` });
+      // For daily mode, skip lobby and go straight to game
+      if (isDailyMode) {
+        navigate({ to: `/game/${newGame.code}` });
+      } else {
+        navigate({ to: `/lobby/${newGame.code}` });
+      }
     } catch (error) {
       console.error("Failed to create new game:", error);
       setIsCreatingNewGame(false);
     }
+  };
+
+  const handleShare = () => {
+    if (!currentPlayer || !game || !playerAnswers) return;
+
+    // Calculate daily number (days since Jan 1, 2025)
+    const startDate = new Date('2025-01-01');
+    const today = new Date();
+    const dayNumber = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    // Create visual representation for each song
+    const songEmojis = playerAnswers.map(answer => {
+      if (answer.artistCorrect && answer.titleCorrect) return '✅';
+      if (answer.artistCorrect || answer.titleCorrect) return '🟨';
+      return '❌';
+    }).join(' ');
+
+    const hintsUsed = currentPlayer.hintsUsed || 0;
+    const streak = playerStats?.currentStreak || 1;
+
+    const shareText = `Music Round Daily #${dayNumber}
+${songEmojis}
+Score: ${currentPlayer.score.toLocaleString()}/5,000 | Hints: ${hintsUsed}
+Streak: ${streak}🔥
+${window.location.origin}/daily`;
+
+    navigator.clipboard.writeText(shareText).then(() => {
+      alert("Results copied to clipboard!");
+    }).catch(err => {
+      console.error("Failed to copy:", err);
+    });
   };
 
   // Loading
@@ -174,6 +249,84 @@ function Summary() {
           )}
         </section>
 
+        {/* Daily Leaderboard - only show for daily mode */}
+        {isDailyMode && (
+          <section className="bg-yellow-50 border-4 border-yellow-600 p-6 mb-6" aria-labelledby="daily-leaderboard-heading">
+            <div className="text-center mb-6">
+              <h2 id="daily-leaderboard-heading" className="pixel-text text-yellow-900 text-2xl mb-2">
+                🏆 TODAY'S LEADERBOARD
+              </h2>
+              {playerRank && (
+                <p className="pixel-text text-yellow-800 text-lg">
+                  YOUR RANK: #{playerRank.rank} OUT OF {playerRank.totalPlayers} PLAYERS
+                </p>
+              )}
+              {playerStats && (
+                <p className="pixel-text text-yellow-800 text-lg mt-2 flex items-center justify-center gap-2">
+                  <span className="flex items-center gap-1">
+                    STREAK: {playerStats.currentStreak}
+                    <img src="/fire.svg" alt="" width="16" height="16" aria-hidden="true" />
+                  </span>
+                  <span>|</span>
+                  <span className="flex items-center gap-1">
+                    BEST: {playerStats.longestStreak}
+                    <img src="/fire.svg" alt="" width="16" height="16" aria-hidden="true" />
+                  </span>
+                </p>
+              )}
+            </div>
+
+            {dailyLeaderboard && dailyLeaderboard.length > 0 ? (
+              <div className="space-y-2 mb-6">
+                {dailyLeaderboard.map((entry, index) => (
+                  <div
+                    key={entry._id}
+                    className={`flex justify-between items-center p-3 border-2 ${
+                      entry.playerId === sessionId
+                        ? 'bg-yellow-200 border-yellow-700'
+                        : 'bg-white border-yellow-400'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="pixel-text text-yellow-900 text-xl font-bold w-8">
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}
+                      </span>
+                      <span className="pixel-text text-yellow-900 text-lg">
+                        {entry.playerName.toUpperCase()}
+                      </span>
+                    </div>
+                    <span className="pixel-text text-yellow-900 text-xl font-bold">
+                      {entry.score.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="pixel-text text-yellow-800 text-center mb-6">
+                Loading leaderboard...
+              </p>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <PixelButton
+                onClick={handleShare}
+                className="flex-1 border-yellow-600"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <img src="/copy.svg" alt="" width="20" height="20" aria-hidden="true" />
+                  SHARE RESULTS
+                </span>
+              </PixelButton>
+              <PixelButton
+                onClick={() => navigate({ to: "/daily-leaderboard" })}
+                className="flex-1"
+              >
+                VIEW FULL LEADERBOARD
+              </PixelButton>
+            </div>
+          </section>
+        )}
+
         {/* Round Breakdown */}
         {playerAnswers && rounds && (
           <section className="bg-white border-4 border-sky-900 p-6 mb-6" aria-labelledby="breakdown-heading">
@@ -202,14 +355,12 @@ function Summary() {
                                 className={`pixel-text text-base md:text-lg mb-1 md:mb-2 ${answer.artistCorrect ? "text-green-700" : "text-red-700"}`}
                                 aria-label={`Your artist answer: ${answer.artist || "blank"}, ${answer.artistCorrect ? "correct" : "incorrect"}`}
                               >
-                                <span className="hidden md:inline">ARTIST: </span>
                                 {answer.artist ? answer.artist.toUpperCase() : "—"}
                               </p>
                               <p
                                 className={`pixel-text text-base md:text-lg ${answer.titleCorrect ? "text-green-700" : "text-red-700"}`}
                                 aria-label={`Your title answer: ${answer.title || "blank"}, ${answer.titleCorrect ? "correct" : "incorrect"}`}
                               >
-                                <span className="hidden md:inline">TITLE: </span>
                                 {answer.title ? answer.title.toUpperCase() : "—"}
                               </p>
                             </div>
@@ -217,7 +368,7 @@ function Summary() {
                         </div>
                         <div className="mt-2 flex items-center gap-2">
                           <p className="pixel-text text-sky-700 text-sm md:text-lg" aria-label={answer ? `You earned ${answer.points} points` : "No answer submitted"}>
-                            {answer ? `${answer.points > 0 ? '+' : ''}${answer.points} PTS` : "NO ANSWER"}
+                            {answer ? `${answer.points}PTS` : "NO ANSWER"}
                           </p>
                           {answer && answer.hintsUsed && answer.hintsUsed > 0 && (
                             <div className="flex items-center gap-1">
