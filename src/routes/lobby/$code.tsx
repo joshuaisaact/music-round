@@ -3,7 +3,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { useState, useEffect, useRef } from "react";
-import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, PlaylistCard, BouncingMusicIcons } from "@/components";
+import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, PlaylistCard, BouncingMusicIcons, OnboardingModal } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/lobby/$code")({
@@ -22,8 +22,17 @@ function Lobby() {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const previousPlayersRef = useRef<typeof players>(undefined);
+
+  // Check if we should show onboarding on mount
+  useEffect(() => {
+    const hideOnboarding = localStorage.getItem('hideOnboarding');
+    if (!hideOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, []);
 
   const game = useQuery(api.games.getByCode, { code });
   const players = useQuery(
@@ -426,10 +435,19 @@ function Lobby() {
           <BouncingMusicIcons size="small" />
         </div>
 
-        {/* Leave button */}
-        <div className="text-center mt-8">
+        {/* Leave and How to Play buttons */}
+        <div className="text-center mt-8 space-y-4 flex flex-col items-center">
+          <PixelButton
+            onClick={() => setShowOnboarding(true)}
+            className="w-full max-w-md"
+            size="small"
+            aria-label="Learn how to play"
+          >
+            HOW TO PLAY
+          </PixelButton>
           <PixelButton
             onClick={() => setShowLeaveModal(true)}
+            className="w-full max-w-md"
             variant="danger"
             size="small"
             aria-label="Leave game"
@@ -442,7 +460,7 @@ function Lobby() {
       {/* Leave confirmation modal */}
       {showLeaveModal && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
@@ -502,6 +520,15 @@ function Lobby() {
         </div>
       )}
       <SoundToggle />
+
+      {/* Onboarding Modal */}
+      {showOnboarding && game && (
+        <OnboardingModal
+          onClose={() => setShowOnboarding(false)}
+          isDailyMode={false}
+          secondsPerRound={game.settings.secondsPerRound}
+        />
+      )}
     </div>
   );
 }

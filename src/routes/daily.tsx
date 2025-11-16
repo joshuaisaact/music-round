@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons } from "@/components";
+import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, OnboardingModal } from "@/components";
 import { playSound } from "@/lib/audio";
 import { getSessionId } from "@/lib/session";
 
@@ -16,7 +16,16 @@ function DailyChallenge() {
   const [playerName, setPlayerName] = useState("");
   const [error, setError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check if we should show onboarding on mount
+  useEffect(() => {
+    const hideOnboarding = localStorage.getItem('hideOnboarding');
+    if (!hideOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, []);
 
   // Check if player has completed today's daily challenge
   const playerDailyScore = useQuery(api.daily.getPlayerDailyScore, {
@@ -38,7 +47,7 @@ function DailyChallenge() {
       month: 'short',
       day: 'numeric'
     };
-    return now.toLocaleDateString('en-US', options);
+    return now.toLocaleDateString(undefined, options);
   };
 
   const handleStartChallenge = async () => {
@@ -144,8 +153,9 @@ function DailyChallenge() {
 
         {/* Date Display */}
         <div className="bg-yellow-400 border-4 border-yellow-600 px-6 py-3 mb-8 inline-block">
-          <p className="pixel-text text-sky-900 text-xl">
-            📅 {formatDate()}
+          <p className="pixel-text text-sky-900 text-xl flex items-center justify-center gap-2">
+            <img src="/calendar.svg" alt="" width="24" height="24" aria-hidden="true" />
+            {formatDate()}
           </p>
         </div>
 
@@ -154,17 +164,21 @@ function DailyChallenge() {
           {playerDailyScore && (
             <div className="bg-green-100 border-4 border-green-600 p-4 mb-4">
               <p className="pixel-text text-green-900 text-lg mb-2">
-                ✅ ALREADY COMPLETED TODAY!
+                ALREADY COMPLETED TODAY!
               </p>
               <p className="pixel-text text-green-800 text-base">
                 YOUR SCORE: {playerDailyScore.score.toLocaleString()}
               </p>
-              {playerStats && (
-                <p className="pixel-text text-green-700 text-sm mt-2 flex items-center justify-center gap-1">
-                  STREAK: {playerStats.currentStreak}
-                  <img src="/fire.svg" alt="" width="14" height="14" aria-hidden="true" />
-                </p>
-              )}
+              <p className="pixel-text text-green-700 text-sm mt-2 flex items-center justify-center gap-1">
+                {playerStats ? (
+                  <>
+                    STREAK: {playerStats.currentStreak}
+                    <img src="/fire.svg" alt="" width="14" height="14" aria-hidden="true" />
+                  </>
+                ) : (
+                  <span className="opacity-0">STREAK: 0</span>
+                )}
+              </p>
             </div>
           )}
 
@@ -220,6 +234,15 @@ function DailyChallenge() {
         </div>
       </main>
       <SoundToggle />
+
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <OnboardingModal
+          onClose={() => setShowOnboarding(false)}
+          isDailyMode={true}
+          secondsPerRound={30}
+        />
+      )}
     </div>
   );
 }
