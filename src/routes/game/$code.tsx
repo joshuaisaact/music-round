@@ -427,40 +427,41 @@ function Game() {
             </div>
           )}
 
-          {/* Battle Royale Lives Display */}
-          {isBattleRoyale && (
-            <div className="flex justify-center">
-              <div className="px-6 py-3 border-4 bg-white border-sky-900">
-                <div className="pixel-text text-sky-900 text-2xl md:text-3xl flex items-center gap-2">
-                  <span>LIVES:</span>
-                  <div className="flex gap-1">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <img
-                        key={i}
-                        src="/heart.svg"
-                        alt=""
-                        width="24"
-                        height="24"
-                        aria-hidden="true"
-                        className={`${i >= (currentPlayer?.lives ?? 3) ? "opacity-20" : ""}`}
-                      />
-                    ))}
-                  </div>
-                  <span className="ml-1">{currentPlayer?.lives ?? 3}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Timer and Points */}
           {timeRemaining !== null && phase === "active" && (
             <div className="flex justify-between items-center gap-4 flex-wrap">
-              {/* Song Counter */}
-              <div className="px-6 py-3 border-4 bg-white border-sky-900">
-                <p className="pixel-text text-sky-900 text-2xl md:text-3xl">
-                  {isBattleRoyale ? `SONG ${currentRoundNumber}` : `SONG ${currentRoundNumber}/${totalRounds}`}
-                </p>
+              {/* Song Counter and Lives */}
+              <div className="flex items-center gap-4">
+                <div className="px-6 py-3 border-4 bg-white border-sky-900">
+                  <p className="pixel-text text-sky-900 text-2xl md:text-3xl">
+                    {isBattleRoyale ? `SONG ${currentRoundNumber}` : `SONG ${currentRoundNumber}/${totalRounds}`}
+                  </p>
+                </div>
+
+                {/* Battle Royale Lives Display */}
+                {isBattleRoyale && (
+                  <div className="px-6 py-3 border-4 bg-white border-sky-900">
+                    <div className="pixel-text text-sky-900 text-2xl md:text-3xl flex items-center gap-2">
+                      <span className="hidden sm:inline">LIVES:</span>
+                      <div className="flex gap-1">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <img
+                            key={i}
+                            src="/heart.svg"
+                            alt=""
+                            width="24"
+                            height="24"
+                            aria-hidden="true"
+                            className={`${i >= (currentPlayer?.lives ?? 3) ? "opacity-20" : ""}`}
+                          />
+                        ))}
+                      </div>
+                      <span className="ml-1">{currentPlayer?.lives ?? 3}</span>
+                    </div>
+                  </div>
+                )}
               </div>
+
               {/* Timer */}
               <div
                 className={`
@@ -529,12 +530,35 @@ function Game() {
 
           {/* Show song counter when timer is not active */}
           {(timeRemaining === null || phase !== "active") && (
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-4">
               <div className="px-6 py-3 border-4 bg-white border-sky-900">
                 <p className="pixel-text text-sky-900 text-2xl md:text-3xl">
                   {isBattleRoyale ? `SONG ${currentRoundNumber}` : `SONG ${currentRoundNumber}/${totalRounds}`}
                 </p>
               </div>
+
+              {/* Battle Royale Lives Display */}
+              {isBattleRoyale && (
+                <div className="px-6 py-3 border-4 bg-white border-sky-900">
+                  <div className="pixel-text text-sky-900 text-2xl md:text-3xl flex items-center gap-2">
+                    <span className="hidden sm:inline">LIVES:</span>
+                    <div className="flex gap-1">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <img
+                          key={i}
+                          src="/heart.svg"
+                          alt=""
+                          width="24"
+                          height="24"
+                          aria-hidden="true"
+                          className={`${i >= (currentPlayer?.lives ?? 3) ? "opacity-20" : ""}`}
+                        />
+                      ))}
+                    </div>
+                    <span className="ml-1">{currentPlayer?.lives ?? 3}</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </header>
@@ -775,33 +799,47 @@ function Game() {
             </div>
 
             {/* Host Controls */}
-            {isHost && (
-              <section className="bg-yellow-100 border-4 border-yellow-600 p-6" aria-labelledby="host-controls">
-                <h2 id="host-controls" className="sr-only">Host Controls</h2>
-                <PixelButton
-                  onClick={handleNextRound}
-                  variant="warning"
-                  className="w-full"
-                  disabled={isAdvancing}
-                  aria-label={isAdvancing ? "Advancing to next round..." : currentRoundNumber === totalRounds ? "Finish game" : "Advance to next round"}
-                >
-                  {getNextRoundButtonText()}
-                </PixelButton>
-                {!allPlayersSubmitted && (
-                  <p className="pixel-text text-yellow-800 text-xs mt-3 text-center" role="status" aria-live="polite">
-                    {roundAnswers?.length}/{players?.length} PLAYERS SUBMITTED
-                  </p>
-                )}
-              </section>
-            )}
+            {isHost && (() => {
+              // For single player mode, only show next round button if both artist and title are correct
+              if (game.settings.isSinglePlayer) {
+                const myAnswer = roundAnswers?.find((a) => a.playerId === currentPlayer._id);
+                const canAdvance = myAnswer?.artistCorrect && myAnswer?.titleCorrect;
+
+                if (!canAdvance) {
+                  return null;
+                }
+              }
+
+              return (
+                <section className="bg-yellow-100 border-4 border-yellow-600 p-6" aria-labelledby="host-controls">
+                  <h2 id="host-controls" className="sr-only">Host Controls</h2>
+                  <PixelButton
+                    onClick={handleNextRound}
+                    variant="warning"
+                    className="w-full"
+                    disabled={isAdvancing}
+                    aria-label={isAdvancing ? "Advancing to next round..." : currentRoundNumber === totalRounds ? "Finish game" : "Advance to next round"}
+                  >
+                    {getNextRoundButtonText()}
+                  </PixelButton>
+                  {!allPlayersSubmitted && !game.settings.isSinglePlayer && (
+                    <p className="pixel-text text-yellow-800 text-xs mt-3 text-center" role="status" aria-live="polite">
+                      {roundAnswers?.length}/{players?.length} PLAYERS SUBMITTED
+                    </p>
+                  )}
+                </section>
+              );
+            })()}
           </div>
 
           {/* Leaderboard/Score - Right/Bottom */}
           <aside className="lg:col-span-1" aria-labelledby="leaderboard-heading">
             <div className="bg-white border-4 border-sky-900 p-6 sticky top-4">
               <h2 id="leaderboard-heading" className="pixel-text text-sky-900 text-lg mb-4 flex items-center gap-2">
-                <img src="/trophy.svg" alt="" width="24" height="24" aria-hidden="true" />
-                {isDailyMode ? "YOUR SCORE" : "LEADERBOARD"}
+                {!game.settings.isSinglePlayer && (
+                  <img src="/trophy.svg" alt="" width="24" height="24" aria-hidden="true" />
+                )}
+                {game.settings.isSinglePlayer ? "YOUR SCORE" : "LEADERBOARD"}
               </h2>
 
               <PlayerStandings
@@ -809,6 +847,7 @@ function Game() {
                 currentPlayerId={currentPlayer._id}
                 variant="compact"
                 roundAnswers={roundAnswers || []}
+                showRankMedals={!game.settings.isSinglePlayer}
               />
             </div>
           </aside>

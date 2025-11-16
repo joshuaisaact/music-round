@@ -2,26 +2,43 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, PlaylistCard } from "@/components";
+import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, PlaylistCard, OnboardingModal } from "@/components";
 import { playSound } from "@/lib/audio";
 import { getSessionId } from "@/lib/session";
 
 export const Route = createFileRoute("/battle-royale")({
   component: BattleRoyale,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      playlist: typeof search.playlist === 'string' ? search.playlist : undefined,
+    };
+  },
 });
 
 function BattleRoyale() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const sessionId = getSessionId();
   const [playerName, setPlayerName] = useState("");
-  const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(search.playlist || null);
   const [error, setError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [playingPreviewTag, setPlayingPreviewTag] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const availablePlaylists = useQuery(api.songs.getAvailablePlaylists);
+
+  // Callback ref to scroll to selected playlist when it mounts
+  const scrollToSelected = (element: HTMLDivElement | null) => {
+    if (element && search.playlist) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  };
   const searchTrack = useAction(api.spotify.searchTrack);
   const createGame = useMutation(api.games.create);
   const joinGame = useMutation(api.players.join);
@@ -89,7 +106,7 @@ function BattleRoyale() {
     };
   }, []);
 
-  const handleStartBattleRoyale = async () => {
+  const handleStartBattleRoyale = () => {
     const name = playerName.trim();
     if (name.length === 0) {
       playSound("/sounds/error.ogg");
@@ -107,8 +124,22 @@ function BattleRoyale() {
     if (isCreating) return;
 
     playSound("/sounds/confirmation.ogg");
-    setIsCreating(true);
     setError("");
+
+    // Check if user has seen onboarding
+    const hideOnboarding = localStorage.getItem('hideBattleRoyaleOnboarding');
+
+    if (!hideOnboarding) {
+      // Show onboarding modal first
+      setShowOnboarding(true);
+    } else {
+      // Start game directly
+      startBattleRoyaleGame();
+    }
+  };
+
+  const startBattleRoyaleGame = async () => {
+    setIsCreating(true);
 
     try {
       const { gameId, code } = await createGame({
@@ -116,7 +147,7 @@ function BattleRoyale() {
         settings: {
           roundCount: 50,
           secondsPerRound: 30,
-          playlistTag: selectedPlaylist,
+          playlistTag: selectedPlaylist!,
           isSinglePlayer: true,
           hintsPerPlayer: 3,
           gameMode: "battle_royale",
@@ -127,7 +158,7 @@ function BattleRoyale() {
       await joinGame({
         code,
         sessionId,
-        name: name,
+        name: playerName.trim(),
       });
 
       // Start the game immediately
@@ -140,6 +171,12 @@ function BattleRoyale() {
       setError("Failed to create battle royale game. Please try again.");
       setIsCreating(false);
     }
+  };
+
+  const handleOnboardingClose = () => {
+    setShowOnboarding(false);
+    // Start the game after closing the modal
+    startBattleRoyaleGame();
   };
 
   const groupedPlaylists = availablePlaylists?.reduce((acc, playlist) => {
@@ -210,36 +247,23 @@ function BattleRoyale() {
           {/* Playlist Selection */}
           <div className="bg-white border-4 border-sky-900 p-6">
             <h2 className="pixel-text text-sky-900 text-2xl mb-4">SELECT PLAYLIST</h2>
-            <div className="space-y-6">
-              {/* Default Playlists */}
-              {groupedPlaylists?.default && groupedPlaylists.default.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {groupedPlaylists.default.map((playlist) => (
-                    <PlaylistCard
-                      key={playlist.tag}
-                      tag={playlist.tag}
-                      name={playlist.name}
-                      subtitle={playlist.subtitle}
-                      songCount={playlist.songCount}
-                      isSelected={selectedPlaylist === playlist.tag}
-                      isPlaying={playingPreviewTag === playlist.tag}
-                      onSelect={setSelectedPlaylist}
-                      onPreviewToggle={handlePreviewToggle}
-                    />
-                  ))}
-                </div>
-              )}
 
-              {/* Grouped Playlists by Section */}
-              {Object.entries(groupedPlaylists || {})
-                .filter(([section]) => section !== "default")
-                .map(([section, playlists]) => (
-                  <div key={section}>
-                    <h3 className="pixel-text text-sky-700 text-xl mb-3 text-left uppercase">{section}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {playlists.map((playlist) => (
+            {/* Loading state */}
+            {!availablePlaylists ? (
+              <div className="min-h-[400px] md:min-h-[500px] flex items-center justify-center">
+                <p className="pixel-text text-sky-700 text-lg">LOADING PLAYLISTS...</p>
+              </div>
+            ) : (
+              <div className="max-h-[400px] md:max-h-[500px] overflow-y-auto pr-2 space-y-6">
+                {/* Default Playlists */}
+                {groupedPlaylists?.default && groupedPlaylists.default.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {groupedPlaylists.default.map((playlist) => (
+                      <div
+                        key={playlist.tag}
+                        ref={playlist.tag === search.playlist ? scrollToSelected : null}
+                      >
                         <PlaylistCard
-                          key={playlist.tag}
                           tag={playlist.tag}
                           name={playlist.name}
                           subtitle={playlist.subtitle}
@@ -249,11 +273,40 @@ function BattleRoyale() {
                           onSelect={setSelectedPlaylist}
                           onPreviewToggle={handlePreviewToggle}
                         />
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-            </div>
+                )}
+
+                {/* Grouped Playlists by Section */}
+                {Object.entries(groupedPlaylists || {})
+                  .filter(([section]) => section !== "default")
+                  .map(([section, playlists]) => (
+                    <div key={section}>
+                      <h3 className="pixel-text text-sky-700 text-xl mb-3 text-left uppercase">{section}</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {playlists.map((playlist) => (
+                          <div
+                            key={playlist.tag}
+                            ref={playlist.tag === search.playlist ? scrollToSelected : null}
+                          >
+                            <PlaylistCard
+                              tag={playlist.tag}
+                              name={playlist.name}
+                              subtitle={playlist.subtitle}
+                              songCount={playlist.songCount}
+                              isSelected={selectedPlaylist === playlist.tag}
+                              isPlaying={playingPreviewTag === playlist.tag}
+                              onSelect={setSelectedPlaylist}
+                              onPreviewToggle={handlePreviewToggle}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
 
           {/* Error Message */}
@@ -283,6 +336,16 @@ function BattleRoyale() {
           </div>
         </div>
       </main>
+
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <OnboardingModal
+          onClose={handleOnboardingClose}
+          isBattleRoyale={true}
+          secondsPerRound={30}
+        />
+      )}
+
       <SoundToggle />
     </div>
   );

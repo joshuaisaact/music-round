@@ -90,8 +90,9 @@ function Summary() {
 
   // Submit battle royale score on mount
   useEffect(() => {
-    if (isBattleRoyale && game && currentPlayer && rounds) {
-      const roundsCompleted = rounds.length;
+    if (isBattleRoyale && game && currentPlayer && playerAnswers) {
+      // Count actual rounds completed (where player submitted answers)
+      const roundsCompleted = playerAnswers.length;
       const livesRemaining = currentPlayer.lives ?? 0;
 
       submitBattleRoyaleScore({
@@ -106,7 +107,7 @@ function Summary() {
         console.error("Failed to submit battle royale score:", err);
       });
     }
-  }, [isBattleRoyale, game?._id, currentPlayer?.score, currentPlayer?.name, currentPlayer?.lives, rounds?.length, sessionId, submitBattleRoyaleScore]);
+  }, [isBattleRoyale, game?._id, currentPlayer?.score, currentPlayer?.name, currentPlayer?.lives, playerAnswers?.length, sessionId, submitBattleRoyaleScore]);
 
   const handlePlayAgain = async () => {
     if (!game || !currentPlayer || isCreatingNewGame) return;
@@ -169,11 +170,11 @@ ${window.location.origin}/daily`;
   };
 
   const handleShareBattleRoyale = () => {
-    if (!currentPlayer || !game || !playerAnswers || !rounds || !availablePlaylists) return;
+    if (!currentPlayer || !game || !playerAnswers || !availablePlaylists) return;
 
     const playlistName = availablePlaylists.find(p => p.tag === game.settings.playlistTag)?.name || game.settings.playlistTag || "Daily Songs";
-    const roundsCompleted = rounds.length;
-    const livesLeft = currentPlayer.lives ?? 0;
+    const playlistTag = game.settings.playlistTag || "daily-songs";
+    const roundsCompleted = playerAnswers.length;
 
     // Create visual representation for each song (show first 10, then ...)
     const displayedAnswers = playerAnswers.slice(0, 10);
@@ -189,8 +190,7 @@ ${window.location.origin}/daily`;
 ${playlistName}
 ${songEmojis}${moreRounds}
 Rounds Survived: ${roundsCompleted} | Score: ${currentPlayer.score.toLocaleString()}
-Lives Left: ${'❤️'.repeat(livesLeft)}${livesLeft === 0 ? ' (Eliminated)' : ''}
-${window.location.origin}/battle-royale`;
+${window.location.origin}/battle-royale?playlist=${playlistTag}`;
 
     navigator.clipboard.writeText(shareText).then(() => {
       alert("Results copied to clipboard!");
@@ -284,7 +284,7 @@ ${window.location.origin}/battle-royale`;
                     <div>
                       <p className="pixel-text text-sky-600 text-sm mb-2">SONGS COMPLETED</p>
                       <p className="pixel-text text-sky-900 text-3xl md:text-4xl font-bold">
-                        {rounds?.length || 0}
+                        {playerAnswers?.length || 0}
                       </p>
                     </div>
                     <div>
@@ -331,6 +331,7 @@ ${window.location.origin}/battle-royale`;
                 players={players}
                 currentPlayerId={currentPlayer._id}
                 variant="detailed"
+                showRankMedals={!game.settings.isSinglePlayer}
               />
             </>
           )}
