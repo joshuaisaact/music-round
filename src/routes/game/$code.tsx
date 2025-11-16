@@ -848,6 +848,7 @@ function Game() {
                 variant="compact"
                 roundAnswers={roundAnswers || []}
                 showRankMedals={!game.settings.isSinglePlayer}
+                showLives={game.settings.gameMode === "battle_royale" && !game.settings.isSinglePlayer}
               />
             </div>
           </aside>

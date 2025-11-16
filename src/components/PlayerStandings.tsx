@@ -6,6 +6,8 @@ interface Player {
   _id: Id<"players">;
   name: string;
   score: number;
+  lives?: number;
+  eliminated?: boolean;
 }
 
 interface Answer {
@@ -23,6 +25,7 @@ interface PlayerStandingsProps {
   variant?: "compact" | "detailed";
   roundAnswers?: Answer[];
   showRankMedals?: boolean;
+  showLives?: boolean;
 }
 
 export function PlayerStandings({
@@ -31,6 +34,7 @@ export function PlayerStandings({
   variant = "compact",
   roundAnswers,
   showRankMedals = true,
+  showLives = false,
 }: PlayerStandingsProps) {
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
   const [shakingPlayers, setShakingPlayers] = useState<Set<Id<"players">>>(new Set());
@@ -162,7 +166,24 @@ export function PlayerStandings({
                   </span>
                 )}
               </div>
-              <span className="pixel-text text-lg font-bold">{player.score}</span>
+              <div className="flex items-center gap-2">
+                {showLives && (
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <img
+                        key={i}
+                        src="/heart.svg"
+                        alt=""
+                        width="16"
+                        height="16"
+                        aria-hidden="true"
+                        className={`${i >= (player.lives ?? 3) ? "opacity-20" : ""}`}
+                      />
+                    ))}
+                  </div>
+                )}
+                <span className="pixel-text text-lg font-bold">{player.score}</span>
+              </div>
             </div>
           );
         })}
@@ -314,7 +335,24 @@ export function PlayerStandings({
                 </div>
               )}
             </div>
-            <p className="pixel-text text-2xl md:text-3xl font-bold">{player.score}</p>
+            <div className="flex items-center gap-3">
+              {showLives && (
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <img
+                      key={i}
+                      src="/heart.svg"
+                      alt=""
+                      width="20"
+                      height="20"
+                      aria-hidden="true"
+                      className={`${i >= (player.lives ?? 3) ? "opacity-20" : ""}`}
+                    />
+                  ))}
+                </div>
+              )}
+              <p className="pixel-text text-2xl md:text-3xl font-bold">{player.score}</p>
+            </div>
           </div>
         );
       })}

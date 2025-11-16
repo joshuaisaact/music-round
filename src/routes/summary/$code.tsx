@@ -337,6 +337,7 @@ ${window.location.origin}${battleRoyaleRoute}`;
                 currentPlayerId={currentPlayer._id}
                 variant="detailed"
                 showRankMedals={!game.settings.isSinglePlayer}
+                showLives={game.settings.gameMode === "battle_royale" && !game.settings.isSinglePlayer}
               />
             </>
           )}
