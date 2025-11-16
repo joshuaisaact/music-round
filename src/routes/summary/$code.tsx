@@ -186,11 +186,16 @@ ${window.location.origin}/daily`;
 
     const moreRounds = roundsCompleted > 10 ? ` +${roundsCompleted - 10}` : '';
 
+    // Use solo or multiplayer route based on game settings
+    const battleRoyaleRoute = game.settings.isSinglePlayer
+      ? `/battle-royale/solo?playlist=${playlistTag}`
+      : `/battle-royale/multiplayer?playlist=${playlistTag}`;
+
     const shareText = `Music Round Battle Royale 🎵
 ${playlistName}
 ${songEmojis}${moreRounds}
 Rounds Survived: ${roundsCompleted} | Score: ${currentPlayer.score.toLocaleString()}
-${window.location.origin}/battle-royale?playlist=${playlistTag}`;
+${window.location.origin}${battleRoyaleRoute}`;
 
     navigator.clipboard.writeText(shareText).then(() => {
       alert("Results copied to clipboard!");

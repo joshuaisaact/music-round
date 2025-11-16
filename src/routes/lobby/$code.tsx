@@ -316,7 +316,7 @@ function Lobby() {
               PLAYERS
             </h2>
             <div className="flex gap-4 items-center">
-              {isHost && (
+              {isHost && game.settings.gameMode !== "battle_royale" && (
                 <PixelButton
                   onClick={() => setShowSettingsModal(true)}
                   size="x-small"
@@ -326,18 +326,35 @@ function Lobby() {
                 </PixelButton>
               )}
               <div className="flex gap-4" role="group" aria-label="Game settings">
+                {game.settings.gameMode === "battle_royale" && (
+                  <div className="text-center">
+                    <p id="mode-label" className="pixel-text text-red-600 text-xs">MODE</p>
+                    <p className="pixel-text text-red-900 text-sm font-bold" aria-labelledby="mode-label">
+                      BATTLE ROYALE
+                    </p>
+                  </div>
+                )}
                 <div className="text-center">
                   <p id="playlist-label" className="pixel-text text-sky-600 text-xs">PLAYLIST</p>
                   <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="playlist-label">
                     {playlistDisplayName}
                   </p>
                 </div>
-                <div className="text-center">
-                  <p id="rounds-label" className="pixel-text text-sky-600 text-xs">ROUNDS</p>
-                  <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="rounds-label" aria-label={`${game.settings.roundCount} rounds`}>
-                    {game.settings.roundCount}
-                  </p>
-                </div>
+                {game.settings.gameMode === "battle_royale" ? (
+                  <div className="text-center">
+                    <p id="lives-label" className="pixel-text text-sky-600 text-xs">LIVES</p>
+                    <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="lives-label">
+                      3
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <p id="rounds-label" className="pixel-text text-sky-600 text-xs">ROUNDS</p>
+                    <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="rounds-label" aria-label={`${game.settings.roundCount} rounds`}>
+                      {game.settings.roundCount}
+                    </p>
+                  </div>
+                )}
                 <div className="text-center">
                   <p id="secs-label" className="pixel-text text-sky-600 text-xs">SECS</p>
                   <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="secs-label" aria-label={`${game.settings.secondsPerRound} seconds per round`}>
