@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { internalMutation } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { internalMutation, internalAction } from "./_generated/server";
+import { internal, api } from "./_generated/api";
 
 const PREPARING_DURATION_MS = 3000; // 3 seconds
 
@@ -52,7 +52,85 @@ export const transitionToEnded = internalMutation({
     const game = await ctx.db.get(round.gameId);
     if (!game) return;
 
+    // Handle battle royale elimination logic
+    if (game.settings.gameMode === "battle_royale") {
+      // Get all players in the game
+      const allPlayers = await ctx.db
+        .query("players")
+        .withIndex("by_game", (q) => q.eq("gameId", game._id))
+        .collect();
+
+      // Get all answers for this round
+      const answers = await ctx.db
+        .query("answers")
+        .withIndex("by_round", (q) => q.eq("roundId", roundId))
+        .collect();
+
+      // Check each player's answer and handle lives
+      for (const player of allPlayers) {
+        // Skip if already eliminated
+        if (player.eliminated) continue;
+
+        const answer = answers.find((a) => a.playerId === player._id);
+
+        // If no answer submitted, or wrong answer(s), lose a life
+        const isFullyCorrect = answer?.artistCorrect && answer?.titleCorrect;
+        const isPartiallyCorrect = answer?.artistCorrect || answer?.titleCorrect;
+
+        // Lose a life if not fully correct
+        if (!isFullyCorrect) {
+          const currentLives = player.lives ?? 3;
+          const newLives = currentLives - 1;
+
+          if (newLives <= 0) {
+            // Player is eliminated
+            await ctx.db.patch(player._id, {
+              lives: 0,
+              eliminated: true,
+              eliminatedAtRound: round.roundNumber,
+            });
+          } else {
+            // Player loses a life but continues
+            await ctx.db.patch(player._id, {
+              lives: newLives,
+              eliminated: false, // Explicitly ensure not eliminated
+            });
+          }
+        }
+      }
+
+      // Re-fetch players to get updated elimination status
+      const updatedPlayers = await ctx.db
+        .query("players")
+        .withIndex("by_game", (q) => q.eq("gameId", game._id))
+        .collect();
+
+      // Check if game should end
+      const remainingPlayers = updatedPlayers.filter((p) => !p.eliminated);
+
+      // For single player: only end if player is eliminated (0 remaining)
+      // For multiplayer: end if 1 or fewer remain
+      const isSinglePlayer = game.settings.isSinglePlayer ?? false;
+      const shouldEndGame = isSinglePlayer
+        ? remainingPlayers.length === 0
+        : remainingPlayers.length <= 1;
+
+      if (shouldEndGame) {
+        // Game over - mark as finished
+        await ctx.db.patch(game._id, { status: "finished" });
+        return; // Don't advance to next round
+      }
+    }
+
     const nextRoundNum = game.currentRound + 1;
+
+    // Check if we've hit the max round limit for battle royale
+    if (game.settings.gameMode === "battle_royale" && nextRoundNum >= game.settings.roundCount) {
+      // Hit the round limit, end the game
+      await ctx.db.patch(game._id, { status: "finished" });
+      return;
+    }
+
     const nextRound = await ctx.db
       .query("rounds")
       .withIndex("by_game_and_number", (q) =>
@@ -80,8 +158,16 @@ export const transitionToEnded = internalMutation({
         { roundId: nextRound._id },
       );
     } else {
-      // No more rounds, end the game
-      await ctx.db.patch(game._id, { status: "finished" });
+      // For battle royale, create next round on-demand
+      if (game.settings.gameMode === "battle_royale") {
+        await ctx.scheduler.runAfter(0, internal.roundScheduler.createNextRound, {
+          gameId: game._id,
+          roundNumber: nextRoundNum,
+        });
+      } else {
+        // No more rounds, end the game
+        await ctx.db.patch(game._id, { status: "finished" });
+      }
     }
   },
 });
@@ -103,6 +189,69 @@ export const startRound = internalMutation({
     });
 
     // Schedule transition to active phase
+    const activeTime = Date.now() + PREPARING_DURATION_MS;
+    await ctx.scheduler.runAt(
+      activeTime,
+      internal.roundScheduler.transitionToActive,
+      { roundId },
+    );
+  },
+});
+
+export const createNextRound = internalAction({
+  args: {
+    gameId: v.id("games"),
+    roundNumber: v.number(),
+  },
+  handler: async (ctx, { gameId, roundNumber }) => {
+    // Create a single round on-demand for battle royale
+    const game = await ctx.runQuery(api.games.get, { gameId });
+    if (!game) return;
+
+    // Create the next round
+    await ctx.runAction(internal.rounds.createTestRounds, {
+      gameId,
+      count: 1,
+      playlistTag: game.settings.playlistTag || "daily-songs",
+      startingRoundNumber: roundNumber,
+    });
+
+    // Get the newly created round
+    const newRound = await ctx.runQuery(api.rounds.getCurrent, {
+      gameId,
+      roundNumber,
+    });
+
+    if (newRound) {
+      // Start the round
+      await ctx.runMutation(internal.roundScheduler.startNextRoundAfterCreation, {
+        gameId,
+        roundId: newRound._id,
+        roundNumber,
+      });
+    }
+  },
+});
+
+export const startNextRoundAfterCreation = internalMutation({
+  args: {
+    gameId: v.id("games"),
+    roundId: v.id("rounds"),
+    roundNumber: v.number(),
+  },
+  handler: async (ctx, { gameId, roundId, roundNumber }) => {
+    // Start round in preparing phase
+    await ctx.db.patch(roundId, {
+      phase: "preparing",
+      startedAt: Date.now(),
+    });
+
+    // Update game current round
+    await ctx.db.patch(gameId, {
+      currentRound: roundNumber,
+    });
+
+    // Schedule transition to active
     const activeTime = Date.now() + PREPARING_DURATION_MS;
     await ctx.scheduler.runAt(
       activeTime,

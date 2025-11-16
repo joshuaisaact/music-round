@@ -49,10 +49,22 @@ function Summary() {
     isDailyMode ? { playerId: sessionId } : "skip"
   );
 
+  // Battle royale mode specific queries
+  const isBattleRoyale = game?.settings.gameMode === "battle_royale";
+  const battleRoyaleLeaderboard = useQuery(
+    api.battleRoyale.getLeaderboard,
+    isBattleRoyale && game ? { playlistTag: game.settings.playlistTag || "daily-songs" } : "skip"
+  );
+  const battleRoyalePlayerRank = useQuery(
+    api.battleRoyale.getPlayerRank,
+    isBattleRoyale && game ? { playerId: sessionId, playlistTag: game.settings.playlistTag || "daily-songs" } : "skip"
+  );
+
   const createGame = useMutation(api.games.create);
   const joinGame = useMutation(api.players.join);
   const submitDailyScore = useMutation(api.daily.submitDailyScore);
   const updateStreak = useMutation(api.daily.updateStreak);
+  const submitBattleRoyaleScore = useMutation(api.battleRoyale.submitScore);
 
   // Submit daily score and update streak on mount for daily mode
   useEffect(() => {
@@ -75,6 +87,26 @@ function Summary() {
       });
     }
   }, [isDailyMode, game?._id, currentPlayer?.score, currentPlayer?.name, sessionId, submitDailyScore, updateStreak]);
+
+  // Submit battle royale score on mount
+  useEffect(() => {
+    if (isBattleRoyale && game && currentPlayer && rounds) {
+      const roundsCompleted = rounds.length;
+      const livesRemaining = currentPlayer.lives ?? 0;
+
+      submitBattleRoyaleScore({
+        playerId: sessionId,
+        playerName: currentPlayer.name,
+        score: currentPlayer.score,
+        roundsCompleted,
+        livesRemaining,
+        gameId: game._id,
+        playlistTag: game.settings.playlistTag || "daily-songs",
+      }).catch(err => {
+        console.error("Failed to submit battle royale score:", err);
+      });
+    }
+  }, [isBattleRoyale, game?._id, currentPlayer?.score, currentPlayer?.name, currentPlayer?.lives, rounds?.length, sessionId, submitBattleRoyaleScore]);
 
   const handlePlayAgain = async () => {
     if (!game || !currentPlayer || isCreatingNewGame) return;
@@ -128,6 +160,37 @@ ${songEmojis}
 Score: ${currentPlayer.score.toLocaleString()}/5,000 | Hints: ${hintsUsed}
 Streak: ${streak}🔥
 ${window.location.origin}/daily`;
+
+    navigator.clipboard.writeText(shareText).then(() => {
+      alert("Results copied to clipboard!");
+    }).catch(err => {
+      console.error("Failed to copy:", err);
+    });
+  };
+
+  const handleShareBattleRoyale = () => {
+    if (!currentPlayer || !game || !playerAnswers || !rounds || !availablePlaylists) return;
+
+    const playlistName = availablePlaylists.find(p => p.tag === game.settings.playlistTag)?.name || game.settings.playlistTag || "Daily Songs";
+    const roundsCompleted = rounds.length;
+    const livesLeft = currentPlayer.lives ?? 0;
+
+    // Create visual representation for each song (show first 10, then ...)
+    const displayedAnswers = playerAnswers.slice(0, 10);
+    const songEmojis = displayedAnswers.map(answer => {
+      if (answer.artistCorrect && answer.titleCorrect) return '✅';
+      if (answer.artistCorrect || answer.titleCorrect) return '🟨';
+      return '❌';
+    }).join(' ');
+
+    const moreRounds = roundsCompleted > 10 ? ` +${roundsCompleted - 10}` : '';
+
+    const shareText = `Music Round Battle Royale 🎵
+${playlistName}
+${songEmojis}${moreRounds}
+Rounds Survived: ${roundsCompleted} | Score: ${currentPlayer.score.toLocaleString()}
+Lives Left: ${'❤️'.repeat(livesLeft)}${livesLeft === 0 ? ' (Eliminated)' : ''}
+${window.location.origin}/battle-royale`;
 
     navigator.clipboard.writeText(shareText).then(() => {
       alert("Results copied to clipboard!");
@@ -216,23 +279,47 @@ ${window.location.origin}/daily`;
                     </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="pixel-text text-sky-600 text-sm mb-2">FINAL SCORE</p>
-                    <p className="pixel-text text-sky-900 text-3xl md:text-4xl font-bold">
-                      {currentPlayer.score} / {game.settings.roundCount * 1000}
-                    </p>
+                {isBattleRoyale ? (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="pixel-text text-sky-600 text-sm mb-2">SONGS COMPLETED</p>
+                      <p className="pixel-text text-sky-900 text-3xl md:text-4xl font-bold">
+                        {rounds?.length || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="pixel-text text-sky-600 text-sm mb-2">FINAL SCORE</p>
+                      <p className="pixel-text text-sky-900 text-3xl md:text-4xl font-bold">
+                        {currentPlayer.score.toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="pixel-text text-red-600 text-sm mb-2">LIVES USED</p>
+                      <p className="pixel-text text-red-900 text-3xl md:text-4xl font-bold flex items-center justify-center gap-1">
+                        <img src="/heart.svg" alt="" width="28" height="28" aria-hidden="true" />
+                        {3 - (currentPlayer.lives ?? 3)}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="pixel-text text-sky-600 text-sm mb-2">ACCURACY</p>
-                    <p className="pixel-text text-sky-900 text-3xl md:text-4xl font-bold">
-                      {playerAnswers ?
-                        `${playerAnswers.filter(a => a.artistCorrect).length + playerAnswers.filter(a => a.titleCorrect).length} / ${game.settings.roundCount * 2}` :
-                        '0 / 0'
-                      }
-                    </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="pixel-text text-sky-600 text-sm mb-2">FINAL SCORE</p>
+                      <p className="pixel-text text-sky-900 text-3xl md:text-4xl font-bold">
+                        {currentPlayer.score} / {game.settings.roundCount * 1000}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="pixel-text text-sky-600 text-sm mb-2">ACCURACY</p>
+                      <p className="pixel-text text-sky-900 text-3xl md:text-4xl font-bold">
+                        {playerAnswers ?
+                          `${playerAnswers.filter(a => a.artistCorrect).length + playerAnswers.filter(a => a.titleCorrect).length} / ${game.settings.roundCount * 2}` :
+                          '0 / 0'
+                        }
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           ) : (
@@ -324,6 +411,80 @@ ${window.location.origin}/daily`;
                 VIEW FULL LEADERBOARD
               </PixelButton>
             </div>
+          </section>
+        )}
+
+        {/* Battle Royale Leaderboard - only show for battle royale mode */}
+        {isBattleRoyale && (
+          <section className="bg-red-50 border-4 border-red-600 p-6 mb-6" aria-labelledby="battle-royale-leaderboard-heading">
+            <div className="text-center mb-6">
+              <h2 id="battle-royale-leaderboard-heading" className="pixel-text text-red-900 text-2xl mb-2 flex items-center justify-center gap-2">
+                <img src="/trophy.svg" alt="" width="28" height="28" aria-hidden="true" />
+                LEADERBOARD
+              </h2>
+              <p className="pixel-text text-red-800 text-lg mb-2">
+                {availablePlaylists?.find(p => p.tag === game.settings.playlistTag)?.name || game.settings.playlistTag || "Daily Songs"}
+              </p>
+              {battleRoyalePlayerRank && (
+                <p className="pixel-text text-red-800 text-lg">
+                  YOUR RANK: #{battleRoyalePlayerRank.rank} OUT OF {battleRoyalePlayerRank.totalPlayers} PLAYERS
+                </p>
+              )}
+            </div>
+
+            {battleRoyaleLeaderboard && battleRoyaleLeaderboard.length > 0 ? (
+              <div className="space-y-2 mb-6">
+                {battleRoyaleLeaderboard.slice(0, 10).map((entry, index) => (
+                  <div
+                    key={entry._id}
+                    className={`flex justify-between items-center p-3 border-2 ${
+                      entry.playerId === sessionId
+                        ? 'bg-red-200 border-red-700'
+                        : 'bg-white border-red-400'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="pixel-text text-red-900 text-xl font-bold w-8">
+                        {index === 0 ? (
+                          <img src="/medal-1.svg" alt="1st place" width="24" height="24" />
+                        ) : index === 1 ? (
+                          <img src="/medal-2.svg" alt="2nd place" width="24" height="24" />
+                        ) : index === 2 ? (
+                          <img src="/medal-3.svg" alt="3rd place" width="24" height="24" />
+                        ) : (
+                          `${index + 1}.`
+                        )}
+                      </span>
+                      <span className="pixel-text text-red-900 text-lg">
+                        {entry.playerName.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="pixel-text text-red-700 text-sm">
+                        R{entry.roundsCompleted}
+                      </span>
+                      <span className="pixel-text text-red-900 text-xl font-bold">
+                        {entry.score.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="pixel-text text-red-800 text-center mb-6">
+                Loading leaderboard...
+              </p>
+            )}
+
+            <PixelButton
+              onClick={handleShareBattleRoyale}
+              className="w-full border-red-600"
+            >
+              <span className="flex items-center justify-center gap-2">
+                <img src="/copy.svg" alt="" width="20" height="20" aria-hidden="true" />
+                SHARE RESULTS
+              </span>
+            </PixelButton>
           </section>
         )}
 

@@ -21,6 +21,7 @@ export default defineSchema({
         v.literal("solo"),
         v.literal("multiplayer"),
         v.literal("daily"),
+        v.literal("battle_royale"),
       )),
     }),
     createdAt: v.number(),
@@ -37,6 +38,9 @@ export default defineSchema({
     avatar: v.optional(v.string()),
     joinedAt: v.number(),
     hintsUsed: v.optional(v.number()),
+    lives: v.optional(v.number()),
+    eliminated: v.optional(v.boolean()),
+    eliminatedAtRound: v.optional(v.number()),
   })
     .index("by_game", ["gameId"])
     .index("by_session", ["gameId", "sessionId"]),
@@ -109,4 +113,17 @@ export default defineSchema({
     totalDaysPlayed: v.number(),
   })
     .index("by_player", ["playerId"]),
+  battleRoyaleScores: defineTable({
+    playlistTag: v.string(),
+    playerId: v.string(),
+    playerName: v.string(),
+    score: v.number(),
+    roundsCompleted: v.number(),
+    livesRemaining: v.number(),
+    completedAt: v.number(),
+    gameId: v.id("games"),
+  })
+    .index("by_playlist", ["playlistTag"])
+    .index("by_playlist_and_score", ["playlistTag", "score"])
+    .index("by_player_and_playlist", ["playerId", "playlistTag"]),
 });

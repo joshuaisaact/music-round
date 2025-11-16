@@ -308,6 +308,8 @@ function Game() {
 
   const getNextRoundButtonText = () => {
     if (isAdvancing) return "ADVANCING...";
+    // For battle royale, never show "FINISH GAME" - game ends automatically on elimination
+    if (isBattleRoyale) return "NEXT ROUND";
     if (currentRoundNumber === totalRounds) return "FINISH GAME";
     return "NEXT ROUND";
   };
@@ -398,6 +400,7 @@ function Game() {
   const availablePoints = getAvailablePoints();
 
   const isDailyMode = game.settings.gameMode === "daily";
+  const isBattleRoyale = game.settings.gameMode === "battle_royale";
 
   // Format today's date for display
   const formatDate = () => {
@@ -424,13 +427,38 @@ function Game() {
             </div>
           )}
 
+          {/* Battle Royale Lives Display */}
+          {isBattleRoyale && (
+            <div className="flex justify-center">
+              <div className="px-6 py-3 border-4 bg-white border-sky-900">
+                <div className="pixel-text text-sky-900 text-2xl md:text-3xl flex items-center gap-2">
+                  <span>LIVES:</span>
+                  <div className="flex gap-1">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <img
+                        key={i}
+                        src="/heart.svg"
+                        alt=""
+                        width="24"
+                        height="24"
+                        aria-hidden="true"
+                        className={`${i >= (currentPlayer?.lives ?? 3) ? "opacity-20" : ""}`}
+                      />
+                    ))}
+                  </div>
+                  <span className="ml-1">{currentPlayer?.lives ?? 3}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Timer and Points */}
           {timeRemaining !== null && phase === "active" && (
             <div className="flex justify-between items-center gap-4 flex-wrap">
               {/* Song Counter */}
               <div className="px-6 py-3 border-4 bg-white border-sky-900">
                 <p className="pixel-text text-sky-900 text-2xl md:text-3xl">
-                  SONG {currentRoundNumber}/{totalRounds}
+                  {isBattleRoyale ? `SONG ${currentRoundNumber}` : `SONG ${currentRoundNumber}/${totalRounds}`}
                 </p>
               </div>
               {/* Timer */}
@@ -504,7 +532,7 @@ function Game() {
             <div className="flex justify-center">
               <div className="px-6 py-3 border-4 bg-white border-sky-900">
                 <p className="pixel-text text-sky-900 text-2xl md:text-3xl">
-                  SONG {currentRoundNumber}/{totalRounds}
+                  {isBattleRoyale ? `SONG ${currentRoundNumber}` : `SONG ${currentRoundNumber}/${totalRounds}`}
                 </p>
               </div>
             </div>

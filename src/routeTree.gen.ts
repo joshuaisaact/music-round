@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as DailyLeaderboardRouteImport } from './routes/daily-leaderboard'
 import { Route as DailyRouteImport } from './routes/daily'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as BattleRoyaleRouteImport } from './routes/battle-royale'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SummaryCodeRouteImport } from './routes/summary/$code'
 import { Route as LobbyCodeRouteImport } from './routes/lobby/$code'
@@ -30,6 +31,11 @@ const DailyRoute = DailyRouteImport.update({
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BattleRoyaleRoute = BattleRoyaleRouteImport.update({
+  id: '/battle-royale',
+  path: '/battle-royale',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -55,6 +61,7 @@ const GameCodeRoute = GameCodeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/battle-royale': typeof BattleRoyaleRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRoute
   '/daily-leaderboard': typeof DailyLeaderboardRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/battle-royale': typeof BattleRoyaleRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRoute
   '/daily-leaderboard': typeof DailyLeaderboardRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/battle-royale': typeof BattleRoyaleRoute
   '/create': typeof CreateRoute
   '/daily': typeof DailyRoute
   '/daily-leaderboard': typeof DailyLeaderboardRoute
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/battle-royale'
     | '/create'
     | '/daily'
     | '/daily-leaderboard'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/battle-royale'
     | '/create'
     | '/daily'
     | '/daily-leaderboard'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/battle-royale'
     | '/create'
     | '/daily'
     | '/daily-leaderboard'
@@ -113,6 +125,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BattleRoyaleRoute: typeof BattleRoyaleRoute
   CreateRoute: typeof CreateRoute
   DailyRoute: typeof DailyRoute
   DailyLeaderboardRoute: typeof DailyLeaderboardRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/create'
       fullPath: '/create'
       preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/battle-royale': {
+      id: '/battle-royale'
+      path: '/battle-royale'
+      fullPath: '/battle-royale'
+      preLoaderRoute: typeof BattleRoyaleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -177,6 +197,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BattleRoyaleRoute: BattleRoyaleRoute,
   CreateRoute: CreateRoute,
   DailyRoute: DailyRoute,
   DailyLeaderboardRoute: DailyLeaderboardRoute,
