@@ -119,7 +119,7 @@ export const useHint = mutation({
       }
 
       // Pick random indices
-      const shuffled = [...validIndices].sort(() => Math.random() - 0.5);
+      const shuffled = validIndices.toSorted(() => Math.random() - 0.5);
       const selectedIndices = shuffled.slice(0, Math.min(count, validIndices.length));
 
       for (const index of selectedIndices) {

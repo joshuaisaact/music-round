@@ -214,7 +214,7 @@ ${window.location.origin}${battleRoyaleRoute}`;
     );
   }
 
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const sortedPlayers = players.toSorted((a, b) => b.score - a.score);
   const topScore = sortedPlayers[0].score;
   const winners = sortedPlayers.filter((p) => p.score === topScore);
   const isHost = currentPlayer.isHost === true;
@@ -528,7 +528,7 @@ ${window.location.origin}${battleRoyaleRoute}`;
                           {answer && answer.hintsUsed && answer.hintsUsed > 0 && (
                             <div className="flex items-center gap-1">
                               {Array.from({ length: answer.hintsUsed }).map((_, i) => (
-                                <img key={i} src="/light-bulb.svg" alt="" width="12" height="12" aria-hidden="true" />
+                                <img key={`hint-${i}`} src="/light-bulb.svg" alt="" width="12" height="12" aria-hidden="true" />
                               ))}
                               <span className="pixel-text text-yellow-700 text-xs">
                                 {answer.hintsUsed} {answer.hintsUsed === 1 ? 'HINT' : 'HINTS'}

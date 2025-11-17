@@ -63,7 +63,7 @@ export const getLeaderboard = query({
 
     // Sort by rounds completed (desc), then score (desc), then completion time (asc)
     return scores
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         if (b.roundsCompleted !== a.roundsCompleted) {
           return b.roundsCompleted - a.roundsCompleted;
         }
@@ -115,7 +115,7 @@ export const getPlayerRank = query({
       .collect();
 
     // Sort by rounds completed (desc), then score (desc), then completion time (asc)
-    const sorted = allScores.sort((a, b) => {
+    const sorted = allScores.toSorted((a, b) => {
       if (b.roundsCompleted !== a.roundsCompleted) {
         return b.roundsCompleted - a.roundsCompleted;
       }

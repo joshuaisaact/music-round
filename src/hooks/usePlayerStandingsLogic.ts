@@ -30,7 +30,7 @@ export function usePlayerStandingsLogic({
   roundAnswers,
   currentPlayerId,
 }: UsePlayerStandingsLogicProps) {
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const sortedPlayers = players.toSorted((a, b) => b.score - a.score);
   const [shakingPlayers, setShakingPlayers] = useState<Set<Id<"players">>>(new Set());
   const previousAnswers = usePrevious(roundAnswers);
 

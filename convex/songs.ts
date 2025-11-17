@@ -46,7 +46,7 @@ export const getRandomSongs = query({
       song,
       sort: Math.sin(randomSeed + index) * 10000
     }))
-    .sort((a, b) => a.sort - b.sort)
+    .toSorted((a, b) => a.sort - b.sort)
     .map(({ song }) => song);
 
     return shuffled.slice(0, count);
@@ -349,7 +349,7 @@ export const getAvailablePlaylists = query({
     }));
 
     // Sort by order
-    return playlists.sort((a, b) => a.order - b.order);
+    return playlists.toSorted((a, b) => a.order - b.order);
   },
 });
 

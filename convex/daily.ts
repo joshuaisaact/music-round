@@ -96,7 +96,7 @@ export const getDailyLeaderboard = query({
 
     // Sort by score descending, then by completedAt ascending (earlier is better for ties)
     const sortedScores = scores
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         if (b.score !== a.score) {
           return b.score - a.score;
         }
@@ -158,7 +158,7 @@ export const getPlayerRank = query({
       .collect();
 
     // Sort by score descending, then by completedAt ascending
-    const sortedScores = allScores.sort((a, b) => {
+    const sortedScores = allScores.toSorted((a, b) => {
       if (b.score !== a.score) {
         return b.score - a.score;
       }
