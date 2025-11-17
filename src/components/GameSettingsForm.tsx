@@ -28,15 +28,6 @@ interface GameSettingsFormProps {
 
 type Tab = "playlist" | "settings" | "confirm";
 
-interface Playlist {
-  tag: string;
-  name: string;
-  subtitle?: string;
-  section?: string;
-  songCount: number;
-  previewSong: { artist: string; title: string };
-}
-
 export function GameSettingsForm({
   mode,
   initialPlaylist,
