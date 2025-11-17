@@ -2,6 +2,33 @@ import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { normalize } from "./utils";
 
+function getRandomLetters(
+  text: string,
+  count: number,
+  existingLetters: { index: number; letter: string }[] = []
+) {
+  const letters: { index: number; letter: string }[] = [...existingLetters];
+  const validIndices: number[] = [];
+  const alreadyRevealedIndices = new Set(existingLetters.map(l => l.index));
+
+  // Find all valid letter indices (not spaces or punctuation) that aren't already revealed
+  for (let i = 0; i < text.length; i++) {
+    if (text[i].match(/[a-zA-Z0-9]/) && !alreadyRevealedIndices.has(i)) {
+      validIndices.push(i);
+    }
+  }
+
+  // Pick random indices
+  const shuffled = validIndices.toSorted(() => Math.random() - 0.5);
+  const selectedIndices = shuffled.slice(0, Math.min(count, validIndices.length));
+
+  for (const index of selectedIndices) {
+    letters.push({ index, letter: text[index] });
+  }
+
+  return letters;
+}
+
 function calculateScore(
   submittedArtist: string,
   correctArtist: string,
@@ -101,33 +128,6 @@ export const useHint = mutation({
     // Normalize to match what players need to type
     const correctArtist = normalize(round.songData.correctArtist);
     const correctTitle = normalize(round.songData.correctTitle);
-
-    const getRandomLetters = (
-      text: string,
-      count: number,
-      existingLetters: { index: number; letter: string }[] = []
-    ) => {
-      const letters: { index: number; letter: string }[] = [...existingLetters];
-      const validIndices: number[] = [];
-      const alreadyRevealedIndices = new Set(existingLetters.map(l => l.index));
-
-      // Find all valid letter indices (not spaces or punctuation) that aren't already revealed
-      for (let i = 0; i < text.length; i++) {
-        if (text[i].match(/[a-zA-Z0-9]/) && !alreadyRevealedIndices.has(i)) {
-          validIndices.push(i);
-        }
-      }
-
-      // Pick random indices
-      const shuffled = validIndices.toSorted(() => Math.random() - 0.5);
-      const selectedIndices = shuffled.slice(0, Math.min(count, validIndices.length));
-
-      for (const index of selectedIndices) {
-        letters.push({ index, letter: text[index] });
-      }
-
-      return letters;
-    };
 
     // Get existing revealed letters or start fresh
     const existingArtistLetters = answer?.revealedArtistLetters || [];

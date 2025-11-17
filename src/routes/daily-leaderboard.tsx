@@ -9,6 +9,25 @@ export const Route = createFileRoute("/daily-leaderboard")({
   component: DailyLeaderboard,
 });
 
+function formatDisplayDate(dateString: string) {
+  const [year, month, day] = dateString.split('-');
+  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  };
+  return date.toLocaleDateString('en-US', options);
+}
+
+function getTodayDate() {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(now.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function DailyLeaderboard() {
   const navigate = useNavigate();
   const sessionId = getSessionId();
@@ -34,25 +53,6 @@ function DailyLeaderboard() {
   const playerStats = useQuery(api.daily.getPlayerStats, {
     playerId: sessionId,
   });
-
-  const formatDisplayDate = (dateString: string) => {
-    const [year, month, day] = dateString.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    };
-    return date.toLocaleDateString('en-US', options);
-  };
-
-  const getTodayDate = () => {
-    const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(now.getUTCDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
 
   const changeDateBy = (days: number) => {
     const [year, month, day] = selectedDate.split('-');

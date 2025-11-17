@@ -11,6 +11,16 @@ export const Route = createFileRoute("/daily")({
   component: DailyChallenge,
 });
 
+function formatDate() {
+  const now = new Date();
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  };
+  return now.toLocaleDateString(undefined, options);
+}
+
 function DailyChallenge() {
   const navigate = useNavigate();
   const sessionId = getSessionId();
@@ -40,16 +50,6 @@ function DailyChallenge() {
   const createGame = useMutation(api.games.create);
   const joinGame = useMutation(api.players.join);
   const startGame = useAction(api.games.start);
-
-  const formatDate = () => {
-    const now = new Date();
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    };
-    return now.toLocaleDateString(undefined, options);
-  };
 
   const handleStartChallenge = async () => {
     const name = playerName.trim();
