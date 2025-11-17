@@ -3,7 +3,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { useState, useEffect, useRef } from "react";
-import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, PlaylistCard, BouncingMusicIcons, OnboardingModal } from "@/components";
+import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, PlaylistCard, BouncingMusicIcons, OnboardingModal, LoadingState, ErrorState } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/lobby/$code")({
@@ -181,46 +181,26 @@ function Lobby() {
   };
 
   if (game === undefined) {
-    return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center">
-        <p className="pixel-text text-white text-xl">LOADING...</p>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (game === null) {
     return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="pixel-text text-white text-xl mb-8">GAME NOT FOUND</p>
-          <PixelButton
-            onClick={() => navigate({ to: "/" })}
-          >
-            BACK TO HOME
-          </PixelButton>
-        </div>
-      </div>
+      <ErrorState
+        title="GAME NOT FOUND"
+        onButtonClick={() => navigate({ to: "/" })}
+      />
     );
   }
 
   // Block new players from joining in-progress or finished games
   if ((game.status === "playing" || game.status === "finished") && !currentPlayer) {
     return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="pixel-text text-white text-xl mb-8">
-            GAME {game.status === "playing" ? "IN PROGRESS" : "FINISHED"}
-          </p>
-          <p className="pixel-text text-white text-sm mb-8 opacity-75">
-            This game has already started
-          </p>
-          <PixelButton
-            onClick={() => navigate({ to: "/" })}
-          >
-            BACK TO HOME
-          </PixelButton>
-        </div>
-      </div>
+      <ErrorState
+        title={`GAME ${game.status === "playing" ? "IN PROGRESS" : "FINISHED"}`}
+        message="This game has already started"
+        onButtonClick={() => navigate({ to: "/" })}
+      />
     );
   }
 

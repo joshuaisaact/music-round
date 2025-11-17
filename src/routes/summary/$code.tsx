@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
-import { PixelButton, PlayerStandings, SoundToggle } from "@/components";
+import { PixelButton, PlayerStandings, SoundToggle, LoadingState, ErrorState } from "@/components";
 import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/summary/$code")({
@@ -206,26 +206,17 @@ ${window.location.origin}${battleRoyaleRoute}`;
     });
   };
 
-  // Loading
   if (game === undefined || !currentPlayer || !players) {
-    return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center">
-        <p className="pixel-text text-white text-xl">LOADING...</p>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   // Game not found or wrong status
   if (game === null || game.status !== "finished") {
     return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="pixel-text text-white text-xl mb-8">GAME NOT FOUND</p>
-          <PixelButton onClick={() => navigate({ to: "/" })}>
-            BACK TO HOME
-          </PixelButton>
-        </div>
-      </div>
+      <ErrorState
+        title="GAME NOT FOUND"
+        onButtonClick={() => navigate({ to: "/" })}
+      />
     );
   }
 

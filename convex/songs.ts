@@ -72,7 +72,6 @@ export const seedFromPlaylist = internalAction({
   },
 });
 
-// Import playlist with tags (appends, doesn't replace)
 export const importPlaylistWithTags = internalAction({
   args: {
     playlistId: v.string(),
@@ -152,7 +151,6 @@ export const replaceSongsWithTags = internalMutation({
   },
 });
 
-// Helper action to manually add a song - searches Spotify and adds to DB
 export const addSong = action({
   args: {
     artist: v.string(),
@@ -211,7 +209,6 @@ export const addSong = action({
   },
 });
 
-// Internal mutation to insert a single song
 export const insertSong = internalMutation({
   args: {
     artist: v.string(),
@@ -227,7 +224,6 @@ export const insertSong = internalMutation({
   },
 });
 
-// Helper query to get all songs
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
@@ -235,7 +231,6 @@ export const getAll = query({
   },
 });
 
-// Get available playlists with metadata
 export const getAvailablePlaylists = query({
   args: {},
   handler: async (ctx) => {
@@ -404,7 +399,6 @@ export const tagUntaggedSongs = internalMutation({
   },
 });
 
-// Append songs with tags (handles duplicates by spotifyId)
 export const appendSongsWithTags = internalMutation({
   args: {
     songs: v.array(
@@ -460,7 +454,6 @@ export const appendSongsWithTags = internalMutation({
   },
 });
 
-// Remove a tag from all songs (and delete songs that only have this tag)
 export const removeTag = internalMutation({
   args: {
     tag: v.string(),

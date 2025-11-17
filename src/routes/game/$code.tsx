@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useEffect, useState, useRef } from "react";
 import { getSessionId } from "../../lib/session";
-import { PixelButton, PixelInput, PixelAudioPlayer, PlayerStandings, SoundToggle, HintDisplay } from "@/components";
+import { PixelButton, PixelInput, PixelAudioPlayer, PlayerStandings, SoundToggle, HintDisplay, LoadingState, ErrorState } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/game/$code")({
@@ -269,35 +269,22 @@ function Game() {
     navigate({ to: "/" });
   };
 
-  // Loading
   if (game === undefined || !currentPlayer) {
-    return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center">
-        <p className="pixel-text text-white text-xl">LOADING...</p>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   // Game not found or wrong status
   if (game === null || game.status !== "playing") {
     return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="pixel-text text-white text-xl mb-8">GAME NOT ACTIVE</p>
-          <PixelButton onClick={() => navigate({ to: "/" })}>
-            BACK TO HOME
-          </PixelButton>
-        </div>
-      </div>
+      <ErrorState
+        title="GAME NOT ACTIVE"
+        onButtonClick={() => navigate({ to: "/" })}
+      />
     );
   }
 
   if (!currentRound) {
-    return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center">
-        <p className="pixel-text text-white text-xl">LOADING ROUND...</p>
-      </div>
-    );
+    return <LoadingState message="LOADING ROUND..." />;
   }
 
   const isHost = currentPlayer.isHost === true;
@@ -403,7 +390,6 @@ function Game() {
   const isBattleRoyale = game.settings.gameMode === "battle_royale";
   const isEliminated = currentPlayer.eliminated === true;
 
-  // Format today's date for display
   const formatDate = () => {
     const now = new Date();
     const options: Intl.DateTimeFormatOptions = {
