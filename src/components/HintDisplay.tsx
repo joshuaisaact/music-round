@@ -17,16 +17,16 @@ export function HintDisplay({ text, revealedLetters }: HintDisplayProps) {
 
         if (revealedLetter) {
           // Show the revealed letter
-          return <span key={index} className="inline-block mx-0.5">{char.toUpperCase()}</span>;
+          return <span key={`char-${index}`} className="inline-block mx-0.5">{char.toUpperCase()}</span>;
         } else if (char === " ") {
           // Show word spaces as a larger gap
-          return <span key={index} className="inline-block w-4"></span>;
+          return <span key={`char-${index}`} className="inline-block w-4"></span>;
         } else if (char.match(/[a-zA-Z0-9]/)) {
           // Hide letters/numbers with underscore
-          return <span key={index} className="inline-block mx-0.5">_</span>;
+          return <span key={`char-${index}`} className="inline-block mx-0.5">_</span>;
         } else {
           // Show other punctuation as-is
-          return <span key={index} className="inline-block mx-0.5">{char}</span>;
+          return <span key={`char-${index}`} className="inline-block mx-0.5">{char}</span>;
         }
       })}
     </p>
