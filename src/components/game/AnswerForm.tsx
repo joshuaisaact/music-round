@@ -1,26 +1,25 @@
 import { PixelButton, PixelInput, HintDisplay } from "@/components";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
+export interface AnswerInput {
+  value: string;
+  setValue: (value: string) => void;
+  locked: boolean;
+  shake: boolean;
+  revealedLetters: { index: number; letter: string }[];
+  inputRef: React.RefObject<HTMLInputElement>;
+}
+
 interface AnswerFormProps {
   currentRound: Doc<"rounds">;
   currentPlayer: Doc<"players">;
   roundAnswers: Doc<"answers">[] | undefined;
   phase: string;
-  artistGuess: string;
-  titleGuess: string;
-  setArtistGuess: (value: string) => void;
-  setTitleGuess: (value: string) => void;
-  artistLocked: boolean;
-  titleLocked: boolean;
+  artistAnswer: AnswerInput;
+  titleAnswer: AnswerInput;
   isFullyLocked: boolean;
-  shakeArtist: boolean;
-  shakeTitle: boolean;
-  revealedArtistLetters: { index: number; letter: string }[];
-  revealedTitleLetters: { index: number; letter: string }[];
   hintsRemaining: number | null;
   error: string;
-  artistInputRef: React.RefObject<HTMLInputElement>;
-  titleInputRef: React.RefObject<HTMLInputElement>;
   onSubmit: () => void;
   onUseHint: () => void;
 }
@@ -30,21 +29,11 @@ export function AnswerForm({
   currentPlayer,
   roundAnswers,
   phase,
-  artistGuess,
-  titleGuess,
-  setArtistGuess,
-  setTitleGuess,
-  artistLocked,
-  titleLocked,
+  artistAnswer,
+  titleAnswer,
   isFullyLocked,
-  shakeArtist,
-  shakeTitle,
-  revealedArtistLetters,
-  revealedTitleLetters,
   hintsRemaining,
   error,
-  artistInputRef,
-  titleInputRef,
   onSubmit,
   onUseHint,
 }: AnswerFormProps) {
@@ -64,71 +53,71 @@ export function AnswerForm({
       </style>
 
       <div className="space-y-6">
-        <div className={shakeArtist ? "shake" : ""}>
-          {revealedArtistLetters.length > 0 && !artistLocked && (
+        <div className={artistAnswer.shake ? "shake" : ""}>
+          {artistAnswer.revealedLetters.length > 0 && !artistAnswer.locked && (
             <div className="mb-2 bg-yellow-50 border-2 border-yellow-600 p-2">
               <HintDisplay
                 text={currentRound.songData.correctArtist}
-                revealedLetters={revealedArtistLetters}
+                revealedLetters={artistAnswer.revealedLetters}
               />
             </div>
           )}
           <PixelInput
-            ref={artistInputRef}
+            ref={artistAnswer.inputRef}
             type="text"
             label="ARTIST NAME"
             placeholder="WHO IS THE ARTIST?"
-            value={artistGuess}
-            onChange={(e) => !artistLocked && setArtistGuess(e.target.value)}
+            value={artistAnswer.value}
+            onChange={(e) => !artistAnswer.locked && artistAnswer.setValue(e.target.value)}
             onEnterPress={!isFullyLocked ? onSubmit : undefined}
             className={`w-full ${
-              artistLocked
+              artistAnswer.locked
                 ? "!border-green-600 !border-4"
-                : shakeArtist
+                : artistAnswer.shake
                   ? "!border-red-600 !border-4"
                   : ""
             }`}
-            disabled={artistLocked}
+            disabled={artistAnswer.locked}
             aria-label="Artist name"
-            aria-describedby={artistLocked ? "artist-correct" : undefined}
+            aria-describedby={artistAnswer.locked ? "artist-correct" : undefined}
             autoFocus
           />
-          {artistLocked && (
+          {artistAnswer.locked && (
             <p id="artist-correct" className="pixel-text text-green-700 text-xs mt-1 font-bold" role="status">
               CORRECT!
             </p>
           )}
         </div>
 
-        <div className={shakeTitle ? "shake" : ""}>
-          {revealedTitleLetters.length > 0 && !titleLocked && (
+        <div className={titleAnswer.shake ? "shake" : ""}>
+          {titleAnswer.revealedLetters.length > 0 && !titleAnswer.locked && (
             <div className="mb-2 bg-yellow-50 border-2 border-yellow-600 p-2">
               <HintDisplay
                 text={currentRound.songData.correctTitle}
-                revealedLetters={revealedTitleLetters}
+                revealedLetters={titleAnswer.revealedLetters}
               />
             </div>
           )}
           <PixelInput
-            ref={titleInputRef}
+            ref={titleAnswer.inputRef}
             type="text"
             label="SONG TITLE"
             placeholder="WHAT IS THE SONG?"
-            value={titleGuess}
-            onChange={(e) => !titleLocked && setTitleGuess(e.target.value)}
+            value={titleAnswer.value}
+            onChange={(e) => !titleAnswer.locked && titleAnswer.setValue(e.target.value)}
             onEnterPress={!isFullyLocked ? onSubmit : undefined}
             className={`w-full ${
-              titleLocked
+              titleAnswer.locked
                 ? "!border-green-600 !border-4"
-                : shakeTitle
+                : titleAnswer.shake
                   ? "!border-red-600 !border-4"
                   : ""
             }`}
-            disabled={titleLocked}
+            disabled={titleAnswer.locked}
             aria-label="Song title"
-            aria-describedby={titleLocked ? "title-correct" : error ? "answer-error" : undefined}
+            aria-describedby={titleAnswer.locked ? "title-correct" : error ? "answer-error" : undefined}
           />
-          {titleLocked && (
+          {titleAnswer.locked && (
             <p id="title-correct" className="pixel-text text-green-700 text-xs mt-1 font-bold" role="status">
               CORRECT!
             </p>
@@ -141,9 +130,9 @@ export function AnswerForm({
               onClick={onSubmit}
               className="w-full"
               disabled={phase !== "active"}
-              aria-label={artistLocked || titleLocked ? "Try again with another guess" : "Submit your answer"}
+              aria-label={artistAnswer.locked || titleAnswer.locked ? "Try again with another guess" : "Submit your answer"}
             >
-              {artistLocked || titleLocked ? "TRY AGAIN" : "SUBMIT ANSWER"}
+              {artistAnswer.locked || titleAnswer.locked ? "TRY AGAIN" : "SUBMIT ANSWER"}
             </PixelButton>
             <PixelButton
               onClick={onUseHint}

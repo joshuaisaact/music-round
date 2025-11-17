@@ -357,21 +357,25 @@ function Game() {
               currentPlayer={currentPlayer}
               roundAnswers={roundAnswers}
               phase={phase}
-              artistGuess={artistGuess}
-              titleGuess={titleGuess}
-              setArtistGuess={setArtistGuess}
-              setTitleGuess={setTitleGuess}
-              artistLocked={artistLocked}
-              titleLocked={titleLocked}
+              artistAnswer={{
+                value: artistGuess,
+                setValue: setArtistGuess,
+                locked: artistLocked,
+                shake: shakeArtist,
+                revealedLetters: revealedArtistLetters,
+                inputRef: artistInputRef,
+              }}
+              titleAnswer={{
+                value: titleGuess,
+                setValue: setTitleGuess,
+                locked: titleLocked,
+                shake: shakeTitle,
+                revealedLetters: revealedTitleLetters,
+                inputRef: titleInputRef,
+              }}
               isFullyLocked={isFullyLocked}
-              shakeArtist={shakeArtist}
-              shakeTitle={shakeTitle}
-              revealedArtistLetters={revealedArtistLetters}
-              revealedTitleLetters={revealedTitleLetters}
               hintsRemaining={hintsRemaining}
               error={error}
-              artistInputRef={artistInputRef}
-              titleInputRef={titleInputRef}
               onSubmit={handleSubmit}
               onUseHint={handleUseHint}
             />
@@ -406,7 +410,7 @@ function Game() {
                 variant="compact"
                 roundAnswers={roundAnswers || []}
                 showRankMedals={!game.settings.isSinglePlayer}
-                showLives={game.settings.gameMode === "battle_royale" && !game.settings.isSinglePlayer}
+                showLives={game.settings.gameMode === GameMode.BATTLE_ROYALE && !game.settings.isSinglePlayer}
               />
             </div>
           </aside>
