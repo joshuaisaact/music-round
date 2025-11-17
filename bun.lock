@@ -19,7 +19,6 @@
         "convex": "^1.27.3",
         "h3": "^2.0.1-rc.5",
         "lucide-react": "^0.544.0",
-        "raster-react": "^0.1.2",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
         "tailwindcss": "^4.0.6",
@@ -1729,8 +1728,6 @@
     "randombytes": ["randombytes@2.1.0", "", { "dependencies": { "safe-buffer": "^5.1.0" } }, "sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ=="],
 
     "range-parser": ["range-parser@1.2.1", "", {}, "sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg=="],
-
-    "raster-react": ["raster-react@0.1.2", "", { "peerDependencies": { "react": ">=16.8.0" } }, "sha512-ohRNfPB+aXKhVqZgESVUUxUzSyxf/uOS3HkyxosOlh/7e64ybn+SOOjAtpZQzz7NddRrMoMrwnL3EROvK07Lig=="],
 
     "rc9": ["rc9@2.1.2", "", { "dependencies": { "defu": "^6.1.4", "destr": "^2.0.3" } }, "sha512-btXCnMmRIBINM2LDZoEmOogIZU7Qe7zn4BpomSKZ/ykbLObuBdvG+mFq11DL6fjH1DRwHhrlgtYWG96bJiC7Cg=="],
 

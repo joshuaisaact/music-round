@@ -12,9 +12,10 @@ import { useAudioPreview } from "@/hooks/useAudioPreview";
 interface BattleRoyaleSetupProps {
   mode: "solo" | "multiplayer";
   initialPlaylist?: string;
+  availablePlaylists?: Array<{ tag: string; name: string; songCount: number; section?: string }> | null;
 }
 
-export function BattleRoyaleSetup({ mode, initialPlaylist }: BattleRoyaleSetupProps) {
+export function BattleRoyaleSetup({ mode, initialPlaylist, availablePlaylists: playlistsProp }: BattleRoyaleSetupProps) {
   const navigate = useNavigate();
   const sessionId = getSessionId();
   const [playerName, setPlayerName] = useState("");
@@ -24,7 +25,9 @@ export function BattleRoyaleSetup({ mode, initialPlaylist }: BattleRoyaleSetupPr
   const [showOnboarding, setShowOnboarding] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const availablePlaylists = useQuery(api.songs.getAvailablePlaylists);
+  // Use SSR'd playlists if provided, otherwise fallback to client-side query
+  const playlistsQuery = useQuery(api.songs.getAvailablePlaylists, playlistsProp ? "skip" : undefined);
+  const availablePlaylists = playlistsProp ?? playlistsQuery;
   const searchTrack = useAction(api.spotify.searchTrack);
   const createGame = useMutation(api.games.create);
   const joinGame = useMutation(api.players.join);

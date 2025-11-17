@@ -6,9 +6,71 @@ import { PixelButton, PlayerStandings, SoundToggle, LoadingState, ErrorState } f
 import { useState, useEffect } from "react";
 import { generateSongEmojis } from "@/lib/shareUtils";
 import { GameMode } from "@/types/gameMode";
+import { ConvexHttpClient } from "convex/browser";
+
+const CONVEX_URL = import.meta.env.VITE_CONVEX_URL;
 
 export const Route = createFileRoute("/summary/$code")({
   component: Summary,
+  loader: async ({ params }) => {
+    const code = params.code;
+    if (!code) {
+      return { game: null, players: [], rounds: [], availablePlaylists: null, soloPlayerAnswers: null, isSolo: false };
+    }
+
+    try {
+      // Call Convex directly from the loader (loaders run on the server in SSR)
+      const convex = new ConvexHttpClient(CONVEX_URL);
+
+      // Fetch game first
+      const game = await convex.query(api.games.getByCode, { code });
+
+      if (!game) {
+        return {
+          game: null,
+          players: [],
+          rounds: [],
+          availablePlaylists: null,
+          soloPlayerAnswers: null,
+          isSolo: false
+        };
+      }
+
+      // Fetch players, rounds, and playlists in parallel
+      const [players, rounds, availablePlaylists] = await Promise.all([
+        convex.query(api.players.list, { gameId: game._id }),
+        convex.query(api.rounds.list, { gameId: game._id }),
+        convex.query(api.songs.getAvailablePlaylists),
+      ]);
+
+      // For solo games, fetch the player's answers (no session needed!)
+      let soloPlayerAnswers = null;
+      if (game.settings.isSinglePlayer && players.length === 1) {
+        soloPlayerAnswers = await convex.query(api.answers.listForPlayer, {
+          playerId: players[0]._id,
+        });
+      }
+
+      return {
+        game,
+        players,
+        rounds,
+        availablePlaylists,
+        soloPlayerAnswers,
+        isSolo: game.settings.isSinglePlayer,
+      };
+    } catch (error) {
+      console.error('Error fetching game summary in loader:', error);
+      return {
+        game: null,
+        players: [],
+        rounds: [],
+        availablePlaylists: null,
+        soloPlayerAnswers: null,
+        isSolo: false
+      };
+    }
+  },
 });
 
 function Summary() {
@@ -17,24 +79,36 @@ function Summary() {
   const sessionId = getSessionId();
   const [isCreatingNewGame, setIsCreatingNewGame] = useState(false);
 
-  const game = useQuery(api.games.getByCode, { code });
-  const currentPlayer = useQuery(
+  // Get SSR'd data from loader
+  const loaderData = Route.useLoaderData();
+
+  // For solo games: Use SSR data exclusively (no client-side fallback)
+  // For multiplayer: Fallback to client-side queries if needed
+  const isSoloGame = loaderData?.isSolo ?? false;
+
+  // Always use SSR data for game, players, rounds, playlists
+  const game = loaderData?.game ?? null;
+  const players = Array.isArray(loaderData?.players) ? loaderData.players : [];
+  const rounds = Array.isArray(loaderData?.rounds) ? loaderData.rounds : [];
+  const availablePlaylists = loaderData?.availablePlaylists ?? null;
+
+  // Solo games: Everything comes from SSR (no client queries needed!)
+  const soloPlayer = isSoloGame && players.length === 1 ? players[0] : null;
+  const soloPlayerAnswers = loaderData?.soloPlayerAnswers ?? null;
+
+  // Multiplayer: Fetch current player and their answers client-side (needs session)
+  const currentPlayerQuery = useQuery(
     api.players.getBySession,
-    game ? { gameId: game._id, sessionId } : "skip",
+    (!isSoloGame && game) ? { gameId: game._id, sessionId } : "skip",
   );
-  const players = useQuery(
-    api.players.list,
-    game ? { gameId: game._id } : "skip",
-  );
-  const rounds = useQuery(
-    api.rounds.list,
-    game ? { gameId: game._id } : "skip",
-  );
-  const playerAnswers = useQuery(
+  const playerAnswersQuery = useQuery(
     api.answers.listForPlayer,
-    currentPlayer ? { playerId: currentPlayer._id } : "skip",
+    (!isSoloGame && currentPlayerQuery) ? { playerId: currentPlayerQuery._id } : "skip",
   );
-  const availablePlaylists = useQuery(api.songs.getAvailablePlaylists);
+
+  // Use the appropriate data source based on game type
+  const currentPlayer = isSoloGame ? soloPlayer : currentPlayerQuery;
+  const playerAnswers = isSoloGame ? soloPlayerAnswers : playerAnswersQuery;
 
   // Daily mode specific queries
   const isDailyMode = game?.settings.gameMode === GameMode.DAILY;
@@ -200,15 +274,53 @@ ${window.location.origin}${battleRoyaleRoute}`;
     });
   };
 
-  if (game === undefined || !currentPlayer || !players) {
-    return <LoadingState />;
+  // For solo games: data is always synchronous from SSR (null = error, not loading)
+  // For multiplayer: undefined = still loading, null = error
+  if (isSoloGame) {
+    // Solo game validation - no loading states, just errors
+    if (!game) {
+      return (
+        <ErrorState
+          title="GAME NOT FOUND"
+          onButtonClick={() => navigate({ to: "/" })}
+        />
+      );
+    }
+    if (!currentPlayer || players.length === 0) {
+      return (
+        <ErrorState
+          title="NO PLAYER DATA"
+          onButtonClick={() => navigate({ to: "/" })}
+        />
+      );
+    }
+  } else {
+    // Multiplayer: wait for client-side queries
+    if (game === undefined || currentPlayer === undefined || playerAnswers === undefined) {
+      return <LoadingState />;
+    }
+
+    // Game not found
+    if (game === null) {
+      return (
+        <ErrorState
+          title="GAME NOT FOUND"
+          onButtonClick={() => navigate({ to: "/" })}
+        />
+      );
+    }
+
+    // No player data
+    if (!currentPlayer || players.length === 0) {
+      return <LoadingState />;
+    }
   }
 
-  // Game not found or wrong status
-  if (game === null || game.status !== "finished") {
+  // Game wrong status
+  if (game.status !== "finished") {
     return (
       <ErrorState
-        title="GAME NOT FOUND"
+        title="GAME NOT FINISHED"
         onButtonClick={() => navigate({ to: "/" })}
       />
     );

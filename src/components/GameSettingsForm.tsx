@@ -24,6 +24,7 @@ interface GameSettingsFormProps {
   }) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
+  availablePlaylists?: Array<{ tag: string; name: string; songCount: number; section?: string }> | null;
 }
 
 type Tab = "playlist" | "settings" | "confirm";
@@ -39,9 +40,13 @@ export function GameSettingsForm({
   onComplete,
   onCancel,
   isSubmitting = false,
+  availablePlaylists: playlistsProp,
 }: GameSettingsFormProps) {
   const searchTrack = useAction(api.spotify.searchTrack);
-  const availablePlaylists = useQuery(api.songs.getAvailablePlaylists);
+
+  // Use SSR'd playlists if provided, otherwise fallback to client-side query
+  const playlistsQuery = useQuery(api.songs.getAvailablePlaylists, playlistsProp ? "skip" : undefined);
+  const availablePlaylists = playlistsProp ?? playlistsQuery;
 
   const [currentTab, setCurrentTab] = useState<Tab>("playlist");
   const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(initialPlaylist || null);
