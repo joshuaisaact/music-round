@@ -67,47 +67,51 @@ export const transitionToEnded = internalMutation({
         .collect();
 
       // Check each player's answer and handle lives
-      for (const player of allPlayers) {
-        // Skip if already eliminated
-        if (player.eliminated) continue;
+      const playerUpdates = allPlayers
+        .filter(player => !player.eliminated)
+        .map((player) => {
+          const answer = answers.find((a) => a.playerId === player._id);
 
-        const answer = answers.find((a) => a.playerId === player._id);
+          // Determine correctness
+          const isFullyCorrect = answer?.artistCorrect && answer?.titleCorrect;
+          const isBothWrong = answer && !answer.artistCorrect && !answer.titleCorrect;
 
-        // Determine correctness
-        const isFullyCorrect = answer?.artistCorrect && answer?.titleCorrect;
-        const isBothWrong = answer && !answer.artistCorrect && !answer.titleCorrect;
-
-        // Rule 1: Both wrong = eliminated immediately
-        if (isBothWrong) {
-          await ctx.db.patch(player._id, {
-            lives: 0,
-            eliminated: true,
-            eliminatedAtRound: round.roundNumber,
-          });
-          continue;
-        }
-
-        // Rule 2: One wrong or no answer = lose 1 life
-        if (!isFullyCorrect) {
-          const currentLives = player.lives ?? 3;
-          const newLives = currentLives - 1;
-
-          if (newLives <= 0) {
-            // Player is eliminated
-            await ctx.db.patch(player._id, {
+          // Rule 1: Both wrong = eliminated immediately
+          if (isBothWrong) {
+            return ctx.db.patch(player._id, {
               lives: 0,
               eliminated: true,
               eliminatedAtRound: round.roundNumber,
             });
-          } else {
-            // Player loses a life but continues
-            await ctx.db.patch(player._id, {
-              lives: newLives,
-              eliminated: false, // Explicitly ensure not eliminated
-            });
           }
-        }
-      }
+
+          // Rule 2: One wrong or no answer = lose 1 life
+          if (!isFullyCorrect) {
+            const currentLives = player.lives ?? 3;
+            const newLives = currentLives - 1;
+
+            if (newLives <= 0) {
+              // Player is eliminated
+              return ctx.db.patch(player._id, {
+                lives: 0,
+                eliminated: true,
+                eliminatedAtRound: round.roundNumber,
+              });
+            } else {
+              // Player loses a life but continues
+              return ctx.db.patch(player._id, {
+                lives: newLives,
+                eliminated: false, // Explicitly ensure not eliminated
+              });
+            }
+          }
+
+          // Fully correct - no update needed
+          return null;
+        })
+        .filter((update): update is Promise<any> => update !== null);
+
+      await Promise.all(playerUpdates);
 
       // Re-fetch players to get updated elimination status
       const updatedPlayers = await ctx.db

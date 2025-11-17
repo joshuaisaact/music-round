@@ -119,6 +119,8 @@ export const getPlaylistTracks = action({
     const allTracks: { artist: string; title: string; spotifyId: string }[] = [];
     let nextUrl: string | null = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50&market=US`;
 
+    // Pagination requires sequential fetching - each response contains the next URL
+    /* eslint-disable no-await-in-loop */
     while (nextUrl) {
       const response: Response = await fetch(nextUrl, {
         headers: {
@@ -144,6 +146,7 @@ export const getPlaylistTracks = action({
       allTracks.push(...tracks);
       nextUrl = data.next;
     }
+    /* eslint-enable no-await-in-loop */
 
     return allTracks;
   },

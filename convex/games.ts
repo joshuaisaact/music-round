@@ -80,6 +80,8 @@ export const create = mutation({
     let attempts = 0;
     const maxAttempts = 10;
 
+    // Retry loop requires sequential checking - must verify code doesn't exist before using it
+    /* eslint-disable no-await-in-loop */
     while (attempts < maxAttempts) {
       const existing = await ctx.db
         .query("games")
@@ -91,6 +93,7 @@ export const create = mutation({
       code = generateCode();
       attempts++;
     }
+    /* eslint-enable no-await-in-loop */
 
     if (attempts === maxAttempts) {
       throw new Error("Failed to generate unique code. Please try again.");
