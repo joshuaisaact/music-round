@@ -6,20 +6,11 @@ import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, O
 import { playSound } from "@/lib/audio";
 import { getSessionId } from "@/lib/session";
 import { GameMode } from "@/types/gameMode";
+import { formatDate } from "@/lib/dateUtils";
 
 export const Route = createFileRoute("/daily")({
   component: DailyChallenge,
 });
-
-function formatDate() {
-  const now = new Date();
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  };
-  return now.toLocaleDateString(undefined, options);
-}
 
 function DailyChallenge() {
   const navigate = useNavigate();

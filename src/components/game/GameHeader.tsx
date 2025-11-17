@@ -1,5 +1,6 @@
 import type { Doc } from "../../../convex/_generated/dataModel";
 import type { PointsDisplay } from "@/lib/pointsCalculator";
+import { formatDate } from "@/lib/dateUtils";
 
 interface GameHeaderProps {
   game: Doc<"games">;
@@ -26,16 +27,6 @@ export function GameHeader({
   isBattleRoyale,
   isEliminated,
 }: GameHeaderProps) {
-  const formatDate = () => {
-    const now = new Date();
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    };
-    return now.toLocaleDateString('en-US', options);
-  };
-
   return (
     <header className="mb-6 space-y-4">
       {/* Daily Challenge Banner */}
