@@ -5,27 +5,40 @@ import { getSessionId } from "../lib/session";
 import { PixelButton, SoundToggle } from "@/components";
 import { useState } from "react";
 import { formatDisplayDate, getTodayDate } from "@/lib/dateUtils";
+import { getDailyLeaderboardData } from "@/lib/serverFunctions";
 
 export const Route = createFileRoute("/daily-leaderboard")({
   component: DailyLeaderboard,
+  loader: async () => {
+    // Fetch today's leaderboard data on the server
+    const today = getTodayDate();
+    return await getDailyLeaderboardData({ date: today, limit: 100 });
+  },
 });
 
 function DailyLeaderboard() {
   const navigate = useNavigate();
   const sessionId = getSessionId();
+
+  // Get SSR'd data from loader
+  const loaderData = Route.useLoaderData();
+
   const [selectedDate, setSelectedDate] = useState<string>(() => {
-    // Default to today
-    const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(now.getUTCDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    // Default to today (matches the loader data)
+    return getTodayDate();
   });
 
-  const leaderboard = useQuery(api.daily.getDailyLeaderboard, {
+  // Determine if we're viewing today's data (can use SSR'd data)
+  const isViewingToday = selectedDate === getTodayDate();
+
+  // Client-side query for when user changes date
+  const clientLeaderboard = useQuery(api.daily.getDailyLeaderboard, {
     date: selectedDate,
     limit: 100,
   });
+
+  // Use SSR'd data for today, client query for other dates
+  const leaderboard = isViewingToday ? loaderData.leaderboard : clientLeaderboard;
 
   const playerRank = useQuery(api.daily.getPlayerRank, {
     playerId: sessionId,
