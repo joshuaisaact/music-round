@@ -5,14 +5,26 @@ import { getSessionId } from "../lib/session";
 import { PixelButton, SoundToggle } from "@/components";
 import { useState } from "react";
 import { formatDisplayDate, getTodayDate } from "@/lib/dateUtils";
-import { getDailyLeaderboardData } from "@/lib/serverFunctions";
+import { ConvexHttpClient } from "convex/browser";
+
+const CONVEX_URL = import.meta.env.VITE_CONVEX_URL;
 
 export const Route = createFileRoute("/daily-leaderboard")({
   component: DailyLeaderboard,
   loader: async () => {
-    // Fetch today's leaderboard data on the server
+    // Fetch today's leaderboard data on the server (loaders run server-side in SSR)
+    const convex = new ConvexHttpClient(CONVEX_URL);
     const today = getTodayDate();
-    return await getDailyLeaderboardData({ date: today, limit: 100 });
+
+    const leaderboard = await convex.query(api.daily.getDailyLeaderboard, {
+      date: today,
+      limit: 100,
+    });
+
+    return {
+      leaderboard,
+      date: today,
+    };
   },
 });
 
