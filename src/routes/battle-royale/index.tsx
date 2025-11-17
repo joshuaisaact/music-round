@@ -23,7 +23,7 @@ function BattleRoyaleIndex() {
             <div className="space-y-4">
               {/* Solo Mode */}
               <PixelButton
-                onClick={() => navigate({ to: "/battle-royale/solo" })}
+                onClick={() => navigate({ to: "/battle-royale/solo", search: { playlist: undefined } })}
                 className="w-full bg-yellow-400 hover:bg-yellow-300 border-yellow-600"
                 aria-label="Play solo battle royale"
               >
@@ -35,7 +35,7 @@ function BattleRoyaleIndex() {
 
               {/* Multiplayer Mode */}
               <PixelButton
-                onClick={() => navigate({ to: "/battle-royale/multiplayer" })}
+                onClick={() => navigate({ to: "/battle-royale/multiplayer", search: { playlist: undefined } })}
                 className="w-full"
                 aria-label="Play multiplayer battle royale"
               >

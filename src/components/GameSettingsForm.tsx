@@ -131,7 +131,7 @@ export function GameSettingsForm({
       roundCount,
       secondsPerRound,
       hintsPerPlayer,
-      ...(mode === "edit" && { isSinglePlayer: initialIsSinglePlayer }),
+      ...(mode === "edit" && { isSinglePlayer: initialIsSinglePlayer ?? false }),
       ...(mode === "create" && { playerName: playerName.trim() }),
     });
   };

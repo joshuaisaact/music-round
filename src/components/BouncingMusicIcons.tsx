@@ -1,15 +1,17 @@
 import { RasterIcon } from "./RasterIcons";
 
 interface BouncingMusicIconsProps {
-  size?: "small" | "large";
+  size?: "small" | "medium" | "large";
 }
 
 export function BouncingMusicIcons({ size = "small" }: BouncingMusicIconsProps) {
-  const iconSize = size === "large" ? 48 : 24;
+  const iconSize = size === "large" ? 48 : size === "medium" ? 36 : 24;
   const containerClass = size === "large"
     ? "flex justify-center gap-8 my-8"
+    : size === "medium"
+    ? "flex justify-center gap-6 my-6"
     : "inline-flex gap-2";
-  const shadowStyle = size === "large"
+  const shadowStyle = size === "large" || size === "medium"
     ? `
         drop-shadow(3px 3px 0 #0c4a6e)
         drop-shadow(6px 6px 0 #075985)

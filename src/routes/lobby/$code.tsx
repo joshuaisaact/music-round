@@ -159,7 +159,7 @@ function Lobby() {
     playlistTag: string;
     roundCount: number;
     secondsPerRound: number;
-    isSinglePlayer: boolean;
+    isSinglePlayer?: boolean;
     hintsPerPlayer?: number;
   }) => {
     if (!game) return;

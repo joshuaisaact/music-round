@@ -4,7 +4,7 @@ interface LeaveGameModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLeave: () => void;
-  cancelButtonRef: React.RefObject<HTMLButtonElement>;
+  cancelButtonRef: React.RefObject<HTMLButtonElement | null>;
 }
 
 export function LeaveGameModal({

@@ -7,7 +7,7 @@ export interface AnswerInput {
   locked: boolean;
   shake: boolean;
   revealedLetters: { index: number; letter: string }[];
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }
 
 interface AnswerFormProps {
