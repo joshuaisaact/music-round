@@ -59,8 +59,6 @@ export function GameSettingsForm({
   const [secondsPerRound, setSecondsPerRound] = useState(initialSecondsPerRound);
   const [hintsPerPlayer, setHintsPerPlayer] = useState(initialHintsPerPlayer);
   const [error, setError] = useState("");
-  const [previewAudioUrl, setPreviewAudioUrl] = useState<string | null>(null);
-  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [playingPreviewTag, setPlayingPreviewTag] = useState<string | null>(null);
 
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -90,8 +88,6 @@ export function GameSettingsForm({
       audioRef.current = null;
     }
 
-    setIsLoadingPreview(true);
-
     try {
       const result = await searchTrack({
         artist: playlist.previewSong.artist,
@@ -117,8 +113,6 @@ export function GameSettingsForm({
       }
     } catch (error) {
       console.error("Failed to play preview:", error);
-    } finally {
-      setIsLoadingPreview(false);
     }
   };
 

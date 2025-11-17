@@ -3,7 +3,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { useState, useEffect, useRef } from "react";
-import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, PlaylistCard, BouncingMusicIcons, OnboardingModal, LoadingState, ErrorState } from "@/components";
+import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, BouncingMusicIcons, OnboardingModal, LoadingState, ErrorState } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/lobby/$code")({

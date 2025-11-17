@@ -125,7 +125,7 @@ export function BattleRoyaleSetup({ mode, initialPlaylist }: BattleRoyaleSetupPr
       } else {
         navigate({ to: `/lobby/${code}` });
       }
-    } catch (err) {
+    } catch {
       playSound("/sounds/error.ogg");
       setError("Failed to create battle royale game. Please try again.");
       setIsCreating(false);

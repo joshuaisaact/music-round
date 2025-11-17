@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalAction, internalMutation, query, action, mutation } from "./_generated/server";
+import { internalAction, internalMutation, query, action } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 
 export const count = query({

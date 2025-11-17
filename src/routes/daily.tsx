@@ -90,7 +90,7 @@ function DailyChallenge() {
 
       // Navigate directly to game
       navigate({ to: `/game/${code}` });
-    } catch (err) {
+    } catch {
       playSound("/sounds/error.ogg");
       setError("Failed to create daily challenge. Please try again.");
       setIsCreating(false);

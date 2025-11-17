@@ -76,7 +76,6 @@ export const transitionToEnded = internalMutation({
         // Determine correctness
         const isFullyCorrect = answer?.artistCorrect && answer?.titleCorrect;
         const isBothWrong = answer && !answer.artistCorrect && !answer.titleCorrect;
-        const isPartiallyCorrect = answer?.artistCorrect || answer?.titleCorrect;
 
         // Rule 1: Both wrong = eliminated immediately
         if (isBothWrong) {
