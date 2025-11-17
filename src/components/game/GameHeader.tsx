@@ -78,7 +78,7 @@ export function GameHeader({
                   <div className="flex gap-1">
                     {Array.from({ length: 3 }).map((_, i) => (
                       <img
-                        key={i}
+                        key={`heart-${i}`}
                         src="/heart.svg"
                         alt=""
                         width="24"
@@ -177,7 +177,7 @@ export function GameHeader({
                 <div className="flex gap-1">
                   {Array.from({ length: 3 }).map((_, i) => (
                     <img
-                      key={i}
+                      key={`heart-${i}`}
                       src="/heart.svg"
                       alt=""
                       width="24"

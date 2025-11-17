@@ -59,7 +59,7 @@ function HintsDisplay({ hintsUsed, variant }: { hintsUsed: number; variant: "com
   return (
     <span className="flex items-center gap-0.5">
       {Array.from({ length: hintsUsed }).map((_, i) => (
-        <img key={i} src="/light-bulb.svg" alt="" width={iconSize} height={iconSize} aria-hidden="true" />
+        <img key={`hint-${i}`} src="/light-bulb.svg" alt="" width={iconSize} height={iconSize} aria-hidden="true" />
       ))}
     </span>
   );
@@ -72,7 +72,7 @@ function LivesDisplay({ lives, variant }: { lives: number; variant: "compact" | 
     <div className="flex items-center gap-1">
       {Array.from({ length: 3 }).map((_, i) => (
         <img
-          key={i}
+          key={`heart-${i}`}
           src="/heart.svg"
           alt=""
           width={iconSize}
