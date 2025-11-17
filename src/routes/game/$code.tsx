@@ -7,6 +7,7 @@ import { PixelButton, PixelAudioPlayer, PlayerStandings, SoundToggle, LoadingSta
 import { playSound } from "@/lib/audio";
 import { useGameTimer } from "@/hooks/useGameTimer";
 import { getAvailablePoints } from "@/lib/pointsCalculator";
+import { GameMode } from "@/types/gameMode";
 
 export const Route = createFileRoute("/game/$code")({
   component: Game,
@@ -298,8 +299,8 @@ function Game() {
     currentPlayerId: currentPlayer._id,
   });
 
-  const isDailyMode = game.settings.gameMode === "daily";
-  const isBattleRoyale = game.settings.gameMode === "battle_royale";
+  const isDailyMode = game.settings.gameMode === GameMode.DAILY;
+  const isBattleRoyale = game.settings.gameMode === GameMode.BATTLE_ROYALE;
   const isEliminated = currentPlayer.eliminated === true;
 
   return (

@@ -5,6 +5,7 @@ import { getSessionId } from "../../lib/session";
 import { useState, useEffect, useRef } from "react";
 import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, BouncingMusicIcons, OnboardingModal, LoadingState, ErrorState } from "@/components";
 import { playSound } from "@/lib/audio";
+import { GameMode } from "@/types/gameMode";
 
 export const Route = createFileRoute("/lobby/$code")({
   component: Lobby,
@@ -296,7 +297,7 @@ function Lobby() {
               PLAYERS
             </h2>
             <div className="flex gap-4 items-center">
-              {isHost && game.settings.gameMode !== "battle_royale" && (
+              {isHost && game.settings.gameMode !== GameMode.BATTLE_ROYALE && (
                 <PixelButton
                   onClick={() => setShowSettingsModal(true)}
                   size="x-small"
@@ -306,7 +307,7 @@ function Lobby() {
                 </PixelButton>
               )}
               <div className="flex gap-4" role="group" aria-label="Game settings">
-                {game.settings.gameMode === "battle_royale" && (
+                {game.settings.gameMode === GameMode.BATTLE_ROYALE && (
                   <div className="text-center">
                     <p id="mode-label" className="pixel-text text-red-600 text-xs">MODE</p>
                     <p className="pixel-text text-red-900 text-sm font-bold" aria-labelledby="mode-label">
@@ -320,7 +321,7 @@ function Lobby() {
                     {playlistDisplayName}
                   </p>
                 </div>
-                {game.settings.gameMode === "battle_royale" ? (
+                {game.settings.gameMode === GameMode.BATTLE_ROYALE ? (
                   <div className="text-center">
                     <p id="lives-label" className="pixel-text text-sky-600 text-xs">LIVES</p>
                     <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="lives-label">

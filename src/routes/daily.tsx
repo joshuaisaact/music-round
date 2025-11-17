@@ -5,6 +5,7 @@ import { api } from "../../convex/_generated/api";
 import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, OnboardingModal, PageLayout, PixelTitle } from "@/components";
 import { playSound } from "@/lib/audio";
 import { getSessionId } from "@/lib/session";
+import { GameMode } from "@/types/gameMode";
 
 export const Route = createFileRoute("/daily")({
   component: DailyChallenge,
@@ -74,7 +75,7 @@ function DailyChallenge() {
           playlistTag: "daily-songs",
           isSinglePlayer: true,
           hintsPerPlayer: 3,
-          gameMode: "daily",
+          gameMode: GameMode.DAILY,
         },
       });
 

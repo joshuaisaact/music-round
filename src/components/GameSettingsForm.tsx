@@ -3,6 +3,7 @@ import { useQuery, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { PixelButton, PixelSlider, PixelInput, PixelError, PlaylistCard } from "@/components";
 import { playSound } from "@/lib/audio";
+import { groupPlaylistsBySection } from "@/lib/playlistUtils";
 
 let globalAudioRef: HTMLAudioElement | null = null;
 
@@ -236,14 +237,7 @@ export function GameSettingsForm({
     });
   };
 
-  const groupedPlaylists = availablePlaylists?.reduce((acc, playlist) => {
-    const section = playlist.section || "default";
-    if (!acc[section]) {
-      acc[section] = [];
-    }
-    acc[section].push(playlist);
-    return acc;
-  }, {} as Record<string, Playlist[]>);
+  const groupedPlaylists = groupPlaylistsBySection(availablePlaylists);
 
   return (
     <div className="space-y-4">

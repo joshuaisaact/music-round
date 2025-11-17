@@ -5,6 +5,8 @@ import { api } from "../../convex/_generated/api";
 import { PixelButton, PixelInput, PixelError, BouncingMusicIcons, PlaylistCard, OnboardingModal, PageLayout, PixelTitle } from "@/components";
 import { playSound } from "@/lib/audio";
 import { getSessionId } from "@/lib/session";
+import { groupPlaylistsBySection } from "@/lib/playlistUtils";
+import { GameMode } from "@/types/gameMode";
 
 interface BattleRoyaleSetupProps {
   mode: "solo" | "multiplayer";
@@ -109,7 +111,7 @@ export function BattleRoyaleSetup({ mode, initialPlaylist }: BattleRoyaleSetupPr
           playlistTag: selectedPlaylist!,
           isSinglePlayer: isSolo,
           hintsPerPlayer: 3,
-          gameMode: "battle_royale",
+          gameMode: GameMode.BATTLE_ROYALE,
         },
       });
 
@@ -165,14 +167,7 @@ export function BattleRoyaleSetup({ mode, initialPlaylist }: BattleRoyaleSetupPr
     startBattleRoyaleGame();
   };
 
-  const groupedPlaylists = availablePlaylists?.reduce((acc, playlist) => {
-    const section = playlist.section || "default";
-    if (!acc[section]) {
-      acc[section] = [];
-    }
-    acc[section].push(playlist);
-    return acc;
-  }, {} as Record<string, typeof availablePlaylists>);
+  const groupedPlaylists = groupPlaylistsBySection(availablePlaylists);
 
   return (
     <PageLayout>
