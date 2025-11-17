@@ -51,6 +51,8 @@ export const createTestRounds = internalAction({
     const maxAttempts = count * 3; // Try up to 3x the needed count to find songs with previews
     let attempts = 0;
 
+    // Retry loop requires sequential batching - must process one batch before fetching next
+    /* eslint-disable no-await-in-loop */
     while (songs.length < count && attempts < maxAttempts) {
       // Fetch more songs than we need to account for ones without previews
       const batchSize: number = count - songs.length + 5;
@@ -67,9 +69,8 @@ export const createTestRounds = internalAction({
         seed,
       });
 
-      for (const { artist, title } of randomSongs) {
-        if (songs.length >= count) break;
-
+      // Fetch Spotify data for all songs in parallel
+      const songDataPromises = randomSongs.map(async ({ artist, title }) => {
         try {
           const songData: {
             spotifyId: string;
@@ -83,22 +84,32 @@ export const createTestRounds = internalAction({
             title,
           });
 
-          // Only add songs that have a preview URL
+          // Only return songs that have a preview URL
           if (songData.previewURL && songData.previewURL.trim() !== "") {
-            songs.push(songData);
+            return songData;
           } else {
             console.log(`Skipping ${artist} - ${title}: No preview URL`);
+            return null;
           }
         } catch (error) {
           console.error(
             `Failed to fetch ${artist} - ${title}:`,
             error instanceof Error ? error.message : String(error),
           );
+          return null;
         }
+      });
 
-        attempts++;
-      }
+      const batchResults = await Promise.all(songDataPromises);
+      const validSongs = batchResults.filter((song): song is NonNullable<typeof song> => song !== null);
+
+      // Add songs up to the count we need
+      const songsToAdd = validSongs.slice(0, count - songs.length);
+      songs.push(...songsToAdd);
+
+      attempts += randomSongs.length;
     }
+    /* eslint-enable no-await-in-loop */
 
     if (songs.length < count) {
       throw new Error(
@@ -130,12 +141,14 @@ export const insertRounds = internalMutation({
     startingRoundNumber: v.number(),
   },
   handler: async (ctx, { gameId, songs, startingRoundNumber }) => {
-    for (let i = 0; i < songs.length; i++) {
-      await ctx.db.insert("rounds", {
-        gameId,
-        roundNumber: startingRoundNumber + i,
-        songData: songs[i],
-      });
-    }
+    await Promise.all(
+      songs.map((song, i) =>
+        ctx.db.insert("rounds", {
+          gameId,
+          roundNumber: startingRoundNumber + i,
+          songData: song,
+        })
+      )
+    );
   },
 });

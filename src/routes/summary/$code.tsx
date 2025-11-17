@@ -2,8 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
-import { PixelButton, PlayerStandings, SoundToggle } from "@/components";
+import { PixelButton, PlayerStandings, SoundToggle, LoadingState, ErrorState } from "@/components";
 import { useState, useEffect } from "react";
+import { generateSongEmojis } from "@/lib/shareUtils";
+import { GameMode } from "@/types/gameMode";
 
 export const Route = createFileRoute("/summary/$code")({
   component: Summary,
@@ -35,7 +37,7 @@ function Summary() {
   const availablePlaylists = useQuery(api.songs.getAvailablePlaylists);
 
   // Daily mode specific queries
-  const isDailyMode = game?.settings.gameMode === "daily";
+  const isDailyMode = game?.settings.gameMode === GameMode.DAILY;
   const dailyLeaderboard = useQuery(
     api.daily.getDailyLeaderboard,
     isDailyMode ? { limit: 10 } : "skip"
@@ -50,7 +52,7 @@ function Summary() {
   );
 
   // Battle royale mode specific queries
-  const isBattleRoyale = game?.settings.gameMode === "battle_royale";
+  const isBattleRoyale = game?.settings.gameMode === GameMode.BATTLE_ROYALE;
   const battleRoyaleLeaderboard = useQuery(
     api.battleRoyale.getLeaderboard,
     isBattleRoyale && game ? { playlistTag: game.settings.playlistTag || "daily-songs" } : "skip"
@@ -147,11 +149,7 @@ function Summary() {
     const dayNumber = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
     // Create visual representation for each song
-    const songEmojis = playerAnswers.map(answer => {
-      if (answer.artistCorrect && answer.titleCorrect) return '✅';
-      if (answer.artistCorrect || answer.titleCorrect) return '🟨';
-      return '❌';
-    }).join(' ');
+    const songEmojis = generateSongEmojis(playerAnswers);
 
     const hintsUsed = currentPlayer.hintsUsed || 0;
     const streak = playerStats?.currentStreak || 1;
@@ -178,11 +176,7 @@ ${window.location.origin}/daily`;
 
     // Create visual representation for each song (show first 10, then ...)
     const displayedAnswers = playerAnswers.slice(0, 10);
-    const songEmojis = displayedAnswers.map(answer => {
-      if (answer.artistCorrect && answer.titleCorrect) return '✅';
-      if (answer.artistCorrect || answer.titleCorrect) return '🟨';
-      return '❌';
-    }).join(' ');
+    const songEmojis = generateSongEmojis(displayedAnswers);
 
     const moreRounds = roundsCompleted > 10 ? ` +${roundsCompleted - 10}` : '';
 
@@ -206,30 +200,21 @@ ${window.location.origin}${battleRoyaleRoute}`;
     });
   };
 
-  // Loading
   if (game === undefined || !currentPlayer || !players) {
-    return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center">
-        <p className="pixel-text text-white text-xl">LOADING...</p>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   // Game not found or wrong status
   if (game === null || game.status !== "finished") {
     return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="pixel-text text-white text-xl mb-8">GAME NOT FOUND</p>
-          <PixelButton onClick={() => navigate({ to: "/" })}>
-            BACK TO HOME
-          </PixelButton>
-        </div>
-      </div>
+      <ErrorState
+        title="GAME NOT FOUND"
+        onButtonClick={() => navigate({ to: "/" })}
+      />
     );
   }
 
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const sortedPlayers = players.toSorted((a, b) => b.score - a.score);
   const topScore = sortedPlayers[0].score;
   const winners = sortedPlayers.filter((p) => p.score === topScore);
   const isHost = currentPlayer.isHost === true;
@@ -339,7 +324,7 @@ ${window.location.origin}${battleRoyaleRoute}`;
                 currentPlayerId={currentPlayer._id}
                 variant="detailed"
                 showRankMedals={!game.settings.isSinglePlayer}
-                showLives={game.settings.gameMode === "battle_royale" && !game.settings.isSinglePlayer}
+                showLives={game.settings.gameMode === GameMode.BATTLE_ROYALE && !game.settings.isSinglePlayer}
               />
             </>
           )}
@@ -543,7 +528,7 @@ ${window.location.origin}${battleRoyaleRoute}`;
                           {answer && answer.hintsUsed && answer.hintsUsed > 0 && (
                             <div className="flex items-center gap-1">
                               {Array.from({ length: answer.hintsUsed }).map((_, i) => (
-                                <img key={i} src="/light-bulb.svg" alt="" width="12" height="12" aria-hidden="true" />
+                                <img key={`hint-${i}`} src="/light-bulb.svg" alt="" width="12" height="12" aria-hidden="true" />
                               ))}
                               <span className="pixel-text text-yellow-700 text-xs">
                                 {answer.hintsUsed} {answer.hintsUsed === 1 ? 'HINT' : 'HINTS'}

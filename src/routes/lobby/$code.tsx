@@ -3,8 +3,9 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
 import { useState, useEffect, useRef } from "react";
-import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, PlaylistCard, BouncingMusicIcons, OnboardingModal } from "@/components";
+import { PixelButton, PixelInput, GameSettingsForm, SoundToggle, BouncingMusicIcons, OnboardingModal, LoadingState, ErrorState } from "@/components";
 import { playSound } from "@/lib/audio";
+import { GameMode } from "@/types/gameMode";
 
 export const Route = createFileRoute("/lobby/$code")({
   component: Lobby,
@@ -158,7 +159,7 @@ function Lobby() {
     playlistTag: string;
     roundCount: number;
     secondsPerRound: number;
-    isSinglePlayer: boolean;
+    isSinglePlayer?: boolean;
     hintsPerPlayer?: number;
   }) => {
     if (!game) return;
@@ -181,46 +182,26 @@ function Lobby() {
   };
 
   if (game === undefined) {
-    return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center">
-        <p className="pixel-text text-white text-xl">LOADING...</p>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (game === null) {
     return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="pixel-text text-white text-xl mb-8">GAME NOT FOUND</p>
-          <PixelButton
-            onClick={() => navigate({ to: "/" })}
-          >
-            BACK TO HOME
-          </PixelButton>
-        </div>
-      </div>
+      <ErrorState
+        title="GAME NOT FOUND"
+        onButtonClick={() => navigate({ to: "/" })}
+      />
     );
   }
 
   // Block new players from joining in-progress or finished games
   if ((game.status === "playing" || game.status === "finished") && !currentPlayer) {
     return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="pixel-text text-white text-xl mb-8">
-            GAME {game.status === "playing" ? "IN PROGRESS" : "FINISHED"}
-          </p>
-          <p className="pixel-text text-white text-sm mb-8 opacity-75">
-            This game has already started
-          </p>
-          <PixelButton
-            onClick={() => navigate({ to: "/" })}
-          >
-            BACK TO HOME
-          </PixelButton>
-        </div>
-      </div>
+      <ErrorState
+        title={`GAME ${game.status === "playing" ? "IN PROGRESS" : "FINISHED"}`}
+        message="This game has already started"
+        onButtonClick={() => navigate({ to: "/" })}
+      />
     );
   }
 
@@ -316,7 +297,7 @@ function Lobby() {
               PLAYERS
             </h2>
             <div className="flex gap-4 items-center">
-              {isHost && game.settings.gameMode !== "battle_royale" && (
+              {isHost && game.settings.gameMode !== GameMode.BATTLE_ROYALE && (
                 <PixelButton
                   onClick={() => setShowSettingsModal(true)}
                   size="x-small"
@@ -326,7 +307,7 @@ function Lobby() {
                 </PixelButton>
               )}
               <div className="flex gap-4" role="group" aria-label="Game settings">
-                {game.settings.gameMode === "battle_royale" && (
+                {game.settings.gameMode === GameMode.BATTLE_ROYALE && (
                   <div className="text-center">
                     <p id="mode-label" className="pixel-text text-red-600 text-xs">MODE</p>
                     <p className="pixel-text text-red-900 text-sm font-bold" aria-labelledby="mode-label">
@@ -340,7 +321,7 @@ function Lobby() {
                     {playlistDisplayName}
                   </p>
                 </div>
-                {game.settings.gameMode === "battle_royale" ? (
+                {game.settings.gameMode === GameMode.BATTLE_ROYALE ? (
                   <div className="text-center">
                     <p id="lives-label" className="pixel-text text-sky-600 text-xs">LIVES</p>
                     <p className="pixel-text text-sky-900 text-sm font-bold" aria-labelledby="lives-label">

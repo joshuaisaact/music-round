@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { PixelButton } from "./PixelButton";
+import { formatTime } from "@/lib/dateUtils";
 
 interface PixelAudioPlayerProps {
   src: string;
@@ -18,14 +19,6 @@ export const PixelAudioPlayer = ({
   const [duration, setDuration] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSeeking, setIsSeeking] = useState(false);
-
-  // Format time as MM:SS
-  const formatTime = (seconds: number) => {
-    if (!isFinite(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
 
   // Update current time
   useEffect(() => {

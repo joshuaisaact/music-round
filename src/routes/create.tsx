@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { getSessionId } from "@/lib/session";
-import { GameSettingsForm, SoundToggle, PixelButton, OrDivider } from "@/components";
+import { GameSettingsForm, SoundToggle, PixelButton, OrDivider, PageLayout, PixelTitle } from "@/components";
 import { playSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/create")({ component: CreateGame });
@@ -75,20 +75,9 @@ function CreateGame() {
   // Show mode selection first
   if (!selectedMode) {
     return (
-      <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-          <div className="pixel-cloud cloud-1"></div>
-          <div className="pixel-cloud cloud-2"></div>
-          <div className="pixel-cloud cloud-3"></div>
-        </div>
-
-        <main className="relative z-10 text-center max-w-sm mx-auto">
-          <h1
-            className="text-white mb-16 text-[3rem] sm:text-[7rem] leading-[1.3]"
-            style={{ fontFamily: '"VCR OSD Mono", monospace' }}
-          >
-            CREATE GAME
-          </h1>
+      <PageLayout>
+        <div className="max-w-sm mx-auto">
+          <PixelTitle size="medium" className="mb-16">CREATE GAME</PixelTitle>
 
           <div className="space-y-6">
             <PixelButton
@@ -125,30 +114,26 @@ function CreateGame() {
               BACK
             </PixelButton>
           </div>
-        </main>
+        </div>
+
         <SoundToggle />
-      </div>
+      </PageLayout>
     );
   }
 
   // Show settings form after mode selection
   return (
-    <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="pixel-cloud cloud-1"></div>
-        <div className="pixel-cloud cloud-2"></div>
-        <div className="pixel-cloud cloud-3"></div>
-      </div>
-
-      <main className="relative z-10 w-full max-w-md">
+    <PageLayout>
+      <div className="w-full max-w-md">
         <GameSettingsForm
           mode="create"
           onComplete={handleCreateGame}
           onCancel={() => setSelectedMode(null)}
           isSubmitting={isCreating}
         />
-      </main>
+      </div>
+
       <SoundToggle />
-    </div>
+    </PageLayout>
   );
 }

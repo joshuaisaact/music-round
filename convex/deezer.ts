@@ -24,7 +24,7 @@ export const searchTrack = action({
     artist: v.string(),
     title: v.string(),
   },
-  handler: async (ctx, { artist, title }) => {
+  handler: async (_ctx, { artist, title }) => {
     // Search Deezer for the track
     const query = encodeURIComponent(`artist:"${artist}" track:"${title}"`);
     const searchUrl = `https://api.deezer.com/search?q=${query}`;

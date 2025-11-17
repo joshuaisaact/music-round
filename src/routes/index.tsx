@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, OrDivider, OnboardingModal } from "@/components";
+import { PixelButton, PixelInput, PixelError, SoundToggle, BouncingMusicIcons, OrDivider, OnboardingModal, PageLayout, PixelTitle } from "@/components";
 import { playSound } from "@/lib/audio";
 import { getSessionId } from "@/lib/session";
 
@@ -74,60 +74,12 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-sky-400 flex items-center justify-center p-4">
-      {/* Skip to main content link for screen readers */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-yellow-400 focus:text-sky-900 focus:px-4 focus:py-2 focus:border-4 focus:border-sky-900 pixel-text"
-      >
-        Skip to main content
-      </a>
+    <PageLayout>
+      <PixelTitle>MUSIC</PixelTitle>
 
-      {/* Pixel art clouds background effect */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="pixel-cloud cloud-1"></div>
-        <div className="pixel-cloud cloud-2"></div>
-        <div className="pixel-cloud cloud-3"></div>
-      </div>
+      <BouncingMusicIcons size="large" />
 
-      <main id="main-content" className="relative z-10 text-center">
-        {/* Title */}
-        <h1
-          className="text-white max-w-[800px] mx-auto text-[4rem] sm:text-[9rem] leading-[1.3]"
-          style={{
-            fontFamily: '"VCR OSD Mono", monospace',
-            WebkitTextStroke: '3px #0c4a6e',
-            textShadow: `
-              3px 3px 0 #0c4a6e,
-              6px 6px 0 #075985,
-              9px 9px 0 #0369a1,
-              12px 12px 0 #0284c7,
-              15px 15px 0 #0ea5e9
-            `
-          }}
-        >
-          MUSIC
-        </h1>
-
-        {/* Musical notes decoration */}
-        <BouncingMusicIcons size="large" />
-
-        <h1
-          className="text-white mb-16 max-w-[800px] mx-auto text-[4rem] sm:text-[9rem] leading-[1.3]"
-          style={{
-            fontFamily: '"VCR OSD Mono", monospace',
-            WebkitTextStroke: '3px #0c4a6e',
-            textShadow: `
-              3px 3px 0 #0c4a6e,
-              6px 6px 0 #075985,
-              9px 9px 0 #0369a1,
-              12px 12px 0 #0284c7,
-              15px 15px 0 #0ea5e9
-            `
-          }}
-        >
-          ROUND
-        </h1>
+      <PixelTitle className="mb-16">ROUND</PixelTitle>
 
         <div className="space-y-6 max-w-sm mx-auto">
           {/* Daily Challenge Section */}
@@ -201,7 +153,7 @@ function App() {
           {/* Error Message */}
           {error && <PixelError id="join-error">{error}</PixelError>}
         </div>
-      </main>
+
       <SoundToggle />
 
       {/* Onboarding Modal */}
@@ -212,6 +164,6 @@ function App() {
           secondsPerRound={30}
         />
       )}
-    </div>
+    </PageLayout>
   );
 }

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalAction, internalMutation, query, action, mutation } from "./_generated/server";
+import { internalAction, internalMutation, query, action } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 
 export const count = query({
@@ -46,7 +46,7 @@ export const getRandomSongs = query({
       song,
       sort: Math.sin(randomSeed + index) * 10000
     }))
-    .sort((a, b) => a.sort - b.sort)
+    .toSorted((a, b) => a.sort - b.sort)
     .map(({ song }) => song);
 
     return shuffled.slice(0, count);
@@ -72,7 +72,6 @@ export const seedFromPlaylist = internalAction({
   },
 });
 
-// Import playlist with tags (appends, doesn't replace)
 export const importPlaylistWithTags = internalAction({
   args: {
     playlistId: v.string(),
@@ -110,17 +109,17 @@ export const replaceSongs = internalMutation({
   },
   handler: async (ctx, { songs }) => {
     const existingSongs = await ctx.db.query("songs").collect();
-    for (const song of existingSongs) {
-      await ctx.db.delete(song._id);
-    }
+    await Promise.all(
+      existingSongs.map(song => ctx.db.delete(song._id))
+    );
 
-    for (const song of songs) {
-      await ctx.db.insert("songs", {
+    await Promise.all(
+      songs.map(song => ctx.db.insert("songs", {
         artist: song.artist,
         title: song.title,
         spotifyId: song.spotifyId,
-      });
-    }
+      }))
+    );
   },
 });
 
@@ -137,22 +136,21 @@ export const replaceSongsWithTags = internalMutation({
   },
   handler: async (ctx, { songs }) => {
     const existingSongs = await ctx.db.query("songs").collect();
-    for (const song of existingSongs) {
-      await ctx.db.delete(song._id);
-    }
+    await Promise.all(
+      existingSongs.map(song => ctx.db.delete(song._id))
+    );
 
-    for (const song of songs) {
-      await ctx.db.insert("songs", {
+    await Promise.all(
+      songs.map(song => ctx.db.insert("songs", {
         artist: song.artist,
         title: song.title,
         spotifyId: song.spotifyId,
         tags: song.tags,
-      });
-    }
+      }))
+    );
   },
 });
 
-// Helper action to manually add a song - searches Spotify and adds to DB
 export const addSong = action({
   args: {
     artist: v.string(),
@@ -211,7 +209,6 @@ export const addSong = action({
   },
 });
 
-// Internal mutation to insert a single song
 export const insertSong = internalMutation({
   args: {
     artist: v.string(),
@@ -227,7 +224,6 @@ export const insertSong = internalMutation({
   },
 });
 
-// Helper query to get all songs
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
@@ -235,7 +231,6 @@ export const getAll = query({
   },
 });
 
-// Get available playlists with metadata
 export const getAvailablePlaylists = query({
   args: {},
   handler: async (ctx) => {
@@ -354,7 +349,7 @@ export const getAvailablePlaylists = query({
     }));
 
     // Sort by order
-    return playlists.sort((a, b) => a.order - b.order);
+    return playlists.toSorted((a, b) => a.order - b.order);
   },
 });
 
@@ -365,19 +360,22 @@ export const tagExistingSongs = internalMutation({
   handler: async (ctx, { tag }) => {
     const allSongs = await ctx.db.query("songs").collect();
 
-    let updatedCount = 0;
-    for (const song of allSongs) {
+    const songsToUpdate = allSongs.filter(song => {
       const currentTags = song.tags || [];
-      if (!currentTags.includes(tag)) {
-        await ctx.db.patch(song._id, {
+      return !currentTags.includes(tag);
+    });
+
+    await Promise.all(
+      songsToUpdate.map(song => {
+        const currentTags = song.tags || [];
+        return ctx.db.patch(song._id, {
           tags: [...currentTags, tag],
         });
-        updatedCount++;
-      }
-    }
+      })
+    );
 
-    console.log(`Tagged ${updatedCount} songs with "${tag}"`);
-    return { updatedCount, totalSongs: allSongs.length };
+    console.log(`Tagged ${songsToUpdate.length} songs with "${tag}"`);
+    return { updatedCount: songsToUpdate.length, totalSongs: allSongs.length };
   },
 });
 
@@ -388,23 +386,24 @@ export const tagUntaggedSongs = internalMutation({
   handler: async (ctx, { tag }) => {
     const allSongs = await ctx.db.query("songs").collect();
 
-    let updatedCount = 0;
-    for (const song of allSongs) {
+    const songsToUpdate = allSongs.filter(song => {
       const currentTags = song.tags || [];
-      if (currentTags.length === 0) {
-        await ctx.db.patch(song._id, {
-          tags: [tag],
-        });
-        updatedCount++;
-      }
-    }
+      return currentTags.length === 0;
+    });
 
-    console.log(`Tagged ${updatedCount} untagged songs with "${tag}"`);
-    return { updatedCount, totalSongs: allSongs.length };
+    await Promise.all(
+      songsToUpdate.map(song =>
+        ctx.db.patch(song._id, {
+          tags: [tag],
+        })
+      )
+    );
+
+    console.log(`Tagged ${songsToUpdate.length} untagged songs with "${tag}"`);
+    return { updatedCount: songsToUpdate.length, totalSongs: allSongs.length };
   },
 });
 
-// Append songs with tags (handles duplicates by spotifyId)
 export const appendSongsWithTags = internalMutation({
   args: {
     songs: v.array(
@@ -424,11 +423,7 @@ export const appendSongsWithTags = internalMutation({
         .map((s) => [s.spotifyId, s])
     );
 
-    let added = 0;
-    let updated = 0;
-    let skipped = 0;
-
-    for (const song of songs) {
+    const operations = songs.map((song) => {
       const existing = existingSongsBySpotifyId.get(song.spotifyId);
 
       if (existing) {
@@ -437,30 +432,39 @@ export const appendSongsWithTags = internalMutation({
         const newTags = tags.filter((tag) => !currentTags.includes(tag));
 
         if (newTags.length > 0) {
-          await ctx.db.patch(existing._id, {
-            tags: [...currentTags, ...newTags],
-          });
-          updated++;
+          return {
+            type: "update" as const,
+            promise: ctx.db.patch(existing._id, {
+              tags: [...currentTags, ...newTags],
+            }),
+          };
         } else {
-          skipped++;
+          return { type: "skip" as const, promise: Promise.resolve() };
         }
       } else {
         // New song - insert with tags
-        await ctx.db.insert("songs", {
-          artist: song.artist,
-          title: song.title,
-          spotifyId: song.spotifyId,
-          tags,
-        });
-        added++;
+        return {
+          type: "add" as const,
+          promise: ctx.db.insert("songs", {
+            artist: song.artist,
+            title: song.title,
+            spotifyId: song.spotifyId,
+            tags,
+          }),
+        };
       }
-    }
+    });
+
+    await Promise.all(operations.map(op => op.promise));
+
+    const added = operations.filter(op => op.type === "add").length;
+    const updated = operations.filter(op => op.type === "update").length;
+    const skipped = operations.filter(op => op.type === "skip").length;
 
     return { added, updated, skipped, total: songs.length };
   },
 });
 
-// Remove a tag from all songs (and delete songs that only have this tag)
 export const removeTag = internalMutation({
   args: {
     tag: v.string(),
@@ -468,28 +472,36 @@ export const removeTag = internalMutation({
   handler: async (ctx, { tag }) => {
     const allSongs = await ctx.db.query("songs").collect();
 
-    let removed = 0;
-    let deleted = 0;
-
-    for (const song of allSongs) {
-      const currentTags = song.tags || [];
-
-      if (currentTags.includes(tag)) {
+    const operations = allSongs
+      .filter(song => {
+        const currentTags = song.tags || [];
+        return currentTags.includes(tag);
+      })
+      .map(song => {
+        const currentTags = song.tags || [];
         const newTags = currentTags.filter((t) => t !== tag);
 
         if (newTags.length === 0) {
           // Delete songs that only have this tag
-          await ctx.db.delete(song._id);
-          deleted++;
+          return {
+            type: "delete" as const,
+            promise: ctx.db.delete(song._id),
+          };
         } else {
           // Just remove the tag
-          await ctx.db.patch(song._id, {
-            tags: newTags,
-          });
-          removed++;
+          return {
+            type: "remove" as const,
+            promise: ctx.db.patch(song._id, {
+              tags: newTags,
+            }),
+          };
         }
-      }
-    }
+      });
+
+    await Promise.all(operations.map(op => op.promise));
+
+    const removed = operations.filter(op => op.type === "remove").length;
+    const deleted = operations.filter(op => op.type === "delete").length;
 
     console.log(`Removed "${tag}" from ${removed} songs, deleted ${deleted} songs`);
     return { removed, deleted, totalSongs: allSongs.length };
