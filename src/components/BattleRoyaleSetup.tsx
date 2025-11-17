@@ -7,6 +7,7 @@ import { playSound } from "@/lib/audio";
 import { getSessionId } from "@/lib/session";
 import { groupPlaylistsBySection } from "@/lib/playlistUtils";
 import { GameMode } from "@/types/gameMode";
+import { useAudioPreview } from "@/hooks/useAudioPreview";
 
 interface BattleRoyaleSetupProps {
   mode: "solo" | "multiplayer";
@@ -20,10 +21,8 @@ export function BattleRoyaleSetup({ mode, initialPlaylist }: BattleRoyaleSetupPr
   const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(initialPlaylist || null);
   const [error, setError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [playingPreviewTag, setPlayingPreviewTag] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const availablePlaylists = useQuery(api.songs.getAvailablePlaylists);
   const searchTrack = useAction(api.spotify.searchTrack);
@@ -33,6 +32,14 @@ export function BattleRoyaleSetup({ mode, initialPlaylist }: BattleRoyaleSetupPr
 
   const isSolo = mode === "solo";
 
+  const { playingPreviewTag, handlePreviewToggle } = useAudioPreview({
+    searchTrack,
+    playlists: availablePlaylists,
+    autoPlayTag: selectedPlaylist,
+    shouldAutoPlay: isSolo,
+    useGlobalRef: false,
+  });
+
   const scrollToSelected = (element: HTMLDivElement | null) => {
     if (element && initialPlaylist) {
       element.scrollIntoView({
@@ -41,63 +48,6 @@ export function BattleRoyaleSetup({ mode, initialPlaylist }: BattleRoyaleSetupPr
       });
     }
   };
-
-  const handlePreviewToggle = async (tag: string) => {
-    const playlist = availablePlaylists?.find((p) => p.tag === tag);
-    if (!playlist?.previewSong) return;
-
-    if (playingPreviewTag === tag && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-      setPlayingPreviewTag(null);
-      return;
-    }
-
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-
-    try {
-      const track = await searchTrack({
-        artist: playlist.previewSong.artist,
-        title: playlist.previewSong.title,
-      });
-
-      if (track?.previewURL) {
-        const audio = new Audio(track.previewURL);
-        audio.volume = 0.5;
-
-        audio.onended = () => {
-          setPlayingPreviewTag(null);
-          audioRef.current = null;
-        };
-
-        await audio.play();
-        audioRef.current = audio;
-        setPlayingPreviewTag(tag);
-      }
-    } catch (error) {
-      console.error("Failed to fetch preview:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (isSolo && selectedPlaylist && availablePlaylists) {
-      if (playingPreviewTag !== selectedPlaylist) {
-        handlePreviewToggle(selectedPlaylist);
-      }
-    }
-  }, [selectedPlaylist, availablePlaylists, isSolo]);
-
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
 
   const startBattleRoyaleGame = async () => {
     setIsCreating(true);

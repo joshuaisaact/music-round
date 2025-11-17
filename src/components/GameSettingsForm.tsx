@@ -4,8 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { PixelButton, PixelSlider, PixelInput, PixelError, PlaylistCard } from "@/components";
 import { playSound } from "@/lib/audio";
 import { groupPlaylistsBySection } from "@/lib/playlistUtils";
-
-let globalAudioRef: HTMLAudioElement | null = null;
+import { useAudioPreview } from "@/hooks/useAudioPreview";
 
 interface GameSettingsFormProps {
   mode: "create" | "edit";
@@ -60,62 +59,16 @@ export function GameSettingsForm({
   const [secondsPerRound, setSecondsPerRound] = useState(initialSecondsPerRound);
   const [hintsPerPlayer, setHintsPerPlayer] = useState(initialHintsPerPlayer);
   const [error, setError] = useState("");
-  const [playingPreviewTag, setPlayingPreviewTag] = useState<string | null>(null);
 
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const handlePreviewToggle = async (tag: string) => {
-    const playlist = availablePlaylists?.find((p) => p.tag === tag);
-    if (!playlist?.previewSong) return;
-
-    if (playingPreviewTag === tag && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-      if (globalAudioRef) {
-        globalAudioRef.pause();
-        globalAudioRef = null;
-      }
-      setPlayingPreviewTag(null);
-      return;
-    }
-
-    if (globalAudioRef) {
-      globalAudioRef.pause();
-      globalAudioRef = null;
-    }
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-
-    try {
-      const result = await searchTrack({
-        artist: playlist.previewSong.artist,
-        title: playlist.previewSong.title,
-      });
-
-      if (result.previewURL) {
-        const audio = new Audio(result.previewURL);
-        audio.volume = 0.5;
-
-        audio.onended = () => {
-          setPlayingPreviewTag(null);
-          audioRef.current = null;
-          if (globalAudioRef === audio) {
-            globalAudioRef = null;
-          }
-        };
-
-        await audio.play();
-        audioRef.current = audio;
-        globalAudioRef = audio;
-        setPlayingPreviewTag(tag);
-      }
-    } catch (error) {
-      console.error("Failed to play preview:", error);
-    }
-  };
+  const { playingPreviewTag, handlePreviewToggle, stopAudio } = useAudioPreview({
+    searchTrack,
+    playlists: availablePlaylists,
+    autoPlayTag: selectedPlaylist,
+    shouldAutoPlay: true,
+    useGlobalRef: true,
+  });
 
   useEffect(() => {
     if (availablePlaylists && availablePlaylists.length > 0 && !selectedPlaylist) {
@@ -124,38 +77,9 @@ export function GameSettingsForm({
     }
   }, [availablePlaylists, selectedPlaylist]);
 
-  useEffect(() => {
-    if (selectedPlaylist && availablePlaylists) {
-      if (playingPreviewTag !== selectedPlaylist) {
-        handlePreviewToggle(selectedPlaylist);
-      }
-    }
-  }, [selectedPlaylist, availablePlaylists]);
-
-  useEffect(() => {
-    return () => {
-      if (globalAudioRef === audioRef.current) {
-        globalAudioRef = null;
-      }
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      setPlayingPreviewTag(null);
-    };
-  }, []);
-
   const handleTabChange = (tab: Tab) => {
     if (tab !== "playlist") {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      if (globalAudioRef) {
-        globalAudioRef.pause();
-        globalAudioRef = null;
-      }
-      setPlayingPreviewTag(null);
+      stopAudio();
     }
     setCurrentTab(tab);
     setError("");
@@ -187,15 +111,7 @@ export function GameSettingsForm({
   };
 
   const handleCancel = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    if (globalAudioRef) {
-      globalAudioRef.pause();
-      globalAudioRef = null;
-    }
-    setPlayingPreviewTag(null);
+    stopAudio();
     onCancel();
   };
 
@@ -215,15 +131,7 @@ export function GameSettingsForm({
       return;
     }
 
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    if (globalAudioRef) {
-      globalAudioRef.pause();
-      globalAudioRef = null;
-    }
-    setPlayingPreviewTag(null);
+    stopAudio();
 
     playSound("/sounds/confirmation.ogg");
 
