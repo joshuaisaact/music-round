@@ -19,3 +19,10 @@ export { PageLayout } from "./PageLayout";
 export { PixelTitle } from "./PixelTitle";
 export { LoadingState } from "./LoadingState";
 export { ErrorState } from "./ErrorState";
+
+// Game components
+export { GameHeader } from "./game/GameHeader";
+export { AnswerForm } from "./game/AnswerForm";
+export { HostControls } from "./game/HostControls";
+export { PreparingPhaseOverlay } from "./game/PreparingPhaseOverlay";
+export { LeaveGameModal } from "./game/LeaveGameModal";
