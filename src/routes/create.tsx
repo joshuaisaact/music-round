@@ -5,11 +5,24 @@ import { api } from "../../convex/_generated/api";
 import { getSessionId } from "@/lib/session";
 import { GameSettingsForm, SoundToggle, PixelButton, OrDivider, PageLayout, PixelTitle } from "@/components";
 import { playSound } from "@/lib/audio";
+import { ConvexHttpClient } from "convex/browser";
 
-export const Route = createFileRoute("/create")({ component: CreateGame });
+const CONVEX_URL = import.meta.env.VITE_CONVEX_URL;
+
+export const Route = createFileRoute("/create")({
+  component: CreateGame,
+  loader: async () => {
+    // SSR available playlists for instant display
+    const convex = new ConvexHttpClient(CONVEX_URL);
+    const availablePlaylists = await convex.query(api.songs.getAvailablePlaylists);
+
+    return { availablePlaylists };
+  },
+});
 
 function CreateGame() {
   const navigate = useNavigate();
+  const loaderData = Route.useLoaderData();
   const createGame = useMutation(api.games.create);
   const joinGame = useMutation(api.players.join);
   const startGame = useAction(api.games.start);
@@ -130,6 +143,7 @@ function CreateGame() {
           onComplete={handleCreateGame}
           onCancel={() => setSelectedMode(null)}
           isSubmitting={isCreating}
+          availablePlaylists={loaderData.availablePlaylists}
         />
       </div>
 
