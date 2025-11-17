@@ -67,13 +67,15 @@ export function useAudioPreview({
         const audio = new Audio(result.previewURL);
         audio.volume = 0.5;
 
-        audio.onended = () => {
+        const handleEnded = () => {
           setPlayingPreviewTag(null);
           audioRef.current = null;
           if (useGlobalRef && globalAudioRef === audio) {
             globalAudioRef = null;
           }
         };
+
+        audio.addEventListener('ended', handleEnded);
 
         await audio.play();
         audioRef.current = audio;
