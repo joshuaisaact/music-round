@@ -274,7 +274,7 @@ describe("answers", () => {
       });
 
       // First hint
-      const result1 = await t.mutation(api.answers.useHint, {
+      await t.mutation(api.answers.useHint, {
         roundId,
         playerId,
       });

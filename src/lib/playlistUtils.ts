@@ -4,7 +4,7 @@ interface Playlist {
   subtitle?: string;
   section?: string;
   songCount: number;
-  previewSong: { artist: string; title: string };
+  previewSong?: { artist: string; title: string };
 }
 
 export function groupPlaylistsBySection(

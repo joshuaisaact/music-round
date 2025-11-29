@@ -32,11 +32,11 @@
         "@types/node": "^22.10.2",
         "@types/react": "^19.2.0",
         "@types/react-dom": "^19.2.0",
+        "@typescript/native-preview": "^7.0.0-dev.20251129.1",
         "@vitejs/plugin-react": "^5.0.4",
         "convex-test": "^0.0.41",
         "jsdom": "^27.0.0",
         "oxlint": "^1.28.0",
-        "typescript": "^5.7.2",
         "vinxi": "^0.5.8",
         "vite": "^7.1.7",
         "vitest": "^3.0.5",
@@ -850,6 +850,22 @@
     "@typescript-eslint/typescript-estree": ["@typescript-eslint/typescript-estree@8.46.4", "", { "dependencies": { "@typescript-eslint/project-service": "8.46.4", "@typescript-eslint/tsconfig-utils": "8.46.4", "@typescript-eslint/types": "8.46.4", "@typescript-eslint/visitor-keys": "8.46.4", "debug": "^4.3.4", "fast-glob": "^3.3.2", "is-glob": "^4.0.3", "minimatch": "^9.0.4", "semver": "^7.6.0", "ts-api-utils": "^2.1.0" }, "peerDependencies": { "typescript": ">=4.8.4 <6.0.0" } }, "sha512-7oV2qEOr1d4NWNmpXLR35LvCfOkTNymY9oyW+lUHkmCno7aOmIf/hMaydnJBUTBMRCOGZh8YjkFOc8dadEoNGA=="],
 
     "@typescript-eslint/visitor-keys": ["@typescript-eslint/visitor-keys@8.46.4", "", { "dependencies": { "@typescript-eslint/types": "8.46.4", "eslint-visitor-keys": "^4.2.1" } }, "sha512-/++5CYLQqsO9HFGLI7APrxBJYo+5OCMpViuhV8q5/Qa3o5mMrF//eQHks+PXcsAVaLdn817fMuS7zqoXNNZGaw=="],
+
+    "@typescript/native-preview": ["@typescript/native-preview@7.0.0-dev.20251129.1", "", { "optionalDependencies": { "@typescript/native-preview-darwin-arm64": "7.0.0-dev.20251129.1", "@typescript/native-preview-darwin-x64": "7.0.0-dev.20251129.1", "@typescript/native-preview-linux-arm": "7.0.0-dev.20251129.1", "@typescript/native-preview-linux-arm64": "7.0.0-dev.20251129.1", "@typescript/native-preview-linux-x64": "7.0.0-dev.20251129.1", "@typescript/native-preview-win32-arm64": "7.0.0-dev.20251129.1", "@typescript/native-preview-win32-x64": "7.0.0-dev.20251129.1" }, "bin": { "tsgo": "bin/tsgo.js" } }, "sha512-YwRFC/AHWvIASUarrrkmuT3yPzZIuKDRSSYhH9CfcmxUfF6WUyEiHGA9ahGKY+F5hxiChG2982wk3DcrH8t2Ig=="],
+
+    "@typescript/native-preview-darwin-arm64": ["@typescript/native-preview-darwin-arm64@7.0.0-dev.20251129.1", "", { "os": "darwin", "cpu": "arm64" }, "sha512-BL60UBF2Q/2H4bSxcl5df8rVGz2v6Nan79aVEcgWPeGf65BxKPUqdV1Fc4+zqn5dj9slcx2NTkV46onlq1+E6g=="],
+
+    "@typescript/native-preview-darwin-x64": ["@typescript/native-preview-darwin-x64@7.0.0-dev.20251129.1", "", { "os": "darwin", "cpu": "x64" }, "sha512-kzjGXa+D663RaEl/bv7e9L8rIjXK/WhqoKPbQtNjJC6JCbb0L438c6wnfSMNyO6xGVFe2VtGiaJe6yAGnek5Vw=="],
+
+    "@typescript/native-preview-linux-arm": ["@typescript/native-preview-linux-arm@7.0.0-dev.20251129.1", "", { "os": "linux", "cpu": "arm" }, "sha512-wnyMoYcchhn7gUPFQbBeB0MAFi2SfugE99VGHDDmpCK2GsLI6VVx76d66C4QxtNuJLTHJhgKe60m8gKxAPol6w=="],
+
+    "@typescript/native-preview-linux-arm64": ["@typescript/native-preview-linux-arm64@7.0.0-dev.20251129.1", "", { "os": "linux", "cpu": "arm64" }, "sha512-29cmzHC0L/Puw/pHZFxuUGaWEfonNloFcsT8yfwFm0+lyQxifPxOvLDlNP9pLPQMc/nCyC4hMKIImzh7q/HorQ=="],
+
+    "@typescript/native-preview-linux-x64": ["@typescript/native-preview-linux-x64@7.0.0-dev.20251129.1", "", { "os": "linux", "cpu": "x64" }, "sha512-5bpo18sgTXz/Wi2ikC0FK+z3ONeECU5Xv9a4jmnGhQ7L0Hnfq+ZdH7uk5sMe6CbnrQkP6L46hawwiJaGim50sQ=="],
+
+    "@typescript/native-preview-win32-arm64": ["@typescript/native-preview-win32-arm64@7.0.0-dev.20251129.1", "", { "os": "win32", "cpu": "arm64" }, "sha512-TLhNpfjZ1EHQba3VltprcAobH8tmx9DW8+EcLbXdXiq03GrocstN7LgIuYmQ7xRqDRfdoPDX0zuTkDLNw6iAmA=="],
+
+    "@typescript/native-preview-win32-x64": ["@typescript/native-preview-win32-x64@7.0.0-dev.20251129.1", "", { "os": "win32", "cpu": "x64" }, "sha512-5rT0u4MvXhikzLqiLOHzDFaVi+V6y9QX0OII8QZIxD/GoVuLSsdQ8UlX/t8GJKq77mBR2z/u0Pg+HJZBSwJBmg=="],
 
     "@vercel/nft": ["@vercel/nft@0.30.3", "", { "dependencies": { "@mapbox/node-pre-gyp": "^2.0.0", "@rollup/pluginutils": "^5.1.3", "acorn": "^8.6.0", "acorn-import-attributes": "^1.9.5", "async-sema": "^3.1.1", "bindings": "^1.4.0", "estree-walker": "2.0.2", "glob": "^10.4.5", "graceful-fs": "^4.2.9", "node-gyp-build": "^4.2.2", "picomatch": "^4.0.2", "resolve-from": "^5.0.0" }, "bin": { "nft": "out/cli.js" } }, "sha512-UEq+eF0ocEf9WQCV1gktxKhha36KDs7jln5qii6UpPf5clMqDc0p3E7d9l2Smx0i9Pm1qpq4S4lLfNl97bbv6w=="],
 

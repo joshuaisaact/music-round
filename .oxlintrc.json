@@ -6,6 +6,8 @@
     "perf": "warn"
   },
   "rules": {
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    "react-hooks/exhaustive-deps": "warn",
+    "unicorn/consistent-function-scoping": "off"
   }
 }

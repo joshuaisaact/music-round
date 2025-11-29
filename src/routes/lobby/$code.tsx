@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getSessionId } from "../../lib/session";
@@ -82,17 +82,6 @@ function Lobby() {
       setIsStarting(false);
     }
   };
-
-  // Navigate existing players when game status changes
-  useEffect(() => {
-    if (!game || !currentPlayer) return;
-
-    if (game.status === "playing") {
-      navigate({ to: "/game/$code", params: { code } });
-    } else if (game.status === "finished") {
-      navigate({ to: "/summary/$code", params: { code } });
-    }
-  }, [game?.status, currentPlayer, code, navigate]);
 
   // Handle Escape key for modal
   useEffect(() => {
@@ -192,6 +181,15 @@ function Lobby() {
         onButtonClick={() => navigate({ to: "/" })}
       />
     );
+  }
+
+  // Redirect existing players when game starts or finishes
+  if (game.status === "playing" && currentPlayer) {
+    return <Navigate to="/game/$code" params={{ code }} />;
+  }
+
+  if (game.status === "finished" && currentPlayer) {
+    return <Navigate to="/summary/$code" params={{ code }} />;
   }
 
   // Block new players from joining in-progress or finished games

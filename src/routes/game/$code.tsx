@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useEffect, useState, useRef } from "react";
@@ -102,12 +102,6 @@ function Game() {
       setHintsRemaining(hintsPerPlayer - totalHintsUsed);
     }
   }, [roundAnswers, currentPlayer, game]);
-
-  useEffect(() => {
-    if (game && game.status === "finished") {
-      navigate({ to: "/summary/$code", params: { code } });
-    }
-  }, [game?.status, navigate, code]);
 
   // Reset form when round changes
   useEffect(() => {
@@ -269,8 +263,23 @@ function Game() {
     return <LoadingState />;
   }
 
-  // Game not found or wrong status
-  if (game === null || game.status !== "playing") {
+  // Game not found
+  if (game === null) {
+    return (
+      <ErrorState
+        title="GAME NOT FOUND"
+        onButtonClick={() => navigate({ to: "/" })}
+      />
+    );
+  }
+
+  // Game finished - redirect to summary
+  if (game.status === "finished") {
+    return <Navigate to="/summary/$code" params={{ code }} />;
+  }
+
+  // Game in lobby (not yet started)
+  if (game.status !== "playing") {
     return (
       <ErrorState
         title="GAME NOT ACTIVE"

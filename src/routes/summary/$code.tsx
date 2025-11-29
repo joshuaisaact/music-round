@@ -74,7 +74,7 @@ export const Route = createFileRoute("/summary/$code")({
 });
 
 function Summary() {
-  const { code } = Route.useParams();
+  const { code: _code } = Route.useParams();
   const navigate = useNavigate();
   const sessionId = getSessionId();
   const [isCreatingNewGame, setIsCreatingNewGame] = useState(false);
@@ -143,6 +143,7 @@ function Summary() {
   const submitBattleRoyaleScore = useMutation(api.battleRoyale.submitScore);
 
   // Submit daily score and update streak on mount for daily mode
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally using specific properties to avoid re-submitting on unrelated game/player updates
   useEffect(() => {
     if (isDailyMode && game && currentPlayer) {
       // Submit score
@@ -165,6 +166,7 @@ function Summary() {
   }, [isDailyMode, game?._id, currentPlayer?.score, currentPlayer?.name, sessionId, submitDailyScore, updateStreak]);
 
   // Submit battle royale score on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally using specific properties to avoid re-submitting on unrelated updates
   useEffect(() => {
     if (isBattleRoyale && game && currentPlayer && playerAnswers) {
       // Count actual rounds completed (where player submitted answers)

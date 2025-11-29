@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PixelButton } from "./PixelButton";
 import { formatTime } from "@/lib/dateUtils";
 
@@ -64,7 +64,7 @@ export const PixelAudioPlayer = ({
   }, [isSeeking]);
 
   // Handle play/pause
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -75,7 +75,7 @@ export const PixelAudioPlayer = ({
       audio.play();
       setIsPlaying(true);
     }
-  };
+  }, [isPlaying]);
 
   // Handle seeking
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,7 +118,7 @@ export const PixelAudioPlayer = ({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [duration]);
+  }, [duration, togglePlay]);
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 

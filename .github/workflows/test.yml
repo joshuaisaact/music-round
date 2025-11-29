@@ -24,7 +24,7 @@ jobs:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
 
       - name: Typecheck
-        run: bunx tsc --noEmit
+        run: bunx tsgo --noEmit
 
       - name: Lint
         run: bun run lint
