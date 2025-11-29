@@ -104,6 +104,32 @@ SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
 bun run build
 ```
 
+<h2 align="center">Development</h2>
+
+### Scripts
+
+```bash
+bun run dev      # Start dev server
+bun run test     # Run tests (69 tests, ~850ms)
+bun run lint     # Lint with oxlint
+bun run lint:fix # Lint and auto-fix
+```
+
+### Type Checking
+
+Uses [tsgo](https://github.com/microsoft/typescript-go) (native TypeScript compiler, experimental):
+
+```bash
+bunx tsgo --noEmit
+```
+
+### Test Stack
+
+- **Vitest** - Test runner
+- **happy-dom** - DOM environment (faster than jsdom)
+- **Testing Library** - Component tests
+- **convex-test** - Backend integration tests
+
 <h2 align="center">How to Play</h2>
 
 1. **Create a Game**: Click "Create Game" to generate a unique game code
