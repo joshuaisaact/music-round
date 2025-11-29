@@ -3,6 +3,7 @@ import {
   Scripts,
   createRootRouteWithContext,
 } from "@tanstack/react-router";
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 
@@ -18,7 +19,32 @@ interface MyRouterContext {
   queryClient: QueryClient;
 }
 
+function RootErrorComponent({ error }: ErrorComponentProps) {
+  return (
+    <div className="min-h-screen bg-sky-500 flex items-center justify-center p-4">
+      <div className="bg-white border-4 border-sky-900 p-8 max-w-md text-center">
+        <h1 className="pixel-text text-2xl text-sky-900 mb-4">SOMETHING WENT WRONG</h1>
+        <p className="pixel-text text-sky-700 text-sm mb-6">
+          {error.message || "An unexpected error occurred"}
+        </p>
+        <a
+          href="/"
+          className="pixel-button bg-white text-xl py-3 px-6 inline-block"
+        >
+          BACK TO HOME
+        </a>
+        {import.meta.env.DEV && (
+          <pre className="mt-4 text-left text-xs bg-red-50 p-2 overflow-auto max-h-40 border border-red-200">
+            {error.stack}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export const Route = createRootRouteWithContext<MyRouterContext>()({
+  errorComponent: RootErrorComponent,
   head: () => ({
     meta: [
       {

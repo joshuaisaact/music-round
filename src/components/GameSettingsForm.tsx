@@ -89,12 +89,7 @@ export function GameSettingsForm({
         return;
       }
       playSound("/sounds/click1.ogg");
-
-      if (mode === "edit") {
-        setCurrentTab("settings");
-      } else {
-        setCurrentTab("settings");
-      }
+      setCurrentTab("settings");
     } else if (currentTab === "settings") {
       playSound("/sounds/click1.ogg");
 
