@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 
 interface Playlist {
   tag: string;
-  previewSong: { artist: string; title: string };
+  previewSong?: { artist: string; title: string };
 }
 
 interface UseAudioPreviewOptions {
@@ -90,6 +90,7 @@ export function useAudioPreview({
   };
 
   // Auto-play effect
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only trigger on autoPlayTag/playlists change, not on handler recreation
   useEffect(() => {
     if (shouldAutoPlay && autoPlayTag && playlists) {
       if (playingPreviewTag !== autoPlayTag) {
