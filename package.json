@@ -15,7 +15,7 @@
     "@clerk/clerk-react": "^5.49.0",
     "@convex-dev/react-query": "0.0.0-alpha.11",
     "@sentry/tanstackstart-react": "^10.22.0",
-    "@tailwindcss/vite": "^4.0.6",
+    "@tailwindcss/vite": "^4.3.5",
     "@tanstack/react-devtools": "^0.7.0",
     "@tanstack/react-query": "^5.66.5",
     "@tanstack/react-query-devtools": "^5.84.2",
@@ -29,12 +29,12 @@
     "lucide-react": "^0.544.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwindcss": "^4.0.6",
+    "tailwindcss": "^4.3.5",
     "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
     "@edge-runtime/vm": "^5.0.0",
-    "@netlify/vite-plugin-tanstack-start": "^1.1.12",
+    "@netlify/vite-plugin-tanstack-start": "^1.3.19",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.2.0",
@@ -43,12 +43,12 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@typescript/native-preview": "^7.0.0-dev.20251129.1",
-    "@vitejs/plugin-react": "^5.0.4",
+    "@vitejs/plugin-react": "^5.2.0",
     "convex-test": "^0.0.41",
     "happy-dom": "^20.0.11",
     "oxlint": "^1.28.0",
     "vinxi": "^0.5.8",
-    "vite": "^7.1.7",
+    "vite": "^8.0.0",
     "vitest": "^3.0.5",
     "web-vitals": "^5.1.0"
   }
